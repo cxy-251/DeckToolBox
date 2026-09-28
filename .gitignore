@@ -1,0 +1,26 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+.vs/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+
+# Node
+node_modules/
+.pnpm-store/
+
+# Linux / OS
+.DS_Store
+*.swp
+*~
+
+# IDE
+.idea/
+*.DotSettings.user

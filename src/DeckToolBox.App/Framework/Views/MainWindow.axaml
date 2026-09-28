@@ -1,0 +1,162 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DeckToolBox.App.Framework.ViewModels"
+        xmlns:models="using:DeckToolBox.App.Framework.Models"
+        xmlns:views="using:DeckToolBox.App.Framework.Views"
+        x:Class="DeckToolBox.App.Framework.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="DeckToolBox - Linux 设备知识与系统全景探索中心"
+        Width="1280" Height="800"
+        MinWidth="1024" MinHeight="680"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D1117">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- 1. 顶部 Header -->
+        <Border Grid.Row="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1" Padding="20,12">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Background="#238636" CornerRadius="6" Width="36" Height="36">
+                        <TextBlock Text="⚡" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Spacing="2">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="DECKTOOLBOX" FontWeight="ExtraBold" FontSize="17" Foreground="#F0F6FC" LetterSpacing="1" />
+                            <Border Background="#1F6FEB" CornerRadius="4" Padding="6,1">
+                                <TextBlock Text="Linux 原生知识中心" FontSize="11" Foreground="#FFFFFF" FontWeight="Bold" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="数据驱动架构 • 框架层 UI 控制 • 纯透明指令交互" FontSize="12" Foreground="#8B949E" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 中部：视点选择器 (Segmented Scope Switcher: 方案 A 动静分流) -->
+                <Border Grid.Column="1" Background="#21262D" CornerRadius="8" Padding="3" BorderBrush="#30363D" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button Classes="ScopeTab"
+                                Classes.Active="{Binding IsSteamDeckScope}"
+                                Click="OnScopeTabClicked" Tag="SteamDeckNative">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="🎮" />
+                                <TextBlock Text="Steam Deck 本机专精" />
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="ScopeTab"
+                                Classes.Active="{Binding IsUniversalDistrosScope}"
+                                Click="OnScopeTabClicked" Tag="UniversalDistros">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="🐧" />
+                                <TextBlock Text="广域 Linux 宇宙" />
+                            </StackPanel>
+                        </Button>
+                        <Button Classes="ScopeTab"
+                                Classes.Active="{Binding IsKernelInternalsScope}"
+                                Click="OnScopeTabClicked" Tag="LinuxKernelInternals">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="🧠" />
+                                <TextBlock Text="通用内核底石" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                    <Border Background="#21262D" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="12,6">
+                        <TextBlock Text="💡 纯透明人机操作：无暗箱黑盒执行，命令由您亲自掌控" FontSize="12" Foreground="#7EE787" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 2. 中间主体区 (左侧分类导航 + 右侧数据驱动模块内容) -->
+        <Grid Grid.Row="1" ColumnDefinitions="350,*">
+
+            <!-- 左侧导航栏 -->
+            <Border Grid.Column="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="18" Margin="14,16,14,20">
+
+                        <Border Background="#1C2128" BorderBrush="#30363D" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,2">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Border Background="#1F6FEB" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="{Binding CurrentScopeBadge}" FontSize="11" Foreground="#FFFFFF" FontWeight="Bold" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text=" 知识体系目录" FontSize="12" Foreground="#C9D1D9" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 大类与小节列表 -->
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:CategoryDefinition}">
+                                    <StackPanel Spacing="6" Margin="0,0,0,14">
+                                        <!-- 大类标题 -->
+                                        <Border Background="#21262D" CornerRadius="6" Padding="10,8" Margin="0,0,0,4">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Icon}" FontSize="15" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="#F0F6FC" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- 细分子模块列表 -->
+                                        <ItemsControl ItemsSource="{Binding Modules}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type models:ModuleDefinition}">
+                                                    <Button HorizontalAlignment="Stretch"
+                                                            HorizontalContentAlignment="Stretch"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            CornerRadius="6"
+                                                            Padding="12,8"
+                                                            Margin="0,1"
+                                                            Cursor="Hand"
+                                                            Click="OnModuleItemClicked">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <StackPanel Spacing="2">
+                                                                <TextBlock Text="{Binding Title}" FontSize="13" Foreground="#C9D1D9" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                                                <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="#8B949E" />
+                                                            </StackPanel>
+                                                            <Border Grid.Column="1" Background="#30363D" CornerRadius="4" Padding="5,1" VerticalAlignment="Center" Margin="6,0,0,0">
+                                                                <TextBlock Text="{Binding Badge}" FontSize="10" Foreground="#8B949E" />
+                                                            </Border>
+                                                        </Grid>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- 右侧主内容展示区 (数据驱动渲染器) -->
+            <Border Grid.Column="1" Background="#0D1117" Padding="32,24,20,16">
+                <views:ModuleContentView DataContext="{Binding CurrentModuleViewModel}" />
+            </Border>
+
+        </Grid>
+
+        <!-- 3. 底部状态栏 -->
+        <Border Grid.Row="2" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,1,0,0" Padding="16,8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="当前小节：" FontSize="12" Foreground="#8B949E" />
+                    <TextBlock Text="{Binding CurrentCategoryTitle}" FontSize="12" Foreground="#58A6FF" FontWeight="SemiBold" />
+                    <TextBlock Text=">" FontSize="12" Foreground="#8B949E" />
+                    <TextBlock Text="{Binding CurrentModuleTitle}" FontSize="12" Foreground="#F0F6FC" FontWeight="Bold" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" FontSize="12"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" />
+
+                <TextBlock Grid.Column="2" Text="SteamOS 3.x / Linux Native" FontSize="11" Foreground="#8B949E" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

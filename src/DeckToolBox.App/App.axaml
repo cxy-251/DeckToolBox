@@ -1,0 +1,99 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DeckToolBox.App.App"
+             RequestedThemeVariant="Dark">
+    <Application.Styles>
+        <FluentTheme />
+        
+        <!-- 全局卡片样式 -->
+        <Style Selector="Border.Card">
+            <Setter Property="Background" Value="#1C2128" />
+            <Setter Property="BorderBrush" Value="#30363D" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <!-- 为什么做 - 信息卡片 -->
+        <Style Selector="Border.CardWhy">
+            <Setter Property="Background" Value="#0D1117" />
+            <Setter Property="BorderBrush" Value="#1F6FEB" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <!-- 后果与影响 - 警告卡片 -->
+        <Style Selector="Border.CardConsequence">
+            <Setter Property="Background" Value="#161B22" />
+            <Setter Property="BorderBrush" Value="#D29922" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <!-- 验证卡片 -->
+        <Style Selector="Border.CardVerify">
+            <Setter Property="Background" Value="#0D1117" />
+            <Setter Property="BorderBrush" Value="#238636" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <!-- 代码块外框 -->
+        <Style Selector="Border.CodeBox">
+            <Setter Property="Background" Value="#0D1117" />
+            <Setter Property="BorderBrush" Value="#30363D" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+
+        <!-- 复制按钮 -->
+        <Style Selector="Button.CopyBtn">
+            <Setter Property="Background" Value="#21262D" />
+            <Setter Property="Foreground" Value="#C9D1D9" />
+            <Setter Property="BorderBrush" Value="#30363D" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.CopyBtn:pointerover">
+            <Setter Property="Background" Value="#30363D" />
+            <Setter Property="Foreground" Value="#58A6FF" />
+            <Setter Property="BorderBrush" Value="#58A6FF" />
+        </Style>
+        <!-- 视点选择 Tab 按钮 -->
+        <Style Selector="Button.ScopeTab">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#8B949E" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.ScopeTab:pointerover">
+            <Setter Property="Background" Value="#30363D" />
+            <Setter Property="Foreground" Value="#F0F6FC" />
+        </Style>
+        <Style Selector="Button.ScopeTab.Active">
+            <Setter Property="Background" Value="#1F6FEB" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="Button.ScopeTab.Active:pointerover">
+            <Setter Property="Background" Value="#388BFD" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+    </Application.Styles>
+</Application>

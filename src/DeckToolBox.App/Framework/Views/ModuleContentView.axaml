@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DeckToolBox.App.Framework.ViewModels"
+             xmlns:models="using:DeckToolBox.App.Framework.Models"
+             x:Class="DeckToolBox.App.Framework.Views.ModuleContentView"
+             x:DataType="vm:DynamicModuleViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="18" Margin="0,0,16,24">
+
+            <!-- 1. 顶部标题与概述区 -->
+            <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding CategoryName}" FontSize="13" Foreground="#8B949E" FontWeight="SemiBold" />
+                    <TextBlock Text="•" FontSize="13" Foreground="#8B949E" />
+                    <Border Background="#21262D" CornerRadius="4" Padding="6,1">
+                        <TextBlock Text="{Binding Model.Badge}" FontSize="11" Foreground="#58A6FF" FontWeight="Bold" />
+                    </Border>
+                </StackPanel>
+                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" Foreground="#F0F6FC" />
+                <TextBlock Text="{Binding Overview}" FontSize="14" Foreground="#8B949E" Margin="0,2,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- 2. 卡片一：为什么要做 (Why) -->
+            <Border BorderBrush="{Binding WhyCard.BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18"
+                    Background="#0D1117">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding WhyCard.Icon}" FontSize="16" />
+                        <TextBlock Text="{Binding WhyCard.Title}" FontWeight="Bold" FontSize="15" Foreground="{Binding WhyCard.HeaderForeground}" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding WhyCard.Points}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type x:String}">
+                                <TextBlock Text="{Binding}" Foreground="#C9D1D9" TextWrapping="Wrap" LineHeight="22" Margin="0,2,0,4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- 3. 卡片二：操作后果与影响边界 (Consequences) -->
+            <Border BorderBrush="{Binding ConsequenceCard.BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18"
+                    Background="#161B22">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding ConsequenceCard.Icon}" FontSize="16" />
+                        <TextBlock Text="{Binding ConsequenceCard.Title}" FontWeight="Bold" FontSize="15" Foreground="{Binding ConsequenceCard.HeaderForeground}" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding ConsequenceCard.Points}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type x:String}">
+                                <TextBlock Text="{Binding}" Foreground="#C9D1D9" TextWrapping="Wrap" LineHeight="22" Margin="0,2,0,4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- 4. 卡片三：人机操作指令 (Actionable Commands - 数据驱动生成步骤) -->
+            <Border Classes="Card">
+                <StackPanel Spacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="💻" FontSize="16" />
+                        <TextBlock Text="人机操作指令 (复制并在 Konsole 终端中手动执行)" FontWeight="Bold" FontSize="15" Foreground="#F0F6FC" />
+                    </StackPanel>
+                    <TextBlock Text="请打开系统的 Konsole 终端，按步骤复制并执行以下命令（无黑盒执行）：" Foreground="#8B949E" FontSize="13" />
+
+                    <!-- 动态渲染步骤 -->
+                    <ItemsControl ItemsSource="{Binding Steps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:StepCommandItem}">
+                                <StackPanel Spacing="4" Margin="0,4,0,10">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="步骤" FontWeight="Bold" Foreground="#7EE787" FontSize="13" />
+                                        <TextBlock Text="{Binding StepNumber}" FontWeight="Bold" Foreground="#7EE787" FontSize="13" />
+                                        <TextBlock Text="：" FontWeight="Bold" Foreground="#7EE787" FontSize="13" />
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#7EE787" FontSize="13" />
+                                    </StackPanel>
+
+                                    <!-- 代码框与复制按钮 -->
+                                    <Border Classes="CodeBox">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <SelectableTextBlock Text="{Binding Command}"
+                                                                 FontFamily="Cascadia Code, Consolas, Monospace"
+                                                                 Foreground="#79C0FF"
+                                                                 VerticalAlignment="Center"
+                                                                 TextWrapping="Wrap" />
+                                            <Button Grid.Column="1"
+                                                    Classes="CopyBtn"
+                                                    Content="复制指令"
+                                                    Command="{Binding $parent[UserControl].((vm:DynamicModuleViewModel)DataContext).CopyCommand}"
+                                                    CommandParameter="{Binding Command}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="10,0,0,0" />
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="{Binding Description}" Foreground="#8B949E" FontSize="12" Margin="4,0,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- 5. 卡片四：结果验证与状态检查 (Verification) -->
+            <Border BorderBrush="{Binding VerificationCard.BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18"
+                    Background="#0D1117">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding VerificationCard.Icon}" FontSize="16" />
+                        <TextBlock Text="{Binding VerificationCard.Title}" FontWeight="Bold" FontSize="15" Foreground="{Binding VerificationCard.HeaderForeground}" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding VerificationCard.Points}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type x:String}">
+                                <TextBlock Text="{Binding}" Foreground="#C9D1D9" TextWrapping="Wrap" LineHeight="22" Margin="0,2,0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
