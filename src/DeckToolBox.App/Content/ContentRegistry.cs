@@ -4,6 +4,7 @@ using DeckToolBox.App.Content.Modules.Essentials;
 using DeckToolBox.App.Content.Modules.Manual.Files;
 using DeckToolBox.App.Content.Modules.Manual.Text;
 using DeckToolBox.App.Content.Modules.Manual.Shell;
+using DeckToolBox.App.Content.Modules.Manual.Archive;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -121,6 +122,13 @@ public static class ContentRegistry
                 DateCalcData.Create(),
                 KeysHistoryData.Create(),
                 FishZshData.Create(),
+            ]),
+            new("压缩与归档", "🗜️", "tar、各压缩算法、zip、7z 与 rar",
+            [
+                TarData.Create(),
+                CompressorsData.Create(),
+                ZipData.Create(),
+                SevenZipData.Create(),
             ]),
         ]),
 
