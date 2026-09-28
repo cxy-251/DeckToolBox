@@ -1,107 +1,87 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DeckToolBox.App.Framework.ViewModels"
-             xmlns:models="using:DeckToolBox.App.Framework.Models"
+             xmlns:ctl="using:DeckToolBox.App.Framework.Controls"
              x:Class="DeckToolBox.App.Framework.Views.ModuleContentView"
-             x:DataType="vm:DynamicModuleViewModel">
+             x:DataType="vm:ModuleViewModel">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="18" Margin="0,0,16,24">
+    <UserControl.Resources>
+        <!-- 段落列表：每个字符串一段，支持 **加粗** / `代码` / 列表缩进 -->
+        <DataTemplate x:Key="Paragraph" x:DataType="x:String">
+            <TextBlock Classes="Body" ctl:RichText.Markup="{Binding}" />
+        </DataTemplate>
+    </UserControl.Resources>
 
-            <!-- 1. 顶部标题与概述区 -->
+    <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="16" Margin="32,22,28,32" MaxWidth="1100">
+
+            <!-- 页头 -->
             <StackPanel Spacing="6">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="{Binding CategoryName}" FontSize="13" Foreground="#8B949E" FontWeight="SemiBold" />
-                    <TextBlock Text="•" FontSize="13" Foreground="#8B949E" />
-                    <Border Background="#21262D" CornerRadius="4" Padding="6,1">
-                        <TextBlock Text="{Binding Model.Badge}" FontSize="11" Foreground="#58A6FF" FontWeight="Bold" />
-                    </Border>
+                    <TextBlock Text="{Binding Breadcrumb}" FontSize="12" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" />
+                    <Border Classes="Chip"><TextBlock Text="{Binding LevelLabel}" /></Border>
                 </StackPanel>
-                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" Foreground="#F0F6FC" />
-                <TextBlock Text="{Binding Overview}" FontSize="14" Foreground="#8B949E" Margin="0,2,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextStrong}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Keywords}" FontSize="12" Foreground="{StaticResource Accent}" FontFamily="{StaticResource MonoFont}" TextWrapping="Wrap" />
+                <TextBlock Classes="Body" ctl:RichText.Markup="{Binding Overview}" Foreground="{StaticResource TextMuted}" Margin="0,4,0,0" />
             </StackPanel>
 
-            <!-- 2. 卡片一：为什么要做 (Why) -->
-            <Border BorderBrush="{Binding WhyCard.BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="18"
-                    Background="#0D1117">
-                <StackPanel Spacing="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding WhyCard.Icon}" FontSize="16" />
-                        <TextBlock Text="{Binding WhyCard.Title}" FontWeight="Bold" FontSize="15" Foreground="{Binding WhyCard.HeaderForeground}" />
-                    </StackPanel>
-                    <ItemsControl ItemsSource="{Binding WhyCard.Points}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type x:String}">
-                                <TextBlock Text="{Binding}" Foreground="#C9D1D9" TextWrapping="Wrap" LineHeight="22" Margin="0,2,0,4" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+            <!-- 1. 原理 -->
+            <Border Classes="Section Why" IsVisible="{Binding HasWhy}">
+                <StackPanel>
+                    <TextBlock Classes="SectionTitle" Text="📌 原理：为什么是这样" Foreground="{StaticResource Accent}" />
+                    <ItemsControl ItemsSource="{Binding Why}" ItemTemplate="{StaticResource Paragraph}" />
                 </StackPanel>
             </Border>
 
-            <!-- 3. 卡片二：操作后果与影响边界 (Consequences) -->
-            <Border BorderBrush="{Binding ConsequenceCard.BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="18"
-                    Background="#161B22">
-                <StackPanel Spacing="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding ConsequenceCard.Icon}" FontSize="16" />
-                        <TextBlock Text="{Binding ConsequenceCard.Title}" FontWeight="Bold" FontSize="15" Foreground="{Binding ConsequenceCard.HeaderForeground}" />
-                    </StackPanel>
-                    <ItemsControl ItemsSource="{Binding ConsequenceCard.Points}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type x:String}">
-                                <TextBlock Text="{Binding}" Foreground="#C9D1D9" TextWrapping="Wrap" LineHeight="22" Margin="0,2,0,4" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+            <!-- 2. 后果与边界 -->
+            <Border Classes="Section Consequence" IsVisible="{Binding HasConsequences}">
+                <StackPanel>
+                    <TextBlock Classes="SectionTitle" Text="⚠️ 后果与边界" Foreground="{StaticResource Amber}" />
+                    <ItemsControl ItemsSource="{Binding Consequences}" ItemTemplate="{StaticResource Paragraph}" />
                 </StackPanel>
             </Border>
 
-            <!-- 4. 卡片三：人机操作指令 (Actionable Commands - 数据驱动生成步骤) -->
-            <Border Classes="Card">
-                <StackPanel Spacing="14">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="💻" FontSize="16" />
-                        <TextBlock Text="人机操作指令 (复制并在 Konsole 终端中手动执行)" FontWeight="Bold" FontSize="15" Foreground="#F0F6FC" />
-                    </StackPanel>
-                    <TextBlock Text="请打开系统的 Konsole 终端，按步骤复制并执行以下命令（无黑盒执行）：" Foreground="#8B949E" FontSize="13" />
+            <!-- 3. 操作步骤 -->
+            <Border Classes="Section" IsVisible="{Binding HasSteps}">
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="SectionTitle" Text="💻 操作步骤" Foreground="{StaticResource TextStrong}" Margin="0" />
+                    <TextBlock Text="复制后粘贴到 Konsole 终端执行。标签说明风险等级；标注了执行位置的指令不要在本机终端直接运行。"
+                               FontSize="12" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" Margin="0,0,0,6" />
 
-                    <!-- 动态渲染步骤 -->
                     <ItemsControl ItemsSource="{Binding Steps}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type models:StepCommandItem}">
-                                <StackPanel Spacing="4" Margin="0,4,0,10">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Text="步骤" FontWeight="Bold" Foreground="#7EE787" FontSize="13" />
-                                        <TextBlock Text="{Binding StepNumber}" FontWeight="Bold" Foreground="#7EE787" FontSize="13" />
-                                        <TextBlock Text="：" FontWeight="Bold" Foreground="#7EE787" FontSize="13" />
-                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#7EE787" FontSize="13" />
-                                    </StackPanel>
+                            <DataTemplate x:DataType="vm:StepViewModel">
+                                <StackPanel Spacing="6" Margin="0,8,0,8">
+                                    <WrapPanel Orientation="Horizontal">
+                                        <Border Background="{StaticResource Bg3}" CornerRadius="10" MinWidth="20" Height="20" Padding="6,0" Margin="0,0,8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Number}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextBody}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextStrong}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0" />
+                                        <Border Classes="Chip" Classes.Read="{Binding IsRead}" Classes.Change="{Binding IsChange}"
+                                                Classes.Root="{Binding IsRoot}" Classes.Danger="{Binding IsDanger}" Margin="0,0,6,0">
+                                            <TextBlock Text="{Binding RiskLabel}" />
+                                        </Border>
+                                        <Border Classes="Chip Host" IsVisible="{Binding HasHost}" Margin="0,0,6,0">
+                                            <TextBlock Text="{Binding HostLabel}" />
+                                        </Border>
+                                        <Border Classes="Chip" IsVisible="{Binding HasPlaceholder}">
+                                            <TextBlock Text="含 &lt;占位符&gt;，先替换再执行" />
+                                        </Border>
+                                    </WrapPanel>
 
-                                    <!-- 代码框与复制按钮 -->
-                                    <Border Classes="CodeBox">
+                                    <Border Classes="CodeBox" Classes.Root="{Binding IsRoot}" Classes.Danger="{Binding IsDanger}">
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <SelectableTextBlock Text="{Binding Command}"
-                                                                 FontFamily="Cascadia Code, Consolas, Monospace"
-                                                                 Foreground="#79C0FF"
-                                                                 VerticalAlignment="Center"
-                                                                 TextWrapping="Wrap" />
-                                            <Button Grid.Column="1"
-                                                    Classes="CopyBtn"
-                                                    Content="复制指令"
-                                                    Command="{Binding $parent[UserControl].((vm:DynamicModuleViewModel)DataContext).CopyCommand}"
-                                                    CommandParameter="{Binding Command}"
-                                                    VerticalAlignment="Center"
-                                                    Margin="10,0,0,0" />
+                                            <SelectableTextBlock Text="{Binding Command}" FontFamily="{StaticResource MonoFont}" FontSize="13"
+                                                                 Foreground="{StaticResource CodeText}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                            <Button Grid.Column="1" Classes="Copy" Content="复制" Command="{Binding CopyCommand}" Margin="12,0,0,0" />
                                         </Grid>
                                     </Border>
-                                    <TextBlock Text="{Binding Description}" Foreground="#8B949E" FontSize="12" Margin="4,0,0,0" TextWrapping="Wrap" />
+
+                                    <TextBlock Classes="Body" FontSize="13" Foreground="{StaticResource TextMuted}"
+                                               ctl:RichText.Markup="{Binding Note}" IsVisible="{Binding HasNote}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -109,27 +89,13 @@
                 </StackPanel>
             </Border>
 
-            <!-- 5. 卡片四：结果验证与状态检查 (Verification) -->
-            <Border BorderBrush="{Binding VerificationCard.BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="18"
-                    Background="#0D1117">
-                <StackPanel Spacing="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding VerificationCard.Icon}" FontSize="16" />
-                        <TextBlock Text="{Binding VerificationCard.Title}" FontWeight="Bold" FontSize="15" Foreground="{Binding VerificationCard.HeaderForeground}" />
-                    </StackPanel>
-                    <ItemsControl ItemsSource="{Binding VerificationCard.Points}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type x:String}">
-                                <TextBlock Text="{Binding}" Foreground="#C9D1D9" TextWrapping="Wrap" LineHeight="22" Margin="0,2,0,2" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+            <!-- 4. 验证 -->
+            <Border Classes="Section Verify" IsVisible="{Binding HasVerify}">
+                <StackPanel>
+                    <TextBlock Classes="SectionTitle" Text="🔍 如何验证" Foreground="{StaticResource Green}" />
+                    <ItemsControl ItemsSource="{Binding Verify}" ItemTemplate="{StaticResource Paragraph}" />
                 </StackPanel>
             </Border>
-
         </StackPanel>
     </ScrollViewer>
 </UserControl>

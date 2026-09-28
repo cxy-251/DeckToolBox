@@ -1,156 +1,154 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using Avalonia.Controls;
-using DeckToolBox.App.Content;
+using System.Threading.Tasks;
 using DeckToolBox.App.Framework.Models;
 
 namespace DeckToolBox.App.Framework.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public sealed class MainWindowViewModel : ViewModelBase
 {
-    private readonly Window? _window;
-    private readonly List<CategoryDefinition> _allCategories = new();
-    private KnowledgeScope _currentScope = KnowledgeScope.SteamDeckNative;
-    private ModuleDefinition? _selectedModule;
-    private DynamicModuleViewModel? _currentModuleViewModel;
-    private string _statusMessage = "就绪：选择左侧知识模块，点击【复制指令】后在终端中手动执行";
-    private bool _isStatusSuccess = false;
+    private const string IdleStatus = "点击【复制】后，到 Konsole 终端粘贴，看清楚再回车执行";
 
-    public ObservableCollection<CategoryDefinition> Categories { get; } = new();
+    private readonly Func<string, Task> _setClipboard;
+    private readonly List<NavModuleViewModel> _allModules = new();
 
-    public KnowledgeScope CurrentScope
+    private ScopeTabViewModel _activeTab;
+    private IReadOnlyList<NavCategoryViewModel> _navCategories = [];
+    private NavModuleViewModel? _selected;
+    private ModuleViewModel? _currentModule;
+    private string _searchText = string.Empty;
+    private IReadOnlyList<NavModuleViewModel> _searchResults = [];
+    private string _statusMessage = IdleStatus;
+    private bool _isStatusSuccess;
+
+    public MainWindowViewModel(IReadOnlyList<KnowledgeScope> scopes, Func<string, Task> setClipboard)
     {
-        get => _currentScope;
+        _setClipboard = setClipboard;
+
+        ScopeTabs = scopes.Select(s => new ScopeTabViewModel(s, ActivateTab)).ToList();
+
+        foreach (var scope in scopes)
+            foreach (var category in scope.Categories)
+                foreach (var module in category.Modules)
+                    _allModules.Add(new NavModuleViewModel(module, scope, category, Select));
+
+        ModuleCount = _allModules.Count;
+
+        _activeTab = ScopeTabs[0];
+        ActivateTab(_activeTab);
+    }
+
+    public IReadOnlyList<ScopeTabViewModel> ScopeTabs { get; }
+    public int ModuleCount { get; }
+
+    public KnowledgeScope ActiveScope => _activeTab.Scope;
+
+    public IReadOnlyList<NavCategoryViewModel> NavCategories
+    {
+        get => _navCategories;
+        private set => SetProperty(ref _navCategories, value);
+    }
+
+    public ModuleViewModel? CurrentModule
+    {
+        get => _currentModule;
+        private set => SetProperty(ref _currentModule, value);
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
         set
         {
-            if (SetProperty(ref _currentScope, value))
-            {
-                OnPropertyChanged(nameof(IsSteamDeckScope));
-                OnPropertyChanged(nameof(IsUniversalDistrosScope));
-                OnPropertyChanged(nameof(IsKernelInternalsScope));
-                OnPropertyChanged(nameof(CurrentScopeTitle));
-                OnPropertyChanged(nameof(CurrentScopeBadge));
-                RefreshCategoriesForScope();
-            }
+            if (!SetProperty(ref _searchText, value)) return;
+            RunSearch();
+            OnPropertyChanged(nameof(IsSearching));
         }
     }
 
-    public bool IsSteamDeckScope => CurrentScope == KnowledgeScope.SteamDeckNative;
-    public bool IsUniversalDistrosScope => CurrentScope == KnowledgeScope.UniversalDistros;
-    public bool IsKernelInternalsScope => CurrentScope == KnowledgeScope.LinuxKernelInternals;
+    public bool IsSearching => !string.IsNullOrWhiteSpace(_searchText);
 
-    public string CurrentScopeTitle => CurrentScope switch
+    public IReadOnlyList<NavModuleViewModel> SearchResults
     {
-        KnowledgeScope.SteamDeckNative => "🎮 Steam Deck 本机专精 (SteamOS 3.x)",
-        KnowledgeScope.UniversalDistros => "🐧 广域 Linux 宇宙与全景包管理",
-        KnowledgeScope.LinuxKernelInternals => "🧠 Linux 通用内核底石与系统运行态",
-        _ => "Linux 知识中心"
-    };
-
-    public string CurrentScopeBadge => CurrentScope switch
-    {
-        KnowledgeScope.SteamDeckNative => "本机专精",
-        KnowledgeScope.UniversalDistros => "跨发行版宇宙",
-        KnowledgeScope.LinuxKernelInternals => "内核底石",
-        _ => "通用"
-    };
-
-    public ModuleDefinition? SelectedModule
-    {
-        get => _selectedModule;
-        set
+        get => _searchResults;
+        private set
         {
-            if (SetProperty(ref _selectedModule, value))
-            {
-                if (_selectedModule != null)
-                {
-                    CurrentModuleViewModel = new DynamicModuleViewModel(_selectedModule, CopyTextToClipboard);
-                }
-                OnPropertyChanged(nameof(CurrentCategoryTitle));
-                OnPropertyChanged(nameof(CurrentModuleTitle));
-            }
+            if (SetProperty(ref _searchResults, value)) OnPropertyChanged(nameof(SearchSummary));
         }
     }
 
-    public DynamicModuleViewModel? CurrentModuleViewModel
-    {
-        get => _currentModuleViewModel;
-        private set => SetProperty(ref _currentModuleViewModel, value);
-    }
-
-    public string CurrentCategoryTitle => _selectedModule?.CategoryName ?? "请选择导航小节";
-    public string CurrentModuleTitle => _selectedModule?.Title ?? "欢迎使用 DeckToolBox 知识中心";
+    public string SearchSummary => _searchResults.Count == 0
+        ? "没有匹配的模块，换个关键词试试（支持命令名，如 journalctl）"
+        : $"在全部专区中找到 {_searchResults.Count} 个模块";
 
     public string StatusMessage
     {
         get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
+        private set => SetProperty(ref _statusMessage, value);
     }
 
     public bool IsStatusSuccess
     {
         get => _isStatusSuccess;
-        set => SetProperty(ref _isStatusSuccess, value);
+        private set => SetProperty(ref _isStatusSuccess, value);
     }
 
-    public MainWindowViewModel(Window? window = null)
+    private void ActivateTab(ScopeTabViewModel tab)
     {
-        _window = window;
+        _activeTab.IsActive = false;
+        _activeTab = tab;
+        tab.IsActive = true;
+        OnPropertyChanged(nameof(ActiveScope));
 
-        // 从应用层内容注册表加载所有类别与知识数据
-        _allCategories.AddRange(ContentRegistry.LoadAllCategories());
+        NavCategories = tab.Scope.Categories
+            .Select(c => new NavCategoryViewModel(c, _allModules.Where(m => m.Category == c).ToList()))
+            .ToList();
 
-        // 初始化当前视点下的分类列表
-        RefreshCategoriesForScope();
-    }
-
-    public void SelectScope(KnowledgeScope scope)
-    {
-        CurrentScope = scope;
-    }
-
-    public void SelectScopeByString(string scopeName)
-    {
-        if (Enum.TryParse<KnowledgeScope>(scopeName, true, out var scope))
+        // 切换专区时，若当前模块不在该专区，默认打开该专区第一个模块
+        if (_selected?.Scope != tab.Scope)
         {
-            SelectScope(scope);
+            var first = NavCategories.SelectMany(c => c.Modules).FirstOrDefault();
+            if (first is not null) Select(first);
         }
     }
 
-    private void RefreshCategoriesForScope()
+    private void Select(NavModuleViewModel item)
     {
-        Categories.Clear();
-        var filtered = _allCategories.Where(c => c.Scope == _currentScope).ToList();
-        foreach (var cat in filtered)
-        {
-            Categories.Add(cat);
-        }
+        if (_selected is not null) _selected.IsSelected = false;
+        _selected = item;
+        item.IsSelected = true;
 
-        // 切换视点时默认选中该视点下的第一个模块
-        if (Categories.Count > 0 && Categories[0].Modules.Count > 0)
-        {
-            SelectedModule = Categories[0].Modules[0];
-        }
+        CurrentModule = new ModuleViewModel(item.Module, item.Scope, item.Category, CopyToClipboard);
+
+        if (item.Scope != _activeTab.Scope)
+            ActivateTab(ScopeTabs.First(t => t.Scope == item.Scope));
     }
 
-    public async void CopyTextToClipboard(string text)
+    private void RunSearch()
     {
-        if (string.IsNullOrWhiteSpace(text)) return;
+        var terms = _searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        SearchResults = terms.Length == 0
+            ? []
+            : _allModules
+                .Select(m => (Module: m, Score: m.Match(terms)))
+                .Where(x => x.Score > 0)
+                .OrderByDescending(x => x.Score)
+                .Select(x => x.Module)
+                .ToList();
+    }
 
+    private async void CopyToClipboard(string text)
+    {
         try
         {
-            if (_window?.Clipboard != null)
-            {
-                await _window.Clipboard.SetTextAsync(text);
-                StatusMessage = $"✅ 已复制指令到剪贴板！请前往 Konsole 终端粘贴并执行。";
-                IsStatusSuccess = true;
-            }
+            await _setClipboard(text);
+            StatusMessage = "✅ 已复制到剪贴板。粘贴到终端后先读一遍，确认无误再回车。";
+            IsStatusSuccess = true;
         }
         catch (Exception ex)
         {
-            StatusMessage = $"⚠️ 复制到剪贴板失败: {ex.Message}";
+            StatusMessage = $"⚠️ 复制失败：{ex.Message}";
             IsStatusSuccess = false;
         }
     }

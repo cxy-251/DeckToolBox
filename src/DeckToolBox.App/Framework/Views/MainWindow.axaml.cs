@@ -1,7 +1,5 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using DeckToolBox.App.Framework.Models;
-using DeckToolBox.App.Framework.ViewModels;
+using Avalonia.Input;
 
 namespace DeckToolBox.App.Framework.Views;
 
@@ -12,22 +10,20 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void OnScopeTabClicked(object? sender, RoutedEventArgs e)
+    protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string tag && DataContext is MainWindowViewModel vm)
+        if (e.Key == Key.F && e.KeyModifiers == KeyModifiers.Control)
         {
-            vm.SelectScopeByString(tag);
+            SearchBox.Focus();
+            SearchBox.SelectAll();
+            e.Handled = true;
         }
-    }
+        else if (e.Key == Key.Escape && SearchBox.IsFocused)
+        {
+            SearchBox.Text = string.Empty;
+            e.Handled = true;
+        }
 
-    private void OnModuleItemClicked(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.DataContext is ModuleDefinition module)
-        {
-            if (DataContext is MainWindowViewModel vm)
-            {
-                vm.SelectedModule = module;
-            }
-        }
+        base.OnKeyDown(e);
     }
 }
