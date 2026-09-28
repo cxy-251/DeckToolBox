@@ -7,6 +7,7 @@ using DeckToolBox.App.Content.Modules.Manual.Shell;
 using DeckToolBox.App.Content.Modules.Manual.Archive;
 using DeckToolBox.App.Content.Modules.Manual.Process;
 using DeckToolBox.App.Content.Modules.Manual.Systemd;
+using DeckToolBox.App.Content.Modules.Manual.Disk;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -148,6 +149,16 @@ public static class ContentRegistry
                 SystemdAnalyzeData.Create(),
                 SystemdRunData.Create(),
                 LoginctlData.Create(),
+            ]),
+            new("磁盘与文件系统", "💾", "识别磁盘、挂载镜像、分区格式化、写 U 盘、检测假卡、btrfs 与加密文件夹",
+            [
+                DiskIdentifyData.Create(),
+                MountLoopData.Create(),
+                MkfsFsckData.Create(),
+                DdFlashData.Create(),
+                F3Data.Create(),
+                BtrfsCmdData.Create(),
+                GocryptfsData.Create(),
             ]),
         ]),
 
