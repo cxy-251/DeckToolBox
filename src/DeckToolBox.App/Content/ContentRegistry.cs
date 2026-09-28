@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DeckToolBox.App.Framework.Models;
 using DeckToolBox.App.Content.Modules.Essentials;
+using DeckToolBox.App.Content.Modules.Manual.Files;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -74,6 +75,27 @@ public static class ContentRegistry
                 ProcessBasicsData.Create(),
                 TroubleshootingData.Create(),
                 ScheduledTasksData.Create(),
+            ]),
+        ]),
+
+        new("manual", "📖", "命令手册", "系统自带命令手册",
+            "SteamOS 自带的命令逐个讲解：做什么用、常用选项、照着就能运行的例子，以及每条命令执行后会看到什么、改变了什么。",
+        [
+            new("文件与目录", "📁", "查看、复制、移动、删除、查找文件与目录",
+            [
+                LsData.Create(),
+                MkdirTouchData.Create(),
+                CpData.Create(),
+                MvData.Create(),
+                RmTrashData.Create(),
+                LnData.Create(),
+                FindData.Create(),
+                FdData.Create(),
+                StatFileData.Create(),
+                TreeDuData.Create(),
+                ChmodChownData.Create(),
+                DiffCmpData.Create(),
+                PathRenameData.Create(),
             ]),
         ]),
 
