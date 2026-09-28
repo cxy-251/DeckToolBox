@@ -8,64 +8,78 @@ public static class DebianAptEcosystemData
     {
         Id = "debian-apt",
         Title = "Debian / Ubuntu：APT",
-        Keywords = "apt · dpkg · 软件源",
+        Keywords = "apt · dpkg · 软件源 · signed-by",
         Level = ModuleLevel.Intermediate,
-        Overview = "全面剖析装机量最大的 Debian / Ubuntu 软件包生态，解析 .deb 归档解剖学、dpkg 状态机、apt 的 SAT 依赖求解器、APT Pinning 权重控制与现代 PPA 源签名链。",
+        Overview = "Debian 及其衍生版（Ubuntu、Linux Mint、Pop!_OS 等）是装机量最大的发行版家族。核心是两层工具：底层的 dpkg 安装单个 .deb，上层的 apt 负责下载和解决依赖。",
 
         Why =
         [
-            "1. `.deb` 二进制包的物理本质 (Unix ar 归档)：",
-            "• 一个 `.deb` 包在底层不是什么专有黑盒，它就是一个标准的 Unix `ar` 归档文件，解开后内部永远由固定三部分构成：",
-            "  - `debian-binary`：纯文本声明，固定为格式版本号 '2.0'。",
-            "  - `control.tar.*`：包的灵魂！包含 Package 元数据声明、依赖版本条件 (Depends/Recommends)、文件 MD5 校验和以及维护者执行脚本 (preinst/postinst/prerm/postrm)。",
-            "  - `data.tar.*`：真正的二进制有效载荷。里面的目录结构与 Linux 根目录完全一一对应，解压即是安装！",
-            "2. `dpkg` (底层执行器) 与 `apt` (高级依赖解决器) 的清晰分工：",
-            "• `dpkg` 仅负责单机本地解包、校验与执行安装脚本，它**完全没有网络拉取功能，更不会自动帮你递归下载依赖包**！若依赖缺失，dpkg 会直接报错并将包挂起在未配置状态。",
-            "• `apt` (Advanced Package Tool) 则是顶层指挥官：它定期同步镜像源的 `Packages` 索引，在内存中构建依赖有向无环图 (DAG)，通过 SAT 求解器计算出全局无冲突的最优安装链路，按拓扑排序依次调用 dpkg 落地执行。",
-            "3. 现代软件源与 PPA 的安全签名链演进：",
-            "• 过去粗暴的 `apt-key add` 会将密钥存入全局信任库，任何第三方源都能伪造系统核心库。现代 Debian/Ubuntu 强推 GPG 密钥存放在 `/etc/apt/keyrings/`，并在源定义中使用 `Signed-By` 精准限定签名信任范围。",
-            "4. 细粒度版本权重控制：APT Pinning (`/etc/apt/preferences`)：",
-            "• 当混合使用 Stable/Testing 源时，通过为特定源设置 Pin-Priority 优先级（如 1001 强制降级，500 默认优先，-1 彻底禁用），实现随心所欲的版本锁定。",
+            "1. `.deb` 包的结构：本质是一个 `ar` 归档，里面三个成员：",
+            "- `debian-binary`：格式版本号 `2.0`。",
+            "- `control.tar.*`：元数据（包名、版本、`Depends` 依赖）和维护脚本（`preinst`/`postinst`/`prerm`/`postrm`）。",
+            "- `data.tar.*`：要安装的文件，目录结构与根目录一一对应。",
+            "2. dpkg 与 apt 的分工：",
+            "• `dpkg` 只在本地安装、删除、查询单个包，不联网，也不会自动安装依赖；依赖缺失时安装会停在「未配置」状态。",
+            "• `apt` 从软件源下载索引（`apt update`），计算出满足全部依赖的安装方案，再按顺序调用 dpkg。",
+            "3. 软件源与签名：",
+            "• 源定义在 `/etc/apt/sources.list.d/`。新版本（Debian 12、Ubuntu 24.04 起）默认使用 deb822 格式的 `.sources` 文件。",
+            "• 旧教程里的 `apt-key add` 已废弃：它把第三方密钥放进全局信任，任何源都能用它签名。现在的做法是把密钥放在 `/etc/apt/keyrings/`，并在源定义里用 `Signed-By` 指定只有这个源使用它。",
+            "4. 版本优先级 (APT Pinning)：`/etc/apt/preferences.d/` 中可以为某个源或包设定优先级，用于锁定版本或混用 stable / testing 源。",
         ],
 
         Consequences =
         [
-            "• 警惕盲目引入未受信任的 PPA：部分老旧 PPA 可能包含与系统底层 libc 不兼容的依赖，覆盖后可能引发著名的“依赖地狱 (Dependency Hell)”。",
-            "• 依赖半损坏时的自愈神技：当安装被意外打断导致 dpkg 锁死时，执行 `sudo apt --fix-broken install` (或 `apt -f install`)，apt 会自动尝试修补并收割所有未闭环的依赖关系。",
+            "• `apt search/show/policy`、`dpkg -l/-L/-S` 都是只读查询。",
+            "• 添加第三方源（PPA 或厂商源）等于信任它能替换你系统里的任何包，只添加确有需要、来源可信的源。",
+            "• `apt autoremove` 会删除「自动安装且不再被依赖」的包，执行前看清列表。",
+            "• 安装被打断后若出现 dpkg 锁或半安装状态，先 `sudo dpkg --configure -a`，再 `sudo apt -f install`。",
+            "• 在 Distrobox 容器里练习时，这些操作只影响容器，不会碰到 SteamOS。",
         ],
 
         Steps =
         [
-            Step.Read(
-                "查看当前系统所有已安装软件包清单与状态 (dpkg -l)",
-                "dpkg -l | head -n 30",
-                "查看本地 dpkg 数据库中的包清单与状态，ii 代表期望安装且配置成功。").On(Hosts.Debian),
-            Step.Read(
-                "查询指定软件包安装到系统中的全部物理文件路径清单",
-                "dpkg -L <包名>",
-                "查看指定软件包向文件系统释放的所有二进制文件、配置文件与帮助手册路径。").On(Hosts.Debian),
-            Step.Read(
-                "反向查询硬盘上的某个文件是由哪个软件包释放的 (dpkg -S)",
-                "dpkg -S /usr/bin/curl",
-                "反向精准查询硬盘上的某个特定命令或库是由哪个软件包维护提供的。").On(Hosts.Debian),
-            Step.Read(
-                "查询指定软件包在所有已配置源中的候选版本与优先级 (APT Policy)",
-                "apt-cache policy <包名>",
-                "排查版本决策依据，洞悉 APT Pinning 优先级与仓库版本候选列表。").On(Hosts.Debian),
-            Step.Read(
-                "解剖并查看一个 .deb 文件内部的 control 控制信息与文件列表",
-                "dpkg-deb -I package.deb ; dpkg-deb -c package.deb",
-                "解剖 .deb 归档，分别查看 control 控制脚本与 data 物理数据目录树。").On(Hosts.Debian),
+            Step.Change(
+                "在 Deck 上创建一个 Ubuntu 练习容器并进入",
+                "distrobox create --name ubuntu -i docker.io/library/ubuntu:24.04 && distrobox enter ubuntu",
+                "之后的步骤都在这个容器里执行。练习完可用 `distrobox rm ubuntu` 删除。"),
             Step.Root(
-                "现代标准：安全添加第三方软件源的标杆语法",
-                "echo '标准范式: echo \"deb [signed-by=/etc/apt/keyrings/app.gpg] https://repo.example.com stable main\" | sudo tee /etc/apt/sources.list.d/app.list'",
-                "现代规范：使用 signed-by 指定专属密钥路径，限定 GPG 信任范围，杜绝全局密钥污染。"),
+                "刷新软件源索引",
+                "sudo apt update",
+                "安装或升级之前先执行。").On(Hosts.Debian),
+            Step.Read(
+                "搜索并查看软件包信息",
+                "apt search <关键词>; apt show <包名>",
+                "`apt show` 会列出版本、依赖、大小和说明。").On(Hosts.Debian),
+            Step.Root(
+                "安装软件包",
+                "sudo apt install <包名>",
+                "会列出将要额外安装的依赖，确认后输入 Y。").On(Hosts.Debian),
+            Step.Read(
+                "查询：包里有哪些文件 / 某个文件属于哪个包",
+                "dpkg -L <包名>; dpkg -S $(command -v <命令名>)",
+                "排查「这个命令从哪来」时非常有用。").On(Hosts.Debian),
+            Step.Read(
+                "查看候选版本与来自哪个源",
+                "apt policy <包名>",
+                "显示已安装版本、候选版本以及各个源的优先级。").On(Hosts.Debian),
+            Step.Root(
+                "升级整个系统",
+                "sudo apt update && sudo apt full-upgrade",
+                "`full-upgrade` 允许为了升级而增删依赖；日常更新用它即可。").On(Hosts.Debian),
+            Step.Root(
+                "清理不再需要的依赖与下载缓存",
+                "sudo apt autoremove --purge && sudo apt clean",
+                "`--purge` 同时删除这些包的系统级配置文件。").On(Hosts.Debian),
+            Step.Root(
+                "按现行规范添加第三方软件源（模板）",
+                "sudo install -d -m 0755 /etc/apt/keyrings\ncurl -fsSL <密钥 URL> | sudo gpg --dearmor -o /etc/apt/keyrings/<名称>.gpg\nprintf 'Types: deb\\nURIs: <仓库 URL>\\nSuites: <发行代号>\\nComponents: main\\nSigned-By: /etc/apt/keyrings/<名称>.gpg\\n' | sudo tee /etc/apt/sources.list.d/<名称>.sources\nsudo apt update",
+                "按软件厂商文档替换占位符。密钥只对这一个源生效。").On(Hosts.Debian),
         ],
 
         Verify =
         [
-            "1. 包状态健全度：执行 `dpkg -s <包名>`，输出中 `Status: install ok installed` 是唯一代表健康完成的状态；若为 `half-installed` 或 `unpacked` 则表明配置脚本未执行完，需执行 `dpkg --configure -a`。",
-            "2. 缓存纯净度核验：长期运行的 Debian 系统可通过 `sudo apt clean` 清理 `/var/cache/apt/archives/` 下累积的历史 `.deb` 缓存，常可腾出数 GB 磁盘。",
+            "1. `dpkg -s <包名> | grep Status` 输出 `install ok installed` 表示安装完整；`half-installed`、`unpacked` 表示需要执行 `sudo dpkg --configure -a`。",
+            "2. `apt policy <包名>` 中 `Installed` 与 `Candidate` 相同，表示已是可用的最新版本。",
         ],
     };
 }

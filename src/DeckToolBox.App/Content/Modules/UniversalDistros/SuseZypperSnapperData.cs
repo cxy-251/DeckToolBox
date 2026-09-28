@@ -8,58 +8,69 @@ public static class SuseZypperSnapperData
     {
         Id = "opensuse-zypper",
         Title = "openSUSE：Zypper 与快照",
-        Keywords = "zypper · snapper · btrfs",
+        Keywords = "zypper · patterns · snapper · btrfs",
         Level = ModuleLevel.Intermediate,
-        Overview = "剖析欧洲工业界首选 openSUSE 体系，解析搭载业界最强 libzypp SAT 依赖引擎的 Zypper、场景化功能套件 Patterns、以及与 Btrfs 无缝联动的 Snapper 开机原子回滚机制。",
+        Overview = "openSUSE（Tumbleweed 滚动版、Leap 稳定版）使用 RPM 包和 Zypper 包管理器。它最有特色的是与 Btrfs 快照的整合：每次安装、升级前后自动打快照，出问题可以从启动菜单直接回到升级前。",
 
         Why =
         [
-            "1. 数学逻辑推导的先行者：libzypp SAT 求解器：",
-            "• openSUSE 是整个 Linux 领域最早将离散数学中的“布尔可满足性 (SAT) 算法”引入包管理器的先驱。其底层核心库 `libzypp` 逻辑极其严谨，甚至后来被 Red Hat 借用并催生了 DNF。",
-            "• 当仓库出现严重依赖冲突时，Zypper 绝不会盲目罢工，而是会清晰列出数种经过逻辑演算的可行方案（如：方案 1 降级 A，方案 2 卸载 B，方案 3 保持现状），供系统管理员做最理性的决策。",
-            "2. 场景化打包哲学：Patterns (模式套件)：",
-            "• 传统包管理往往零散罗列上千个包，而 openSUSE 提供了独创的 **Patterns**（如 `patterns-openSUSE-kde` 或 `patterns-server-lamp`）。安装一个 Pattern 即可一揽子交付整个业务场景所需的所有关联组件与防火墙预设。",
-            "3. 终极系统防翻车神器：Snapper 与 Btrfs 原生快照联动：",
-            "• 在 openSUSE 中，包管理器与文件系统形成了梦幻般的深度共生：",
-            "  - 每当你执行一次 `zypper install` 或 `zypper update` 时，**Snapper 工具会在事务开始前 1 毫秒瞬间打下一个 Btrfs `pre` 快照**；",
-            "  - 事务执行完成后，立即自动打下一个 `post` 快照，精确记录该次安装引发的全盘文件变化！",
-            "• **真正的不死系统**：即使某次内核更新后机器彻底黑屏无法进系统，只需在开机 GRUB 引导界面直接选择历史快照启动，进入系统后执行 `snapper rollback`，整台系统瞬间倒流回升级前的一秒钟！",
+            "1. Zypper 与 libsolv：openSUSE 开发的 libsolv 是最早把 SAT 求解器用于包依赖的实现之一，后来也被 Fedora 的 DNF 采用。遇到依赖冲突时，Zypper 会列出几种可选的解决方案让你选择。",
+            "2. Patterns（模式）：一组相关软件的集合，例如某个桌面环境或开发工具集，一条命令整体安装。",
+            "3. Snapper + Btrfs：",
+            "• openSUSE 默认根分区为 Btrfs。每次 `zypper` 事务前后，Snapper 自动创建一对 `pre`/`post` 快照，记录这次操作改了什么。",
+            "• 快照创建几乎瞬间完成，初始不额外占用空间（写时复制，之后只记录变化的数据块）。",
+            "• 系统升级后无法启动时，可在 GRUB 启动菜单中选择旧快照启动，确认无误后执行 `snapper rollback` 把它设为新的默认。",
+            "4. Tumbleweed 升级用 `zypper dup`（distribution upgrade），而不是 `zypper up`。",
         ],
 
         Consequences =
         [
-            "• Btrfs 快照累积预警：虽然单个 CoW 快照初始占用空间极小，但如果长期频繁写入大文件而不清理历史快照，随着被覆盖的数据块增多，磁盘空间可能被暗中耗尽。",
-            "• 依赖交互方案选择：在使用 zypper 遇到冲突选项时，务必看清方案说明，避免误选“破坏依赖强制忽略 (break dependency)”导致系统动态库失谐。",
+            "• 查询类命令只读。",
+            "• 快照会随时间累积占用空间：旧快照保留着已被修改的数据块。`snapper-cleanup.timer` 会按策略自动清理。",
+            "• `snapper rollback` 会改变默认启动的子卷，应在确认要回到的快照后执行，并重启生效。",
+            "• 在 Distrobox 容器里可以练习 zypper，但**容器中没有 Btrfs 快照**，snapper 相关命令只能在真实的 openSUSE 系统上操作。",
         ],
 
         Steps =
         [
+            Step.Change(
+                "在 Deck 上创建一个 openSUSE Tumbleweed 练习容器并进入",
+                "distrobox create --name tumbleweed -i registry.opensuse.org/opensuse/tumbleweed:latest && distrobox enter tumbleweed",
+                "之后的 zypper 步骤都在容器里执行。"),
             Step.Read(
-                "查看当前系统所有已启用的软件源镜像与优先级 (zypper repos)",
+                "查看软件源及其优先级",
                 "zypper lr -d",
-                "查看 openSUSE 软件源列表、URI 路径、优先级 Priority 与自动刷新状态。").On(Hosts.OpenSuse),
+                "`-d` 显示 URI、优先级等详情。").On(Hosts.OpenSuse),
             Step.Read(
-                "查看全量场景化 Patterns 套件清单与安装状态",
-                "zypper patterns",
-                "一览桌面环境、开发工具箱与服务器角色的场景化 Patterns 功能套件。").On(Hosts.OpenSuse),
-            Step.Read(
-                "查看全盘所有由事务自动触发的 Btrfs 快照时间线 (snapper list)",
-                "snapper list",
-                "查看每个快照的 ID、类型 (pre/post)、关联 zypper 运维命令与时间戳。").On(Hosts.OpenSuse),
-            Step.Read(
-                "比对任意两个快照之间发生变动的文件差异树 (snapper diff)",
-                "snapper diff 15..16",
-                "比对两次快照之间的全盘文件树差异，精准透视软件安装对系统的每一处改动。").On(Hosts.OpenSuse),
+                "搜索软件包与模式",
+                "zypper se <关键词>; zypper patterns",
+                "`se` 是 `search` 的简写。").On(Hosts.OpenSuse),
+            Step.Root(
+                "安装软件包",
+                "sudo zypper in <包名>",
+                "`in` 是 `install` 的简写。").On(Hosts.OpenSuse),
+            Step.Root(
+                "Tumbleweed 整体升级",
+                "sudo zypper ref && sudo zypper dup",
+                "先刷新源，再做发行版级升级。").On(Hosts.OpenSuse),
+            Step.Root(
+                "列出快照",
+                "sudo snapper list",
+                "每行一个快照，`Description` 列会写明是哪条 zypper 命令触发的。只能在真实的 openSUSE 系统上执行。").On(Hosts.OpenSuse),
+            Step.Root(
+                "对比两个快照之间改动了哪些文件",
+                "sudo snapper status <旧快照号>..<新快照号>",
+                "`snapper diff` 可进一步查看具体文件内容的差异。").On(Hosts.OpenSuse),
             Step.Danger(
-                "实战掌握一键原子级撤销系统修改并回滚至指定快照的操作",
-                "sudo snapper rollback <快照ID>",
-                "将根文件系统原子还原至目标快照，开机后自动倒流回升级前一刻，系统不倒翁神器。").On(Hosts.OpenSuse),
+                "回滚到指定快照",
+                "sudo snapper rollback <快照号>",
+                "把该快照设为新的默认根子卷，重启后生效。通常先从 GRUB 菜单用该快照启动验证，再执行此命令。").On(Hosts.OpenSuse),
         ],
 
         Verify =
         [
-            "1. 快照自动清理机制：openSUSE 后台运行 `snapper-cleanup.timer` 定时器，默认会保留最近数个重要快照并自动清理无用的旧快照，执行 `systemctl status snapper-cleanup.timer` 确认服务活跃。",
-            "2. 存储空间复核：执行 `btrfs filesystem usage /`，确认未分配空间维持在健康水平。",
+            "1. 每执行一次 `zypper in`，`snapper list` 末尾都会多出一对 pre / post 快照。",
+            "2. `systemctl status snapper-cleanup.timer` 为 active，说明旧快照会被自动清理。",
         ],
     };
 }

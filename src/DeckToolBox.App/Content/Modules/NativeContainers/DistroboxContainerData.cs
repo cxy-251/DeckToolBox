@@ -49,7 +49,7 @@ public static class DistroboxContainerData
                 "进入容器",
                 "distrobox enter arch",
                 "第一次进入会做初始化，稍等片刻。提示符变化后就在容器里了，输入 `exit` 回到宿主。"),
-            Step.Change(
+            Step.Root(
                 "在容器里安装软件（示例：编译工具与 git）",
                 "sudo pacman -Syu --needed base-devel git",
                 "这里的 `sudo` 只作用于容器内部，不会影响 SteamOS。").On(Hosts.Distrobox),

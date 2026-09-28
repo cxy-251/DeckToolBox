@@ -7,60 +7,64 @@ public static class UniversalPackageFormatsData
     public static ModuleDefinition Create() => new()
     {
         Id = "universal-formats",
-        Title = "Flatpak / Snap / AppImage 对比",
-        Keywords = "flatpak · snap · appimage",
+        Title = "Flatpak、Snap 与 AppImage 对比",
+        Keywords = "flatpak · snap · appimage · 选型",
         Level = ModuleLevel.Basic,
-        Overview = "全面深度对比现代 Linux 跨发行版分发格式三剑客 (Flatpak, Snap, AppImage)，从内核隔离层、挂载分发模型、权限安全门户到生命周期性能开销进行终极剖析。",
+        Overview = "三种「一次打包、到处运行」的格式各有取舍。了解它们的实现方式，就知道在 SteamOS 上该选哪种、在 Ubuntu 上为什么到处是 snap。",
 
         Why =
         [
-            "1. 统一分发迫切需求：从“一软件打十种包”到“跨发行版通吃”：",
-            "• 过去软件作者要为 Debian 11/12、Ubuntu 22/24、Fedora、Arch 分别维护独立的编译链，因 glibc 版本和依赖库微小差异苦不堪言。由此诞生了三大通用打包流派：",
-            "2. Flatpak (Red Hat / FreeDesktop 主导的桌面沙箱联盟)：",
-            "• **技术底座**：采用类似 Git 的 **OSTree** 分层块存储 + 内核 **Bubblewrap (`bwrap`)** 用户命名空间隔离。",
-            "• **设计取向**：专攻图形桌面应用。所有硬件交互（打开文件、使用麦克风、摄像头）均必须走 D-Bus XDG Desktop Portals 权限门户。应用共享统一的 Platform 运行时。",
-            "• **优劣势**：安全性极高、运行时去重好；缺点是初次拉取运行时体积庞大 (数 GB)，且天然无法胜任命令行与无界面的系统后台守护进程。",
-            "3. Snap (Canonical / Ubuntu 官方主导的集中式生态)：",
-            "• **技术底座**：**SquashFS** 压缩镜像 + Linux 内核 **Loop 虚拟块设备挂载** + **AppArmor** 强制访问控制 (MAC)。",
-            "• **设计取向**：全能型选手（兼顾桌面软件与命令行/系统后台守护服务）。支持自启与静默差分后台自动热更新。",
-            "• **优劣势**：支持系统级服务；缺点是每个 Snap 包都要挂载一个独立的 `/dev/loop*` 设备导致 `lsblk` 极其杂乱、冷启动稍慢、且后端软件商店由 Canonical 闭源独家垄断。",
-            "4. AppImage (开源社区极客钟爱的单文件免安装绿色流派)：",
-            "• **技术底座**：将二进制与所有动态库打包为单个 ISO9660/SquashFS 镜像，运行时通过 **FUSE (用户态文件系统)** 瞬时自解压挂载为只读环境执行。",
-            "• **设计取向**：纯粹绿色免安装。双击即跑，删掉单个文件即彻底卸载，0 依赖、0 守护进程、0 权限污染。",
-            "• **优劣势**：最受开发者与高级玩家推崇；缺点是不同 AppImage 无法共享通用运行时（各自打包 libc/Qt，多装浪费闪存）、默认无沙箱防护（可直接读写 $HOME）。",
+            "1. 为什么需要跨发行版格式：各发行版的库版本不同，同一个程序要为每个发行版单独打包。通用格式把依赖一起带上，只打包一次。",
+            "2. **Flatpak**（Flathub 为主要仓库）：",
+            "- 技术：OSTree 存储（相同文件去重）+ bubblewrap 沙箱 + XDG Desktop Portal 权限门户。",
+            "- 定位：图形桌面应用。多个应用共享运行时。",
+            "- 取舍：有沙箱、可去重；首次安装运行时较大，不适合命令行工具和系统服务。",
+            "3. **Snap**（Canonical，Ubuntu 默认）：",
+            "- 技术：每个包是一个 SquashFS 镜像，通过 loop 设备挂载；用 AppArmor 做隔离。",
+            "- 定位：桌面应用、命令行工具、服务都支持，默认自动更新。",
+            "- 取舍：只有 Canonical 的 Snap Store 一个商店；每个 snap 占用一个 loop 设备；依赖 snapd 守护进程和 AppArmor，在 SteamOS 上不可用。",
+            "4. **AppImage**：",
+            "- 技术：一个自带运行库的 SquashFS 单文件，运行时经 FUSE 挂载。",
+            "- 定位：免安装的绿色软件，下载、`chmod +x`、运行。",
+            "- 取舍：没有沙箱、没有统一的更新机制，每个文件自带全部依赖。",
         ],
 
         Consequences =
         [
-            "• 掌机/便携环境最佳实践：开发工具、Mod 补丁器优先选用 **AppImage**（直接放入 `~/Applications`，完全免 root，OTA 升级绝不受影响）；",
-            "• 隔离浏览器/聊天工具优先选用 **Flatpak**（防恶意脚本渗透主机）；",
-            "• 避免在只读系统强行折腾 Snap：Snapd 深度依赖 systemd 根服务与 AppArmor 策略注入，在不可变系统上安装难度极高且开销过大。",
+            "• 在 SteamOS 上的建议：图形应用优先 Flatpak（系统更新不影响、有沙箱）；只有 AppImage 版本的软件放进 `~/Applications`；命令行开发工具用 Distrobox 容器。",
+            "• 在 Ubuntu 上：部分软件（如 Firefox）官方只提供 snap，`apt install` 装到的其实是一个安装 snap 的过渡包。",
+            "• 任何格式都不能替你判断软件来源是否可信：Flathub 上有「已验证」标记，AppImage 只能自己确认下载来源。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前系统已安装的 Flatpak 应用与运行时所占空间分布",
-                "flatpak list --columns=application,runtime,size 2>/dev/null || echo \"当前未安装 Flatpak 环境\"",
-                "查看每个应用实际绑定的底层 Runtime 平台版本号与物理占用。"),
+                "查看已安装的 Flatpak 应用及其运行时",
+                "flatpak list --columns=application,runtime,size",
+                "`runtime` 列显示每个应用依赖哪个运行时。"),
             Step.Read(
-                "排查系统当前被挂载为只读镜像的 Loop 块设备列表 (Snap / 镜像检测)",
-                "lsblk -o NAME,TYPE,FSTYPE,MOUNTPOINT | grep loop | head -n 15",
-                "直观观测 Snap 或沙箱环境如何在内核中挂载虚拟循环设备。"),
+                "查看系统中的 loop 设备",
+                "lsblk -o NAME,TYPE,SIZE,MOUNTPOINTS | grep -E '^NAME|loop'",
+                "在 Ubuntu 上，每个 snap 都是一个 loop 设备；在 SteamOS 上通常没有。"),
             Step.Read(
-                "实战掌握在无 FUSE 驱动环境下强制提取 AppImage 内容的救急命令",
-                "echo 'AppImage 提取指令: ./App.AppImage --appimage-extract'",
-                "在无 root 与无 FUSE 环境下强行解压出 AppImage 的完整 AppDir 可执行目录。"),
+                "在 Ubuntu 上列出已安装的 snap",
+                "snap list",
+                "`Publisher` 列带 ✓ 的是经过验证的发布者。").On(Hosts.Debian),
             Step.Change(
-                "实战掌握覆盖 Flatpak 沙箱文件权限使其穿透读取宿主目录的命令",
-                "echo 'Flatpak 穿透赋权: flatpak override --user --filesystem=~/Games <AppID>'",
-                "覆盖 Flatpak 沙箱文件系统权限，彻底解决沙箱软件找不到本地游戏目录的顽疾。"),
+                "查看 AppImage 内部的文件结构",
+                "./<程序名>.AppImage --appimage-extract && ls squashfs-root",
+                "解出到当前目录的 `squashfs-root/`，可以看到 `AppRun` 和自带的 `usr/lib`。"),
+            Step.Change(
+                "让 Flatpak 应用访问 ~/Games 目录",
+                "flatpak override --user --filesystem=~/Games <AppID>",
+                "只放行需要的目录；撤销用 `flatpak override --user --reset <AppID>`。"),
         ],
 
         Verify =
         [
-            "1. 隔离级别：Flatpak (Bubblewrap 命名空间隔离) ≈ Snap (AppArmor MAC) > AppImage (默认无沙箱直通宿主)。",
-            "2. 便携与自闭环能力：AppImage (单文件随处拷跑，100% 便携) > Flatpak (依赖 flathub 仓库) > Snap (强绑定 Canonical 官方中心服务)。",
+            "1. 隔离程度：Flatpak（命名空间沙箱 + Portal）≈ Snap（严格模式 + AppArmor）> AppImage（无沙箱）。",
+            "2. 可移植性：AppImage（单文件拷走即用）> Flatpak（需要 flatpak 与仓库）> Snap（需要 snapd 与 Snap Store）。",
+            "3. `flatpak info --show-permissions <AppID>` 与 `snap connections <snap名>` 分别查看两者的权限。",
         ],
     };
 }

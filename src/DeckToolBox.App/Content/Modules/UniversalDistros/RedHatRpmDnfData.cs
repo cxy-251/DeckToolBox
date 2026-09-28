@@ -8,63 +8,69 @@ public static class RedHatRpmDnfData
     {
         Id = "fedora-dnf",
         Title = "Fedora / RHEL：DNF",
-        Keywords = "dnf · rpm · history",
+        Keywords = "dnf · rpm · history undo · rpm -V",
         Level = ModuleLevel.Intermediate,
-        Overview = "深入解析企业级 Linux 霸主 Red Hat (RHEL / Fedora / Rocky) 体系，剖析 .rpm 结构、SPEC 打包脚本全景、从 YUM 到 DNF 的 C 语言 libsolv SAT 求解革命与事务级原子回滚。",
+        Overview = "Red Hat 家族（Fedora、RHEL、CentOS Stream、Rocky、AlmaLinux）使用 RPM 包格式与 DNF 包管理器。DNF 的事务历史可以撤销某次安装或升级，rpm -V 可以校验文件是否被改动。",
 
         Why =
         [
-            "1. `.rpm` 二进制包的内部结构 (Header + cpio 归档)：",
-            "• 一个标准的 RPM 包由四部分构成：Lead 引导头、GPG 数字签名区、Header 元数据区以及最终的 Payload 有效载荷（采用 cpio 归档，并使用 zstd/xz 深度压缩）。",
-            "• RPM 的元数据直接支持丰富的语义标签，包括 `Provides` (声明提供的虚包能力)、`Requires` (硬依赖)、`Conflicts` (互斥) 与触发器脚本 (Triggers)。",
-            "2. 性能革命：从臃肿的 Python 版 YUM 到 C 语言 DNF (libsolv)：",
-            "• 早期 CentOS 6/7 上的 YUM 采用纯 Python 编写，在仓库庞大时依赖图求解缓慢无比，内存暴涨数十倍甚至引发 OOM 卡死。",
-            "• 现代 Fedora 与 RHEL 8/9 统一采用 **DNF** (Dandified YUM)：依赖解析核心完全换成了 openSUSE 贡献的高性能 C 语言库 `libsolv`。通过布尔可满足性 (SAT) 算法，数万个包的依赖拓扑可以在毫秒级极速解算完毕！",
-            "3. 企业级多版本共存利器：AppStream 模块流 (Module Streams)：",
-            "• 企业用户往往希望系统底层内核与 glibc 维持十年的超长稳定支持 (LTS)，但又需要灵活升级上层开发环境（如按需在 Node.js 18、20 或 PostgreSQL 14、16 间无缝切换）。",
-            "• AppStream 模块流允许通过 `dnf module enable <name>:<stream>`，在不破坏系统基础依赖树的前提下随时平滑切换软件主版本！",
-            "4. 杀手级企业容灾机制：事务数据库与一键回滚 (`dnf history undo`)：",
-            "• DNF 将每一次软件安装、卸载、更新都记录在底层的 SQLite 事务数据库中。若某次系统补丁升级后导致业务崩溃，只需一条命令即可将整个事务完整撤销回滚到升级前的精确状态！",
+            "1. RPM 包：由签名、头部元数据（`Requires`、`Provides`、`Conflicts`、脚本）和 cpio 格式的文件载荷组成，载荷通常用 zstd 压缩。",
+            "2. rpm 与 dnf 的分工与 Debian 类似：`rpm` 操作本地单个包和数据库，`dnf` 负责联网、依赖求解与事务。已安装包数据库在较新的版本中使用 SQLite（`/usr/lib/sysimage/rpm`）。",
+            "3. DNF 的演进：",
+            "• 早期的 YUM 由 Python 编写，依赖求解慢；DNF 改用 openSUSE 开发的 C 库 **libsolv** 做 SAT 求解，速度大幅提升。",
+            "• Fedora 41 起默认使用 **DNF5**（C++ 重写），命令基本兼容，个别子命令输出格式有变化。",
+            "• RHEL 8/9 的「模块流」(`dnf module`) 曾用于并存多个软件版本，已被 Red Hat 弃用，新版本不再依赖它。",
+            "4. 事务历史：DNF 把每次安装、升级、删除记录为一个事务，可以查看详情，也可以用 `history undo` 反向执行。",
+            "5. 常用附加源：EPEL（RHEL 上的额外软件）、RPM Fusion（Fedora 上因专利或许可不能进官方源的软件，如部分多媒体编解码器）。",
         ],
 
         Consequences =
         [
-            "• 严禁随意混杂不兼容的第三方源：在 RHEL/CentOS 上同时启用 EPEL、RPM Fusion 与 Remi 源时需配置优先权 (Priority)，否则可能发生基础核心库被低质构建覆盖的灾难。",
-            "• 事务回滚的局限性：`dnf history undo` 能精准回滚包文件的增删变动，但如果某个软件在 postinst 阶段执行了外部数据库迁移脚本，这类外部状态需人工备份兜底。",
+            "• `dnf search/info/history list`、`rpm -q*`、`rpm -V` 都是只读的。",
+            "• `dnf history undo` 只回滚包的增删与版本，不会回滚软件运行后写入的数据或配置迁移；被撤销的旧版本包还必须能从源里下载到。",
+            "• 混用多个第三方源时，它们可能提供同名的包互相替换，出现冲突时优先查看包来自哪个源（`dnf info` 的 `From repo` / `Repository` 字段）。",
         ],
 
         Steps =
         [
+            Step.Change(
+                "在 Deck 上创建一个 Fedora 练习容器并进入",
+                "distrobox create --name fedora -i registry.fedoraproject.org/fedora:latest && distrobox enter fedora",
+                "之后的步骤都在这个容器里执行。"),
             Step.Read(
-                "查看全量系统历史运维事务记录与操作编号 (dnf history)",
-                "dnf history",
-                "查看 DNF 历史事务编号、涉及包数量、执行时间与结果。").On(Hosts.Fedora),
+                "搜索与查看软件包",
+                "dnf search <关键词>; dnf info <包名>",
+                "`dnf info` 显示版本、来源仓库与说明。").On(Hosts.Fedora),
+            Step.Root(
+                "安装软件包",
+                "sudo dnf install <包名>",
+                "会列出事务内容，确认后输入 y。").On(Hosts.Fedora),
+            Step.Read(
+                "查看事务历史",
+                "dnf history list | head -n 15",
+                "每一行是一个事务，第一列是事务 ID。`dnf history info <事务ID>` 查看详情。").On(Hosts.Fedora),
             Step.Danger(
-                "原子级撤销指定历史事务并完整回滚系统状态 (Undo Transaction)",
+                "撤销某次事务",
                 "sudo dnf history undo <事务ID>",
-                "原子级撤销指定历史事务，系统自动降级或卸载对应包，秒级自愈。").On(Hosts.Fedora),
+                "反向执行该事务：它安装的包会被删除、升级的包会被降级。执行前先用 `history info` 看清内容。").On(Hosts.Fedora),
             Step.Read(
-                "使用 rpm 查询系统当前已安装的所有包清单 (rpm -qa)",
-                "rpm -qa | sort | head -n 30",
-                "直接从本地 Berkeley DB 检索全部已装 RPM 包，速度极快。").On(Hosts.Fedora),
+                "查询：某个文件属于哪个包 / 包里有哪些文件",
+                "rpm -qf $(command -v <命令名>); rpm -ql <包名>",
+                "`dnf provides <路径或命令>` 还能查询尚未安装的包。").On(Hosts.Fedora),
             Step.Read(
-                "反查硬盘上任意系统文件属于哪一个 RPM 软件包提供",
-                "rpm -qf /usr/bin/dnf",
-                "反查硬盘上任意二进制文件属于哪一个 RPM 包维护提供。").On(Hosts.Fedora),
-            Step.Read(
-                "校验系统关键二进制文件是否被外部恶意篡改 (rpm -V 完整性核查)",
+                "校验包的文件是否被改动",
                 "rpm -V coreutils",
-                "比对文件的 MD5/SHA256、权限、大小与时间戳，核查核心文件完整性。").On(Hosts.Fedora),
-            Step.Read(
-                "查看可用的 AppStream 模块流与多版本运行环境切换选项",
-                "dnf module list",
-                "一览系统可供独立启用的多版本语言与数据库运行时清单。").On(Hosts.Fedora),
+                "无输出表示所有文件与包中一致。输出如 `S.5....T.` 表示大小 (S)、摘要 (5)、修改时间 (T) 发生了变化。").On(Hosts.Fedora),
+            Step.Root(
+                "升级系统并清理缓存",
+                "sudo dnf upgrade --refresh && sudo dnf clean all",
+                "`--refresh` 强制刷新仓库元数据。").On(Hosts.Fedora),
         ],
 
         Verify =
         [
-            "1. 文件篡改核验判定：执行 `rpm -V <包名>` 时，若输出为空，代表该包释放的所有二进制文件与官方出厂状态 100% 绝对一致；若出现 `S.5....T.`，则代表 Size、MD5 与 mtime 已被修改，是排查木马或系统损坏的法宝。",
-            "2. 缓存清理命令：执行 `sudo dnf clean all` 可一键安全清空 `/var/cache/dnf/` 下的所有仓库元数据与临时 RPM 归档。",
+            "1. `rpm -q <包名>` 输出完整版本号，说明已安装。",
+            "2. 执行 `history undo` 后，`dnf history list` 顶部会多出一条新事务，其动作与被撤销的事务相反。",
         ],
     };
 }

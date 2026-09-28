@@ -62,6 +62,10 @@ public static class ContentRegistry
         new("distros", "🐧", "其他发行版", "主流 Linux 发行版与包管理",
             "各大发行版家族的包管理方式。每个模块第一步都能在 Deck 上用 Distrobox 建一个对应容器亲手练习。",
         [
+            new("先看这里", "🧭", "识别发行版，以及同一操作在各家包管理器中的写法",
+            [
+                PackageManagerRosettaData.Create(),
+            ]),
             new("Debian / Ubuntu", "🍥", ".deb、dpkg 与 APT 软件源",
             [
                 DebianAptEcosystemData.Create(),
