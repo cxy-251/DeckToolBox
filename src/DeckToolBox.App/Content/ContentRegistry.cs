@@ -5,6 +5,7 @@ using DeckToolBox.App.Content.Modules.Manual.Files;
 using DeckToolBox.App.Content.Modules.Manual.Text;
 using DeckToolBox.App.Content.Modules.Manual.Shell;
 using DeckToolBox.App.Content.Modules.Manual.Archive;
+using DeckToolBox.App.Content.Modules.Manual.Process;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -129,6 +130,15 @@ public static class ContentRegistry
                 CompressorsData.Create(),
                 ZipData.Create(),
                 SevenZipData.Create(),
+            ]),
+            new("进程与系统监控", "📈", "查看、搜索、暂停、结束进程，按进程统计网络、磁盘与耗电",
+            [
+                PsData.Create(),
+                TopHtopData.Create(),
+                PgrepKillData.Create(),
+                LsofFuserData.Create(),
+                PerProcessIoData.Create(),
+                LoadLoginData.Create(),
             ]),
         ]),
 
