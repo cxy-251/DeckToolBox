@@ -36,19 +36,19 @@ public static class UnixDomainSocketsData
             Step.Read(
                 "查看系统当前全部活跃的 UNIX 域套接字监听与连接清单",
                 "ss -x -a | head -n 30",
-                "使用比 netstat 更快更现代的 ss 工具，查看各服务的 socket 路径与对端 inode 节点。"),
+                "`-x` 只看 UNIX 域套接字，`-a` 包括监听中的。").Then("表格前 30 行：类型（`u_str` 流、`u_dgr` 数据报）、状态、队列、本地路径与 inode、对端 inode。"),
             Step.Read(
                 "查看当前用户桌面运行环境建立的核心套接字文件",
                 "ls -la /run/user/$(id -u)/ | grep -E \"(wayland|pipewire|bus|pulse)\"",
-                "定位 Wayland 显示服务、PipeWire 音频服务与 D-Bus 的物理 socket 节点。"),
+                "`/run/user/1000` 是你的运行时目录，重启后清空。").Then("列出 `bus`、`pipewire-0`、`pulse`、`wayland-0` 等条目，权限首字母为 `s`（套接字）或 `d`（目录）。"),
             Step.Read(
                 "排查指定服务（如 Wayland）当前正在通信的全部客户端进程",
                 "ss -x -p | grep -m 20 wayland",
-                "查看哪些应用窗口正连接在 Wayland 合成器通道上。"),
+                "`grep -m 20` 最多显示 20 行。").Then("每行一个连接到 Wayland 合成器的连接，行尾 `users:((\"程序名\",pid=...))` 指出是哪个程序（只显示你自己的进程）。"),
             Step.Read(
                 "查看套接字的内核缓冲区深度与收发队列积压",
                 "ss -x -i | grep -B 1 -A 2 -E 'wayland-0|system_bus_socket' | sed -n '1,25p'",
-                "检查内核 socket 队列是否有堵塞，诊断进程卡死现象。"),
+                "`-i` 显示内部信息。").Then("相关套接字的连接行及其附加信息；`Recv-Q`、`Send-Q` 两列长期不为 0 表示有数据积压，对方可能没有及时读取。"),
         ],
 
         Verify =

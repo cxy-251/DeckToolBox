@@ -40,31 +40,31 @@ public static class TroubleshootingData
             Step.Read(
                 "列出启动失败的服务",
                 "systemctl --failed --no-pager; systemctl --user --failed --no-pager",
-                "分别检查系统服务和用户服务。`0 loaded units listed` 表示没有失败的服务。"),
+                "分别检查系统服务和用户服务。").Then("两段输出，正常时都是 `0 loaded units listed.`；有失败时列出单元名，接着用 `systemctl status <单元名>` 查看原因。"),
             Step.Read(
                 "查看本次开机以来的错误日志",
                 "journalctl -b -p err --no-pager | tail -n 40",
-                "只显示 err 及以上级别，最后 40 条。"),
+                "`-b` 本次开机，`-p err` 只显示错误及以上级别。").Then("最多 40 行，每行「时间 主机名 程序[PID]: 消息」。很多错误无害，重点看与出问题的功能相关的程序。"),
             Step.Read(
                 "查看上一次开机的最后日志",
                 "journalctl -b -1 -n 50 --no-pager",
-                "排查死机、意外重启时，看关机前最后发生了什么。提示「No journal boot entry found」时，先用 `journalctl --list-boots` 看保留了哪些开机记录；系统日志需加 `sudo` 才能完整查看。"),
+                "提示「No journal boot entry found」时，先用 `journalctl --list-boots` 看保留了哪些开机记录；系统日志需加 `sudo` 才能完整查看。").Then("上一次开机的最后 50 行日志，最后几行通常是关机过程或死机前的最后记录。"),
             Step.Read(
                 "一边复现问题一边观察日志",
                 "journalctl -f",
-                "执行后去操作出问题的程序或插拔设备，新日志会实时滚动出现。`Ctrl+C` 退出。"),
+                "去操作出问题的程序或插拔设备。").Then("先显示最近几行日志，然后停住等待；你操作时新日志实时出现在底部。`Ctrl+C` 退出。"),
             Step.Read(
                 "查看最近的程序崩溃记录",
                 "coredumpctl list --no-pager | tail -n 10",
-                "`SIG` 列为导致崩溃的信号（常见 SIGSEGV 段错误、SIGABRT 主动中止）。查看某次详情：`coredumpctl info <PID>`。"),
+                "查看某次详情：`coredumpctl info <PID>`。").Then("表格每行一次崩溃：时间、PID、UID、`SIG`（如 `SIGSEGV`）、`COREFILE`、程序路径；没有记录时提示 `No coredumps found.`"),
             Step.Read(
                 "查看 Steam 客户端的日志",
                 "ls -lt ~/.local/share/Steam/logs/ | head; tail -n 50 ~/.local/share/Steam/logs/console_log.txt",
-                "`console_log.txt` 记录了 Steam 客户端的主要活动与报错。"),
+                "`console_log.txt` 记录了 Steam 客户端的主要活动与报错。").Then("先列出 logs 目录中最近修改的文件，然后显示 `console_log.txt` 的最后 50 行，每行带时间戳。"),
             Step.Read(
                 "收集提问时需要的系统信息",
                 "grep PRETTY_NAME /etc/os-release; grep -E '^(VERSION_ID|BUILD_ID)=' /etc/os-release; uname -r",
-                "把输出连同报错一起附上。"),
+                "把输出连同报错一起附上。").Then("三行：`PRETTY_NAME=\"SteamOS\"`、版本号与构建日期、内核版本。"),
         ],
 
         Verify =

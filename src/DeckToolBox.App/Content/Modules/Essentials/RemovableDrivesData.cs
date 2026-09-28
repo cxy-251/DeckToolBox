@@ -38,27 +38,27 @@ public static class RemovableDrivesData
             Step.Read(
                 "列出所有存储设备与分区",
                 "lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,HOTPLUG",
-                "`HOTPLUG` 为 1 的是可插拔设备（SD 卡、U 盘）。插入新设备前后各执行一次，多出来的就是它。"),
+                "`HOTPLUG` 为 1 的是可插拔设备（SD 卡、U 盘）。").Then("树状表格列出内置硬盘、SD 卡、U 盘及其分区的大小、格式、卷标和挂载点。新插入的 U 盘通常显示为 `sda`，分区为 `sda1`。"),
             Step.Read(
                 "查看已挂载设备的剩余空间",
                 "df -h -x tmpfs -x devtmpfs -x efivarfs",
-                "`-x` 排除内存文件系统，只看真实磁盘。"),
+                "`-x` 排除内存文件系统，只看真实磁盘。").Then("表格：每个真实分区的容量、已用、可用、使用率与挂载点。"),
             Step.Change(
                 "挂载一个分区",
                 "udisksctl mount -b /dev/<分区名>",
-                "例如 `/dev/sda1`。会挂载到 `/run/media/deck/<卷标>`，无需 sudo。"),
+                "例如 `/dev/sda1`。无需 sudo。").Then("输出 `Mounted /dev/sda1 at /run/media/deck/<卷标>`，Dolphin 侧栏中出现这个设备。"),
             Step.Change(
                 "卸载并断电，然后可以安全拔出",
                 "udisksctl unmount -b /dev/<分区名> && udisksctl power-off -b /dev/<磁盘名>",
-                "`power-off` 使用磁盘名而不是分区名，例如 `/dev/sda`。执行完再拔。"),
+                "`power-off` 使用磁盘名而不是分区名，例如 `/dev/sda`。").Then("先输出 `Unmounted /dev/sda1.`，随后磁盘断电（U 盘指示灯通常熄灭），它从 `lsblk` 中消失。此时拔出不会丢数据。"),
             Step.Root(
                 "修改 exFAT 分区的卷标",
                 "sudo exfatlabel /dev/<分区名> <新卷标>",
-                "卷标决定挂载目录名。修改前先卸载该分区。ext4 分区用 `sudo e2label /dev/<分区名> <新卷标>`。"),
+                "卷标决定挂载目录名。修改前先卸载该分区。ext4 分区用 `sudo e2label /dev/<分区名> <新卷标>`。").Then("输入 sudo 密码后提示新卷标已设置。下次挂载时目录名变为新卷标。"),
             Step.Danger(
                 "把 U 盘格式化为 exFAT",
                 "udisksctl unmount -b /dev/<分区名>; sudo mkfs.exfat -L <卷标> /dev/<分区名>",
-                "**清除该分区上的全部数据**。先用第一步确认 `<分区名>` 是 U 盘（`sdX1`），绝不能是 `nvme0n1p*`。"),
+                "**清除该分区上的全部数据**。先用第一步确认 `<分区名>` 是 U 盘（`sdX1`），绝不能是 `nvme0n1p*`。").Then("先卸载，再显示 mkfs.exfat 的版本与创建过程，最后 `Format success.`。分区上原有的全部文件消失，变成一个空的 exFAT 分区。"),
         ],
 
         Verify =

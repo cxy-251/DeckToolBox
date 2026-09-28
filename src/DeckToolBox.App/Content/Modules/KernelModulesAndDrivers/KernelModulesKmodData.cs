@@ -39,23 +39,23 @@ public static class KernelModulesKmodData
             Step.Read(
                 "查看当前内核已加载的全部内核模块清单与依赖拓扑",
                 "lsmod | head -n 25",
-                "查看 Module 名称、所占内核内存大小 (Size)、以及当前正在使用该模块的计数与依赖方列表 (Used by)。"),
+                "显示前 25 行。").Then("表格 `Module  Size  Used by`：模块名、占用内存字节数、被引用次数及引用它的模块。"),
             Step.Read(
                 "深度探测核心驱动模块的元数据、作者与导出参数 (modinfo)",
                 "modinfo amdgpu | head -n 30",
-                "查看 AMD 掌机核显 GPU 驱动的 vermagic、驱动别名 (alias)、依赖关系 (depends) 以及支持的动态调节参数 (parm)。"),
+                "`modinfo <模块名>` 适用于任何模块。").Then("显示 `filename`（.ko 文件路径）、`license`、`description`、许多 `alias:` 行（它支持的硬件 ID）、`depends`、`vermagic`，以及 `parm:` 开头的可调参数。"),
             Step.Read(
                 "查看内核模块向 sysfs 暴露的可调运行参数",
                 "ls -l /sys/module/amdgpu/parameters/ 2>/dev/null | head -n 20",
-                "通过直接读取 sysfs 文件，洞悉 GPU 驱动的电源管理模式、显存调度策略等微观配置。"),
+                "只有模块声明为可读的参数才会出现在这里。").Then("每行一个参数文件，如 `audio`、`dpm`、`gpu_recovery`；用 `cat` 读取可以看到当前值。"),
             Step.Read(
                 "查看本次开机的内核错误与警告",
                 "journalctl -k -b -p warning --no-pager | tail -n 30",
-                "参数解析：-T 将内核微秒时间戳转换为可读的人类日期时间，--level=err,warn 精准过滤掉冗余信息，直击硬件报错核心。"),
+                "`-k` 只看内核消息，`-b` 本次开机，`-p warning` 只显示警告及以上级别。").Then("每行一条内核消息：时间、`kernel:`、内容；显示最后 30 条警告及更严重的消息。很多警告是无害的，重点关注与出问题设备相关的行。"),
             Step.Read(
                 "查看引导加载程序 (Bootloader) 传递给内核的启动命令行参数",
                 "cat /proc/cmdline",
-                "查看内核启动时固化的全局引导选项（如 root 分区 UUID、audit 状态、控制台输出终端与内存安全选项）。"),
+                "这些参数在开机时由引导程序传入，决定内核的部分行为。").Then("输出一长行启动参数，如 `root=...`、`rd.systemd...`、`amd_iommu=off` 等。"),
         ],
 
         Verify =

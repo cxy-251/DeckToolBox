@@ -39,39 +39,39 @@ public static class KdeCliData
             Step.Read(
                 "列出显示器及其模式、缩放",
                 "kscreen-doctor -o",
-                "Deck 的内置屏显示为 `eDP-1`，模式 `800x1280@90`（OLED 版），因为面板物理上是竖屏。"),
+                "Deck 的内置屏显示为 `eDP-1`，模式 `800x1280@90`（OLED 版），因为面板物理上是竖屏。").Then("每个输出一段：`Output: 1 eDP-1`、`enabled`、`connected`、`Modes:` 列出所有支持的分辨率与刷新率（当前的带 `*`）、`Geometry` 位置与尺寸、`Scale` 缩放。"),
             Step.Change(
                 "设置外接显示器的分辨率与刷新率",
                 "kscreen-doctor output.<输出名>.mode.<宽>x<高>@<刷新率>",
-                "例如 `kscreen-doctor output.DP-1.mode.1920x1080@60`。可用模式见上一步的 `Modes` 列表。"),
+                "例如 `kscreen-doctor output.DP-1.mode.1920x1080@60`。可用模式见上一步的 `Modes` 列表。").Then("屏幕闪一下，外接显示器切换到指定模式。不会弹出「保留更改」确认，也不会自动还原。"),
             Step.Change(
                 "设置缩放比例",
                 "kscreen-doctor output.<输出名>.scale.<比例>",
-                "例如 `output.eDP-1.scale.1.25`。"),
+                "例如 `output.eDP-1.scale.1.25`。").Then("该屏幕上的界面立即按新比例放大或缩小。"),
             Step.Change(
                 "关闭屏幕（挂机下载时省电），按任意键或触摸唤醒",
                 "sleep 2; kscreen-doctor --dpms off",
-                "`sleep 2` 留出松开按键的时间，否则回车键本身会立即把屏幕唤醒。与休眠不同，系统和网络继续运行。"),
+                "`sleep 2` 留出松开按键的时间，否则回车键本身会立即把屏幕唤醒。").Then("两秒后屏幕熄灭，程序、下载和网络照常运行；动一下鼠标、按任意键或触摸屏幕即亮起。"),
             Step.Change(
                 "后台全屏截图并保存",
                 "spectacle -b -n -f -o ~/Pictures/screen-$(date +%F-%H%M%S).png",
-                "`-f` 换成 `-r` 可以框选区域。"),
+                "`-b` 后台、`-n` 不弹通知、`-f` 全屏、`-o` 输出文件；`-f` 换成 `-r` 可以框选区域。").Then("没有任何窗口弹出，`~/Pictures/` 下出现以日期时间命名的 png 文件。"),
             Step.Read(
                 "读取一项 KDE 配置",
                 "kreadconfig6 --file kdeglobals --group General --key ColorScheme",
-                "SteamOS 默认配色方案名为 `Vapor`。"),
+                "`--file` 配置文件、`--group` 分组、`--key` 键名。").Then("输出一个词，如 `Vapor`（SteamOS 默认配色方案）。"),
             Step.Change(
                 "切换配色方案",
                 "plasma-apply-colorscheme --list-schemes; plasma-apply-colorscheme <方案名>",
-                "先列出可用方案，再应用。换回默认：`plasma-apply-colorscheme Vapor`。"),
+                "换回默认：`plasma-apply-colorscheme Vapor`。").Then("第一条列出所有方案名（当前的有标注）；第二条应用后，窗口、面板颜色立即改变，并提示已成功应用。"),
             Step.Change(
                 "脚本结束时发送桌面通知",
                 "<命令>; notify-send '任务完成' \"退出码 $?\"",
-                "`$?` 是上一条命令的退出码，0 表示成功。"),
+                "`$?` 是上一条命令的退出码。").Then("前面的命令结束后，桌面右下角弹出「任务完成」通知，内容为「退出码 0」（成功）或其他数字（失败）。"),
             Step.Change(
                 "锁屏",
                 "loginctl lock-session",
-                "所有使用 systemd-logind 的桌面都支持。"),
+                "所有使用 systemd-logind 的桌面都支持。").Then("屏幕立即锁定，显示锁屏界面，需要输入密码（未设置密码时直接点击解锁）才能回到桌面。"),
         ],
 
         Verify =

@@ -42,31 +42,31 @@ public static class MountsAndOverlayFsData
             Step.Read(
                 "以树形查看所有真实文件系统的挂载",
                 "findmnt --real",
-                "能看到 `/`、`/home`、`/var`、`/esp`、`/efi`、SD 卡以及由 home 分区 bind 过去的各个 `/var` 子目录。"),
+                "`--real` 排除 proc、sysfs 等虚拟文件系统。").Then("以 `/` 为根的树：`/home`、`/var`、`/esp`、`/efi`、SD 卡，以及 `/var/log` 等由 home 分区绑定过去的目录，每行带来源设备、类型和挂载选项。"),
             Step.Read(
                 "查看 / 与 /home 的来源和挂载选项",
                 "for m in / /home; do findmnt -no TARGET,SOURCE,FSTYPE,OPTIONS $m; done",
-                "`/` 是 btrfs，`/home` 是 ext4。"),
+                "`-n` 不显示表头，`-o` 指定列。").Then("两行：`/ /dev/nvme0n1p5 btrfs rw,relatime,...` 与 `/home /dev/nvme0n1p8 ext4 rw,relatime`。"),
             Step.Read(
                 "查看 /etc 的 OverlayFS 参数",
                 "findmnt -no OPTIONS /etc | tr ',' '\\n'",
-                "能看到 `lowerdir=`、`upperdir=`、`workdir=` 三个关键参数。"),
+                "`tr` 把逗号换成换行，便于阅读。").Then("每行一个挂载选项，其中有 `lowerdir=/new_root/etc`、`upperdir=/new_root/var/lib/overlays/etc/upper`、`workdir=...`。"),
             Step.Change(
                 "准备实验目录",
                 "mkdir -p /tmp/ovl/{lower,upper,work,merged} && echo '下层原文件' > /tmp/ovl/lower/a.txt",
-                "`/tmp` 是内存盘，重启后自动清空。"),
+                "`{a,b}` 是 bash 的花括号展开，一次创建多个目录。").Then("没有输出。`/tmp/ovl` 下出现 `lower`、`upper`、`work`、`merged` 四个目录，`lower/a.txt` 内容为「下层原文件」。"),
             Step.Change(
                 "在私有命名空间里挂载 OverlayFS 并做修改",
                 "unshare -rm sh -c 'mount -t overlay overlay -o lowerdir=/tmp/ovl/lower,upperdir=/tmp/ovl/upper,workdir=/tmp/ovl/work /tmp/ovl/merged && rm /tmp/ovl/merged/a.txt && echo 新文件 > /tmp/ovl/merged/b.txt && ls -l /tmp/ovl/merged'",
-                "`-r` 映射为命名空间内的 root，`-m` 创建私有挂载命名空间。命令结束后挂载自动消失。"),
+                "`-r` 映射为命名空间内的 root，`-m` 创建私有挂载命名空间。").Then("输出合并视图的列表：只有新建的 `b.txt`，被删除的 `a.txt` 已看不到。命令结束后挂载随命名空间一起消失。"),
             Step.Read(
                 "观察各层的变化",
                 "cat /tmp/ovl/lower/a.txt; ls -l /tmp/ovl/upper",
-                "下层的 a.txt 原封不动；上层出现新写入的 b.txt，以及一个权限为 `c---------`、设备号 `0, 0` 的 a.txt：这就是 whiteout。"),
+                "下层从未被修改，所有变化都记录在上层。").Then("第一行仍是「下层原文件」；`upper` 中有新文件 `b.txt`，以及一个权限为 `c---------`、大小位置显示 `0, 0` 的 `a.txt`，这就是删除标记 (whiteout)。"),
             Step.Change(
                 "清理实验目录",
                 "chmod -R u+rwx /tmp/ovl && rm -rf /tmp/ovl",
-                "先恢复 work 目录的权限再删除。"),
+                "先恢复 work 目录的权限再删除，否则 `rm` 会报「权限不够」。").Then("没有输出，`/tmp/ovl` 被删除。"),
         ],
 
         Verify =

@@ -42,31 +42,31 @@ public static class MemoryAndOomData
             Step.Read(
                 "查看内存总览",
                 "free -h",
-                "重点看 `available`；`Swap` 一行显示 ZRAM 与交换文件的合计使用量。"),
+                "`-h` 以 Gi/Mi 显示。").Then("两行表格：`内存` 与 `交换`，各列为总计、已用、空闲、共享、缓冲/缓存、可用。判断内存够不够看「可用」列。"),
             Step.Read(
                 "查看 ZRAM 的压缩效果",
                 "zramctl",
-                "`DATA` 是存入的原始数据量，`COMPR` 是压缩后大小，`TOTAL` 是实际占用内存。DATA ÷ TOTAL 即压缩比。"),
+                "`DATA` 原始数据量，`COMPR` 压缩后大小，`TOTAL` 实际占用内存。").Then("一行表格，如 `/dev/zram0 zstd 7.2G 6.9G 2.6G 2.6G [SWAP]`：存入 6.9G 原始数据，实际只占 2.6G 内存。"),
             Step.Read(
                 "查看所有交换设备及优先级",
                 "swapon --show",
-                "`PRIO` 越大越优先使用，ZRAM 的优先级高于交换文件。"),
+                "`PRIO` 越大越优先使用。").Then("表格列出 `/dev/zram0`（优先级 100）和 `/home/swapfile`（优先级 -2）及各自的大小与已用量。"),
             Step.Read(
                 "按实际内存占用列出前 15 个进程",
                 "ps -eo pid,rss,comm --sort=-rss | head -n 16 | awk 'NR==1{print; next} {printf \"%-8s %8.0f MB  %s\\n\", $1, $2/1024, $3}'",
-                "`rss` 单位是 KB，这里换算成 MB。交互式查看可以用 `htop`，按 `F6` 选择排序列。"),
+                "`rss` 单位是 KB，这里换算成 MB。交互式查看可以用 `htop`，按 `F6` 选择排序列。").Then("第一行是表头，之后每行「PID  占用 MB  进程名」，从大到小排列，如 `550696  1382 MB  chrome`。"),
             Step.Read(
                 "查看最可能被 OOM 选中的进程",
                 "for p in /proc/[0-9]*; do s=$(cat $p/oom_score 2>/dev/null) && echo \"$s ${p#/proc/} $(cat $p/comm 2>/dev/null)\"; done | sort -rn | head -n 10",
-                "三列依次为 oom_score、PID、进程名，分数越高越先被杀。直接读取每个进程的 `/proc/<PID>/oom_score`。"),
+                "直接读取每个进程的 `/proc/<PID>/oom_score`，分数越高越先被杀。").Then("每行「分数 PID 进程名」，分数最高的排在最前，通常是占内存最多的程序。"),
             Step.Read(
                 "查看 earlyoom 是否杀过进程",
                 "journalctl -u earlyoom --since '7 days ago' --no-pager | grep -iE 'sending|killing' | tail -n 10",
-                "有输出说明近期发生过内存不足导致的强制结束。"),
+                "earlyoom 在内存与交换都快耗尽时提前介入。").Then("没有输出说明近 7 天内 earlyoom 没有结束过任何进程；有输出时每行记录一次，包括被结束的进程名。"),
             Step.Read(
                 "查看内核 OOM Killer 的记录",
                 "journalctl -k --since '7 days ago' --no-pager | grep -iE 'out of memory|killed process' | tail -n 10",
-                "SteamOS 限制普通用户直接运行 `dmesg`，用 `journalctl -k` 查看内核日志即可。"),
+                "SteamOS 限制普通用户直接运行 `dmesg`，用 `journalctl -k` 查看内核日志。").Then("没有输出说明近 7 天内核没有因内存耗尽杀过进程；有输出时能看到 `Out of memory: Killed process <PID> (<名称>)`。"),
         ],
 
         Verify =

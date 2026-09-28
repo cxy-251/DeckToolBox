@@ -37,23 +37,23 @@ public static class DeckInputSubsystemData
             Step.Read(
                 "列出所有输入设备及其事件节点",
                 "grep -E '^(N|H):' /proc/bus/input/devices",
-                "`N:` 是设备名，`H:` 是对应的 `eventN`。Steam 运行时能看到 `Microsoft X-Box 360 pad` 虚拟手柄。"),
+                "`N:` 是设备名，`H:` 是对应的 `eventN`。").Then("成对的 `N: Name=\"...\"` 与 `H: Handlers=... eventN` 行，包括电源键、触摸屏、`Valve Software Steam Controller`，Steam 运行时还有 `Microsoft X-Box 360 pad` 虚拟手柄。"),
             Step.Read(
                 "找到内置控制器对应的 hidraw 节点",
                 "for h in /sys/class/hidraw/hidraw*; do grep -q '28DE' $h/device/uevent && echo \"/dev/$(basename $h): $(grep HID_NAME $h/device/uevent)\"; done",
-                "控制器有多个 HID 接口，所以可能列出不止一个节点。"),
+                "控制器有多个 HID 接口，所以可能列出不止一个节点。").Then("输出一到三行，如 `/dev/hidraw0: HID_NAME=Valve Software Steam Controller`。"),
             Step.Read(
                 "查看 uinput 与 hidraw 的访问权限",
                 "getfacl -p /dev/uinput 2>/dev/null | grep user:",
-                "应能看到 `user:deck:rw-`：这是 udev 的 `uaccess` 规则按当前登录用户动态授予的 ACL。"),
+                "这是 udev 的 `uaccess` 规则按当前登录用户动态授予的 ACL。").Then("输出几行 `user:...` 条目，其中 `user:deck:rw-` 说明当前用户被授予了读写权限。"),
             Step.Read(
                 "查看环境光传感器读数",
                 "cat /sys/bus/iio/devices/iio:device*/name; cat /sys/bus/iio/devices/iio:device0/in_illuminance_input",
-                "用手遮住屏幕上方再执行一次，数值会明显下降。"),
+                "用手遮住屏幕上方再执行一次，数值会明显下降。").Then("先输出两行 `ltrf216a`（传感器名），再输出一个数字，如 `1.35`，单位勒克斯 (lux)。"),
             Step.Read(
                 "实时观察输入设备的热插拔事件",
                 "udevadm monitor --udev --subsystem-match=input",
-                "插拔外接手柄或蓝牙连接时会滚动输出事件，`Ctrl+C` 退出。"),
+                "持续监听，直到手动退出。").Then("先显示 `monitor will print the received events`，然后停在那里等待；插拔手柄、连接蓝牙设备时滚出 `UDEV [时间] add ...` 或 `remove ...` 行。按 `Ctrl+C` 退出。"),
         ],
 
         Verify =

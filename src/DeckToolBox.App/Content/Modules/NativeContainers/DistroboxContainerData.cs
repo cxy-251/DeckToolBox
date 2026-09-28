@@ -40,35 +40,35 @@ public static class DistroboxContainerData
             Step.Read(
                 "查看已有的容器",
                 "distrobox list",
-                "列出名称、状态和所用镜像。"),
+                "列出名称、状态和所用镜像。").Then("输出一张表：`ID | NAME | STATUS | IMAGE`。还没有容器时只显示表头。"),
             Step.Change(
                 "创建一个 Arch Linux 容器",
                 "distrobox create --name arch -i docker.io/library/archlinux:latest",
-                "Arch 与 SteamOS 同源，装出的软件行为最接近本机。首次创建需下载镜像。"),
+                "Arch 与 SteamOS 同源，装出的软件行为最接近本机。").Then("先下载镜像（显示下载进度，几百 MB，需要一两分钟），最后提示 `Distrobox 'arch' successfully created` 以及进入它的命令。此时容器已建好但尚未启动。"),
             Step.Change(
                 "进入容器",
                 "distrobox enter arch",
-                "第一次进入会做初始化，稍等片刻。提示符变化后就在容器里了，输入 `exit` 回到宿主。"),
+                "之后再进入只需一两秒。").Then("第一次进入会打印一串 `Setting up ...` 初始化步骤（约一分钟），之后提示符变为 `(deck@arch ~)$`。你的家目录内容照常可见；输入 `exit` 回到 SteamOS。"),
             Step.Root(
                 "在容器里安装软件（示例：编译工具与 git）",
                 "sudo pacman -Syu --needed base-devel git",
-                "这里的 `sudo` 只作用于容器内部，不会影响 SteamOS。").On(Hosts.Distrobox),
+                "这里的 `sudo` 只作用于容器内部，不需要密码，也不会影响 SteamOS。").On(Hosts.Distrobox).Then("pacman 先同步软件源，列出将要安装的包和总大小，询问 `:: 进行安装吗？ [Y/n]`，回车确认后下载并安装。完成后容器里就能用 `git`、`gcc`。"),
             Step.Change(
                 "把容器里的命令导出给宿主",
                 "distrobox-export --bin /usr/bin/git --export-path ~/.local/bin",
-                "在容器内执行。之后在宿主终端输入 `git` 就会自动调用容器里的版本。").On(Hosts.Distrobox),
+                "在容器内执行。").On(Hosts.Distrobox).Then("提示导出成功，并在宿主的 `~/.local/bin/git` 生成一个小脚本。回到 SteamOS 终端输入 `git`，会自动进入容器运行它（第一次稍慢）。"),
             Step.Change(
                 "把容器里的图形程序导出到应用菜单",
                 "distrobox-export --app <程序名>",
-                "在容器内执行。取消导出用 `distrobox-export --app <程序名> --delete`。").On(Hosts.Distrobox),
+                "在容器内执行。取消导出用 `distrobox-export --app <程序名> --delete`。").On(Hosts.Distrobox).Then("提示导出成功。KDE 应用菜单中出现该程序（名称后带容器名），点击即可在容器里启动它。"),
             Step.Change(
                 "停止容器",
                 "distrobox stop arch",
-                "不用时停止以释放内存，下次 `enter` 会自动启动。"),
+                "下次 `enter` 会自动启动。").Then("询问是否确认停止，输入 `y` 后容器停止，`distrobox list` 中状态变为 `Exited`，释放它占用的内存。"),
             Step.Danger(
                 "删除容器",
                 "distrobox rm arch",
-                "删除容器及其中安装的全部软件；家目录里的文件不受影响。导出的命令和菜单项需手动删除。"),
+                "导出的命令和菜单项需手动删除。").Then("询问是否确认删除，输入 `y` 后容器及其中安装的软件被删除，`distrobox list` 中不再有它。家目录中的文件不受影响。"),
         ],
 
         Verify =

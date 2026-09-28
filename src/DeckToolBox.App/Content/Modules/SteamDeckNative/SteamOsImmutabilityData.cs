@@ -42,39 +42,39 @@ public static class SteamOsImmutabilityData
             Step.Read(
                 "查看只读保护是否开启",
                 "steamos-readonly status",
-                "输出 `enabled` 表示根分区处于只读保护状态。"),
+                "查询只读保护的开关状态。").Then("输出一个词：`enabled` 表示根分区受只读保护（默认状态），`disabled` 表示已被解锁。"),
             Step.Read(
                 "查看根子卷的真实只读属性",
                 "btrfs property get / ro",
-                "`ro=true` 才是只读的真正依据；`mount` 里显示 `rw` 是正常的。"),
+                "`mount` 里显示 `rw` 是正常的：SteamOS 的只读是 btrfs 子卷属性，而不是挂载参数。").Then("输出 `ro=true`（只读）或 `ro=false`（可写）。"),
             Step.Read(
                 "查看磁盘分区布局",
                 "lsblk -o NAME,SIZE,FSTYPE,PARTLABEL,MOUNTPOINTS",
-                "`PARTLABEL` 列能直接看到 rootfs-A / rootfs-B / var-A / var-B / home；挂载在 `/` 的就是当前槽位。"),
+                "`-o` 指定要显示的列，`PARTLABEL` 是分区名称。").Then("输出一棵设备树：`nvme0n1` 下的 8 个分区分别标着 `esp`、`efi-A/B`、`rootfs-A/B`、`var-A/B`、`home`；`MOUNTPOINTS` 列为 `/` 的那个 rootfs 就是当前正在运行的系统槽位。"),
             Step.Read(
                 "查看 A/B 槽位状态",
                 "rauc status",
-                "`Booted from` 是当前槽位，每个槽位的 `boot status: good` 表示可正常启动。"),
+                "RAUC 是 SteamOS 更新系统所用的工具。").Then("显示 `Booted from: rootfs.1 (B)` 这样的当前槽位，以及每个槽位的 `boot status`：`good` 表示可以正常启动。"),
             Step.Read(
                 "查看 /etc 的覆盖层实现",
                 "findmnt /etc",
-                "`upperdir=` 指向保存你修改内容的位置。"),
+                "`findmnt` 显示某个挂载点的来源和参数。").Then("输出一行：`TARGET /etc`、`FSTYPE overlay`，以及很长的 `OPTIONS`，其中 `lowerdir=` 是系统镜像里的原始 `/etc`，`upperdir=` 是保存你所做修改的目录。"),
             Step.Read(
                 "查看系统版本与当前更新通道",
                 "grep -E '^(VERSION_ID|BUILD_ID)=' /etc/os-release; steamos-select-branch -c",
-                "通道 `rel` 为稳定版。"),
+                "`steamos-select-branch -c` 只查看当前通道，不做修改。").Then("前两行是版本号与构建日期（如 `VERSION_ID=3.7.x`），最后一行是通道名：`rel` 稳定版、`beta` 测试版、`main` 开发版。"),
             Step.Read(
                 "检查是否有可用的系统更新",
                 "steamos-update check",
-                "只检查不安装；安装更新建议在「设置 → 系统」里操作。"),
+                "安装更新建议在「设置 → 系统」里操作。").Then("需要联网，几秒后输出 `Update available`（有更新）或提示已是最新。只检查，不会下载或安装。"),
             Step.Danger(
                 "临时解除只读保护",
                 "sudo steamos-readonly disable",
-                "解锁后装进 `/usr` 的任何东西都会在下次系统更新时丢失。只在你清楚要改什么时使用。"),
+                "解锁后装进 `/usr` 的任何东西都会在下次系统更新时丢失。只在你清楚要改什么时使用。").Then("要求输入 sudo 密码，然后根分区变为可写，不会有额外提示。此后 `steamos-readonly status` 显示 `disabled`，`/usr` 下的文件可以被修改，直到你重新锁定或下次系统更新。"),
             Step.Root(
                 "重新开启只读保护",
                 "sudo steamos-readonly enable",
-                "改完立刻锁回。"),
+                "改完立刻锁回。").Then("根分区恢复只读，`steamos-readonly status` 重新显示 `enabled`。"),
         ],
 
         Verify =

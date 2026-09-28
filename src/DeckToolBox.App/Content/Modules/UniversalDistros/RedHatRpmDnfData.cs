@@ -36,35 +36,35 @@ public static class RedHatRpmDnfData
             Step.Change(
                 "在 Deck 上创建一个 Fedora 练习容器并进入",
                 "distrobox create --name fedora -i registry.fedoraproject.org/fedora:latest && distrobox enter fedora",
-                "之后的步骤都在这个容器里执行。"),
+                "之后的步骤都在这个容器里执行。").Then("下载 Fedora 镜像并初始化，完成后提示符变为 `(deck@fedora ~)$`。"),
             Step.Read(
                 "搜索与查看软件包",
                 "dnf search <关键词>; dnf info <包名>",
-                "`dnf info` 显示版本、来源仓库与说明。").On(Hosts.Fedora),
+                "`<关键词>` 如 `htop`。").On(Hosts.Fedora).Then("`dnf search` 先下载仓库元数据（首次较慢），然后列出匹配的包名与摘要；`dnf info` 显示单个包的版本、仓库、大小与描述。"),
             Step.Root(
                 "安装软件包",
                 "sudo dnf install <包名>",
-                "会列出事务内容，确认后输入 y。").On(Hosts.Fedora),
+                "默认答案是 N，必须明确输入 y。").On(Hosts.Fedora).Then("列出事务摘要（安装/升级哪些包、下载大小），询问 `Is this ok [y/N]`，输入 `y` 后下载、导入仓库密钥（首次）并安装，最后显示 `Complete!`。"),
             Step.Read(
                 "查看事务历史",
                 "dnf history list | head -n 15",
-                "每一行是一个事务，第一列是事务 ID。`dnf history info <事务ID>` 查看详情。").On(Hosts.Fedora),
+                "`dnf history info <事务ID>` 查看详情。").On(Hosts.Fedora).Then("表格：`ID | Command line | Date and time | Action(s) | Altered`，最新的事务在最上面。"),
             Step.Danger(
                 "撤销某次事务",
                 "sudo dnf history undo <事务ID>",
-                "反向执行该事务：它安装的包会被删除、升级的包会被降级。执行前先用 `history info` 看清内容。").On(Hosts.Fedora),
+                "执行前先用 `history info` 看清内容；被降级的旧版本包必须还能从源里下载到。").On(Hosts.Fedora).Then("列出将要执行的反向操作（删除哪些包、降级哪些包），确认后执行，并在历史中新增一条事务。"),
             Step.Read(
                 "查询：某个文件属于哪个包 / 包里有哪些文件",
                 "rpm -qf $(command -v <命令名>); rpm -ql <包名>",
-                "`dnf provides <路径或命令>` 还能查询尚未安装的包。").On(Hosts.Fedora),
+                "`dnf provides <路径或命令>` 还能查询尚未安装的包。").On(Hosts.Fedora).Then("`rpm -qf` 输出完整包名如 `coreutils-9.5-1.fc41.x86_64`；`rpm -ql` 逐行列出该包的所有文件。"),
             Step.Read(
                 "校验包的文件是否被改动",
                 "rpm -V coreutils",
-                "无输出表示所有文件与包中一致。输出如 `S.5....T.` 表示大小 (S)、摘要 (5)、修改时间 (T) 发生了变化。").On(Hosts.Fedora),
+                "`S` 大小、`5` 摘要、`T` 修改时间，`c` 表示配置文件。").On(Hosts.Fedora).Then("没有输出表示所有文件与包中一致；有改动时每行显示 `S.5....T.  c /etc/...` 这样的标记与文件路径。"),
             Step.Root(
                 "升级系统并清理缓存",
                 "sudo dnf upgrade --refresh && sudo dnf clean all",
-                "`--refresh` 强制刷新仓库元数据。").On(Hosts.Fedora),
+                "`--refresh` 强制刷新仓库元数据。").On(Hosts.Fedora).Then("先刷新元数据，列出可升级的包并询问确认，完成后显示 `Complete!`；`clean all` 输出删除了多少个缓存文件。"),
         ],
 
         Verify =

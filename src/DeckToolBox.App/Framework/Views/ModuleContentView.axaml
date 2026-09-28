@@ -46,7 +46,7 @@
             <Border Classes="Section" IsVisible="{Binding HasSteps}">
                 <StackPanel Spacing="4">
                     <TextBlock Classes="SectionTitle" Text="💻 操作步骤" Foreground="{StaticResource TextStrong}" Margin="0" />
-                    <TextBlock Text="复制后粘贴到 Konsole 终端执行。标签说明风险等级；标注了执行位置的指令不要在本机终端直接运行。"
+                    <TextBlock Text="复制后粘贴到 Konsole 终端执行。「▶ 执行后」说明运行后会看到什么、改变了什么；标签说明风险等级；标注了执行位置的指令不要在本机终端直接运行。"
                                FontSize="12" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" Margin="0,0,0,6" />
 
                     <ItemsControl ItemsSource="{Binding Steps}">
@@ -82,6 +82,16 @@
 
                                     <TextBlock Classes="Body" FontSize="13" Foreground="{StaticResource TextMuted}"
                                                ctl:RichText.Markup="{Binding Note}" IsVisible="{Binding HasNote}" />
+
+                                    <!-- 执行后会发生什么 -->
+                                    <Border Classes="Outcome" IsVisible="{Binding HasOutcome}">
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <TextBlock Text="▶ 执行后" FontSize="12" FontWeight="Bold" Foreground="{StaticResource Green}"
+                                                       Margin="0,2,10,0" VerticalAlignment="Top" />
+                                            <TextBlock Grid.Column="1" Classes="Body" FontSize="13"
+                                                       ctl:RichText.Markup="{Binding Outcome}" />
+                                        </Grid>
+                                    </Border>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

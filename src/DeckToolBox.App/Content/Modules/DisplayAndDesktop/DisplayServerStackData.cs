@@ -31,15 +31,15 @@ public static class DisplayServerStackData
             Step.Read(
                 "确认当前会话使用的视窗协议 (Wayland / X11)",
                 "echo \"Session: $XDG_SESSION_TYPE | Wayland: $WAYLAND_DISPLAY | X11: $DISPLAY\"",
-                "输出当前活动的显示协议与显示套接字名称。"),
+                "三个环境变量分别表示会话类型、Wayland 套接字名、X11 显示编号。").Then("输出一行，桌面模式下为 `Session: wayland | Wayland: wayland-0 | X11: :0`：会话是 Wayland，同时运行着供旧程序使用的 XWayland (`:0`)。"),
             Step.Read(
                 "查看当前正在前台运行的合成器进程 (KWin / Gamescope)",
                 "ps aux | grep -E \"(kwin_wayland|gamescope)\" | grep -v grep",
-                "确认是由 KDE KWin 主导还是 Gamescope 主导。"),
+                "`grep -v grep` 去掉 grep 自己这一行。").Then("桌面模式下列出 `kwin_wayland` 进程（用户、PID、CPU%、内存、启动参数）；游戏模式下列出 `gamescope`。"),
             Step.Read(
                 "查看内核 DRM 显示节点连接状态",
                 "tail -n +1 /sys/class/drm/card*-*/status 2>/dev/null",
-                "直接读取内核暴露的显示接口点亮状态。"),
+                "`tail -n +1` 用于一次显示多个文件并带上文件名标题。").Then("按文件分段输出，每段标题为 `==> .../card0-eDP-1/status <==`，下面一行 `connected` 或 `disconnected`。"),
         ],
 
         Verify =

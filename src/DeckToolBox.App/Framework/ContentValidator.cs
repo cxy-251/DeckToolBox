@@ -49,6 +49,9 @@ public static partial class ContentValidator
                 {
                     var at = $"{where} 步骤「{s.Title}」";
                     CheckMarkup(s.Note, at, issues);
+                    CheckMarkup(s.Outcome, at, issues);
+                    if (string.IsNullOrWhiteSpace(s.Outcome))
+                        issues.Add($"{at} 缺少「执行后」说明（.Then(...)）");
 
                     if (PseudoEchoPattern().IsMatch(s.Command))
                         issues.Add($"{at} 是 echo 包装的伪指令，请改为真实可执行的命令");
@@ -88,7 +91,7 @@ public static partial class ContentValidator
         {
             Console.WriteLine($"## {m.Id}");
             foreach (var s in m.Steps)
-                Console.WriteLine($"[{s.Risk}{(s.Host is null ? "" : " @ " + s.Host)}] {s.Title}\n{s.Command}\n");
+                Console.WriteLine($"[{s.Risk}{(s.Host is null ? "" : " @ " + s.Host)}] {s.Title}\n{s.Command}\n  → {s.Outcome}\n");
         }
         return modules.Count == 0 ? 1 : 0;
     }

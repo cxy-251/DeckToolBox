@@ -35,23 +35,23 @@ public static class LaunchOptionsData
             Step.Change(
                 "用 MangoHud 显示帧率、温度与功耗",
                 "mangohud %command%",
-                "SteamOS 自带 MangoHud。在 Deck 游戏模式中，快捷菜单的「性能浮层」就是 MangoHud，因此这条主要用于桌面模式。").On(Hosts.SteamLaunchOptions),
+                "SteamOS 自带 MangoHud。在 Deck 游戏模式中，快捷菜单的「性能浮层」就是 MangoHud，因此这条主要用于桌面模式。").On(Hosts.SteamLaunchOptions).Then("游戏画面左上角出现半透明的信息浮层，实时显示 FPS、帧时间曲线、CPU/GPU 占用与温度。删掉启动选项即恢复。"),
             Step.Change(
                 "禁用 Steam 覆盖层的注入",
                 "LD_PRELOAD=\"\" %command%",
-                "个别原生 Linux 程序与 Steam 覆盖层冲突（黑屏、崩溃）时使用；代价是游戏内无法呼出 Steam 覆盖层。").On(Hosts.SteamLaunchOptions),
+                "`LD_PRELOAD` 是预先加载的库列表，设为空即不注入任何库。个别原生 Linux 程序与覆盖层冲突时使用。").On(Hosts.SteamLaunchOptions).Then("游戏启动时不再加载 Steam 覆盖层：按 `Shift+Tab` 不会弹出覆盖层界面，由它引起的黑屏或崩溃随之消失。"),
             Step.Change(
                 "让 DXVK 限制帧率",
                 "DXVK_FRAME_RATE=40 %command%",
-                "只对 D3D9~11 游戏生效。在 Deck 上通常用快捷菜单限帧即可，这条用于其他设备或需要单独配置时。").On(Hosts.SteamLaunchOptions),
+                "只对 D3D9~11 游戏生效。在 Deck 上通常用快捷菜单限帧即可。").On(Hosts.SteamLaunchOptions).Then("游戏帧率被限制在 40 FPS 以内，GPU 负载与功耗随之下降；对不走 DXVK 的游戏（D3D12、原生 Linux 游戏）没有效果。"),
             Step.Change(
                 "强制游戏使用 DirectX 11 渲染路径",
                 "%command% -dx11",
-                "常见于提供 D3D11/D3D12 双路径的游戏（如部分 Unreal 引擎游戏），在 D3D12 下不稳定时尝试；游戏不认识该参数时无效果。").On(Hosts.SteamLaunchOptions),
+                "常见于提供 D3D11/D3D12 双路径的游戏（如部分 Unreal 引擎游戏），在 D3D12 下不稳定时尝试。").On(Hosts.SteamLaunchOptions).Then("支持该参数的游戏会跳过 D3D12，改用 D3D11 渲染（此时经由 DXVK 翻译）；不支持的游戏忽略这个参数，照常启动。"),
             Step.Read(
                 "查看正在运行的游戏实际收到的环境变量",
                 "tr '\\0' '\\n' < /proc/$(pgrep -n -f '<游戏exe名>')/environ | grep -E 'PROTON|DXVK|LD_PRELOAD'",
-                "游戏运行时在桌面模式终端执行，用来验证启动选项是否真的生效。"),
+                "`pgrep -n -f` 找到名字匹配的最新进程，`/proc/<PID>/environ` 是它的环境变量（以空字符分隔，`tr` 转成换行）。游戏运行时在桌面模式终端执行。").Then("每行一个变量，例如 `DXVK_FRAME_RATE=40`；没有输出说明游戏进程里没有这些变量，启动选项可能没生效，或者 exe 名写错了。"),
         ],
 
         Verify =

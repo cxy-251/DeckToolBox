@@ -46,23 +46,23 @@ public static class PosixPermissionsAclData
             Step.Read(
                 "查看当前 Shell 默认创建文件与目录的权限掩码 (umask)",
                 "umask -S && umask",
-                "查看符号化 (如 u=rwx,g=rx,o=rx) 与 8 进制掩码 (如 0022)。新建目录默认 = 0777 - umask (0755)；新建文件默认 = 0666 - umask (0644)。"),
+                "umask 表示新建文件时要去掉的权限位。").Then("输出两行：`u=rwx,g=rx,o=rx` 与 `0022`。意味着你新建的目录权限为 755、文件为 644：别人可以读，不能写。"),
             Step.Read(
                 "查看系统中关键特殊权限位目录（如 /tmp 粘滞位）",
                 "ls -ld /tmp /var/tmp",
-                "观察权限位末尾的 't'（如 rwxrwxrwt），验证粘滞位保护机制。"),
+                "`-d` 显示目录本身而不是其内容。").Then("两行都以 `drwxrwxrwt` 开头：所有人可写，但末尾的 `t`（粘滞位）让每个人只能删除自己的文件。"),
             Step.Read(
                 "查看系统中的 SUID / SGID 特权可执行程序清单",
                 "find /usr/bin -type f -perm /6000 2>/dev/null | head -n 20",
-                "使用 find 的 -perm /6000 掩码，快速检索所有包含 SUID (4000) 或 SGID (2000) 特殊位的敏感二进制。"),
+                "`-perm /6000` 匹配带有 SUID (4000) 或 SGID (2000) 任一位的文件。").Then("每行一个程序路径，如 `/usr/bin/sudo`、`/usr/bin/passwd`、`/usr/bin/newgrp`。"),
             Step.Read(
                 "使用 getfacl 深入查看文件的扩展 ACL 访问控制列表",
                 "getfacl -p /dev/uinput",
-                "`/dev/uinput` 上的 `user:deck:rw-` 就是 udev 为当前登录用户动态添加的 ACL（见「手柄输入链与 Steam Input」）。"),
+                "`user:deck:rw-` 是 udev 为当前登录用户动态添加的 ACL（见「手柄输入链与 Steam Input」）。").Then("输出 `# file:`、`# owner: root`、`# group: root` 以及 `user::rw-`、`user:deck:rw-`、`group::rw-`、`mask::rw-`、`other::---` 等条目。"),
             Step.Change(
                 "实验：为指定用户单独授权，再清除 ACL",
                 "mkdir -p /tmp/acl-demo && setfacl -m u:nobody:rx /tmp/acl-demo && ls -ld /tmp/acl-demo && getfacl -p /tmp/acl-demo && setfacl -b /tmp/acl-demo && rmdir /tmp/acl-demo",
-                "`-m u:nobody:rx` 只给 nobody 用户加读和进入权限；`ls -ld` 的权限末尾出现 `+` 表示带有 ACL；`-b` 删除全部扩展条目。"),
+                "`-m u:nobody:rx` 只给 nobody 用户加读和进入权限；`-b` 删除全部扩展条目。").Then("`ls -ld` 显示 `drwxr-xr-x+`（末尾的 `+` 表示带 ACL），`getfacl` 中多出 `user:nobody:r-x`；随后 ACL 被清除、目录被删除。"),
         ],
 
         Verify =

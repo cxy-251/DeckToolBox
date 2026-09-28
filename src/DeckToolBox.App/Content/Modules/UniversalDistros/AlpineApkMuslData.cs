@@ -37,31 +37,31 @@ public static class AlpineApkMuslData
             Step.Change(
                 "在 Deck 上创建一个 Alpine 练习容器并进入",
                 "distrobox create --name alpine -i docker.io/library/alpine:latest && distrobox enter alpine",
-                "之后的步骤都在这个容器里执行。"),
+                "之后的步骤都在这个容器里执行。").Then("下载只有几 MB 的 Alpine 镜像（很快），完成容器初始化后提示符变为 `(deck@alpine ~)$`，你已在 Alpine 里。"),
             Step.Root(
                 "更新索引并安装软件包",
                 "sudo apk update && sudo apk add <包名>",
-                "Dockerfile 中常写作 `apk add --no-cache <包名>`，省去 `update` 且不留缓存。").On(Hosts.Alpine),
+                "Dockerfile 中常写作 `apk add --no-cache <包名>`，省去 `update` 且不留缓存。").On(Hosts.Alpine).Then("先输出 `fetch ...APKINDEX` 下载索引，然后 `(1/3) Installing ...` 逐个安装依赖与目标包，最后 `OK: xx MiB in yy packages`。apk 不会询问确认。"),
             Step.Read(
                 "列出已安装的包",
                 "apk info -v | sort | head -n 30",
-                "`-v` 带上版本号。").On(Hosts.Alpine),
+                "`-v` 带上版本号。").On(Hosts.Alpine).Then("每行一个「包名-版本」，如 `busybox-1.37.0-r12`，按字母排序显示前 30 个。"),
             Step.Read(
                 "查询某个文件属于哪个包",
                 "apk info --who-owns /bin/busybox",
-                "很多命令其实是指向 busybox 的符号链接。").On(Hosts.Alpine),
+                "很多命令其实是指向 busybox 的符号链接。").On(Hosts.Alpine).Then("输出 `/bin/busybox is owned by busybox-1.xx`。"),
             Step.Read(
                 "确认程序链接的是 musl",
                 "ldd /bin/busybox",
-                "动态链接器显示为 `ld-musl-x86_64.so.1`。").On(Hosts.Alpine),
+                "`ldd` 显示程序运行时要加载哪些共享库。").On(Hosts.Alpine).Then("列出依赖的库，其中动态链接器为 `/lib/ld-musl-x86_64.so.1`。"),
             Step.Read(
                 "对比：在 Deck 主机上查看同类程序链接的是 glibc",
                 "ldd /usr/bin/ls",
-                "在 SteamOS 主机（容器外）执行，可以看到 `ld-linux-x86-64.so.2` 和 `libc.so.6`。"),
+                "在 SteamOS 主机（容器外）执行。").Then("列出 `libc.so.6`、`/lib64/ld-linux-x86-64.so.2` 等 glibc 的库，与 Alpine 中的 musl 形成对比。"),
             Step.Root(
                 "安装 glibc 兼容层",
                 "sudo apk add gcompat",
-                "只在必须运行为 glibc 编译的程序时使用。").On(Hosts.Alpine),
+                "只在必须运行为 glibc 编译的程序时使用。").On(Hosts.Alpine).Then("安装 `gcompat` 及其依赖；之后部分为 glibc 编译的程序可以在 Alpine 中启动（不保证全部可用）。"),
         ],
 
         Verify =

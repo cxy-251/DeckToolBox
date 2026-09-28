@@ -85,6 +85,14 @@
         <Style Selector="Border.CodeBox.Danger"><Setter Property="BorderBrush" Value="#6E2B2B" /></Style>
         <Style Selector="Border.CodeBox.Root"><Setter Property="BorderBrush" Value="#5A4A1C" /></Style>
 
+        <Style Selector="Border.Outcome">
+            <Setter Property="Background" Value="#0F1F14" />
+            <Setter Property="BorderBrush" Value="#1E4D2B" />
+            <Setter Property="BorderThickness" Value="2,0,0,0" />
+            <Setter Property="CornerRadius" Value="0,4,4,0" />
+            <Setter Property="Padding" Value="10,6" />
+        </Style>
+
         <Style Selector="Button.Copy">
             <Setter Property="Background" Value="{StaticResource Bg3}" />
             <Setter Property="Foreground" Value="{StaticResource TextBody}" />

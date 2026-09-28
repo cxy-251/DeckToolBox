@@ -39,23 +39,23 @@ public static class AudioStackPipewireData
             Step.Read(
                 "查看当前系统全量音频拓扑树与活动音频设备 (WirePlumber)",
                 "wpctl status",
-                "使用 WirePlumber 控制器查看 Audio Sinks (输出扬声器/耳机)、Sources (麦克风)、以及前台各应用程序所占用的音频节点 ID 与音量百分比。"),
+                "Sink 是输出（扬声器、耳机），Source 是输入（麦克风）。").Then("按 Audio / Video 分组的树：`Devices` 声卡、`Sinks` 输出（带 `*` 的是默认）、`Sources` 输入、`Streams` 正在播放或录音的程序，每项有数字 ID 和 `[vol: 0.12]` 这样的音量。"),
             Step.Read(
                 "实时观测 PipeWire 音频图处理性能与缓冲量子 (pw-top)",
                 "pw-top -b -n 1",
-                "类似于 top 的音频性能监视器，查看量子大小 (QUANT, 如 1024 帧)、当前硬件工作采样率 (RATE, 如 48000Hz)、以及处理耗时与 ERR 错误丢帧计数。"),
+                "`-b` 批处理模式输出纯文本，`-n 1` 只输出一次。`ERR` 持续增长说明有爆音或掉帧。").Then("输出一次快照表格：每行一个节点，`QUANT` 缓冲帧数、`RATE` 采样率、`WAIT`/`BUSY` 耗时、`ERR` 错误数，最后一列是节点名。"),
             Step.Read(
                 "查看内核层物理声卡与 ALSA PCM 设备节点清单",
                 "cat /proc/asound/cards && ls -l /dev/snd/",
-                "查看内核识别到的声卡。Steam Deck 使用 AMD 音频协处理器 (ACP) 配合 SOF 固件，扬声器与耳机由 NAU8821 编解码器和 MAX98388 功放驱动。"),
+                "Steam Deck 使用 AMD 音频协处理器 (ACP) 配合 SOF 固件，扬声器与耳机由 NAU8821 编解码器和 MAX98388 功放驱动。").Then("先列出声卡编号与名称（HDMI 声卡和板载 `acp` 声卡），再列出 `/dev/snd/` 下的 `controlC0`、`pcmC0D0p` 等设备节点。"),
             Step.Read(
                 "排查 PulseAudio 仿真套接字健康状况与服务器版本",
                 "pactl info",
-                "验证 Server Name 是否明确显示为 \"PulseAudio (on PipeWire ...)\"，证实兼容层正常拦截并接管旧应用的音频请求。"),
+                "`pactl` 是 PulseAudio 的命令行工具，PipeWire 兼容它。").Then("输出十几行信息，其中 `Server Name: PulseAudio (on PipeWire 1.x.x)` 说明旧的 PulseAudio 程序实际由 PipeWire 服务；还有默认输出、输入设备名。"),
             Step.Change(
                 "无损重置用户空间音频图调度服务链（故障自愈指令）",
                 "systemctl --user restart pipewire pipewire-pulse wireplumber",
-                "当遇到外接 HDMI/显示器扩展坞音频丢失或蓝牙连接后无声时，执行该标准服务重启指令秒级自愈，无需重启掌机操作系统。"),
+                "HDMI 或蓝牙连接后没有声音时先试这一步，不必重启整机。").Then("没有输出。声音中断约一秒，三个音频服务重新启动；正在播放的程序通常会自动重连，个别程序需要重新播放。"),
         ],
 
         Verify =

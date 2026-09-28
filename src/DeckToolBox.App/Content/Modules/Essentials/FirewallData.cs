@@ -37,27 +37,27 @@ public static class FirewallData
             Step.Read(
                 "查看防火墙是否运行、网卡属于哪个区域",
                 "firewall-cmd --state; firewall-cmd --get-active-zones",
-                "`running` 表示已启用。"),
+                "`running` 表示已启用。").Then("先输出 `running`，再输出 `public (default)` 与下一行 `  interfaces: wlan0`。"),
             Step.Read(
                 "查看当前区域放行的服务与端口",
                 "firewall-cmd --list-all",
-                "重点看 `services` 与 `ports` 两行。"),
+                "重点看 `services` 与 `ports` 两行。").Then("输出 `public (default, active)` 区域的完整规则，其中 `services: dhcpv6-client ssh`、`ports: 1024-65535/tcp 1024-65535/udp` 是 SteamOS 的默认放行项。"),
             Step.Read(
                 "查看某个预定义服务包含哪些端口",
                 "firewall-cmd --info-service=ssh",
-                "`firewall-cmd --get-services` 列出所有预定义服务名。"),
+                "`firewall-cmd --get-services` 列出所有预定义服务名。").Then("输出 `ssh` 以及 `ports: 22/tcp` 等字段。"),
             Step.Root(
                 "临时放行一个端口（重启后失效）",
                 "sudo firewall-cmd --add-port=<端口>/tcp",
-                "例如 `--add-port=80/tcp`。测试没问题后用下一步保存。"),
+                "例如 `--add-port=80/tcp`。").Then("输入 sudo 密码后输出 `success`，该端口立即可以从局域网访问。重启或 `--reload` 后失效。"),
             Step.Root(
                 "把当前的临时规则保存为永久规则",
                 "sudo firewall-cmd --runtime-to-permanent",
-                "保存后重启依然有效。"),
+                "会把所有临时规则一起保存。").Then("输出 `success`，当前生效的规则被写入 `/etc/firewalld/`，重启后依然有效。"),
             Step.Root(
                 "移除一个端口规则（临时与永久都删除）",
                 "sudo firewall-cmd --remove-port=<端口>/tcp; sudo firewall-cmd --permanent --remove-port=<端口>/tcp",
-                "分别删除运行时与永久配置中的规则。"),
+                "分别删除运行时与永久配置中的规则。").Then("两条各输出 `success`（若规则本不存在，输出 `Warning: NOT_ENABLED` 也无妨）。该端口立即不再放行，重启后也不会恢复。"),
         ],
 
         Verify =

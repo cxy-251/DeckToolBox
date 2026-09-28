@@ -40,27 +40,27 @@ public static class CgroupsResourceControlData
             Step.Read(
                 "查看内核启用的 cgroup 控制器",
                 "cat /sys/fs/cgroup/cgroup.controllers",
-                "通常包含 `cpuset cpu io memory hugetlb pids`。"),
+                "这些是可以在 cgroup 上施加限制的资源类型。").Then("输出一行，如 `cpuset cpu io memory hugetlb pids rdma misc`。"),
             Step.Read(
                 "查看当前 shell 所在的 cgroup",
                 "cat /proc/$$/cgroup",
-                "v2 下只有一行，形如 `0::/user.slice/.../app.slice/...`。"),
+                "cgroup v2 下只有一行。").Then("输出一行 `0::/user.slice/user-1000.slice/user@1000.service/app.slice/...`，末尾是 Konsole 所在的 scope。"),
             Step.Read(
                 "以树形查看你的会话中各应用的 cgroup",
                 "systemd-cgls --no-pager /user.slice/user-$(id -u).slice/user@$(id -u).service/app.slice | head -n 40",
-                "每个桌面应用、每个用户服务都有自己的节点。"),
+                "每个桌面应用、每个用户服务都有自己的节点。").Then("树状列出 app.slice 下的各个单元，每个单元下是属于它的进程 PID 与命令行。"),
             Step.Read(
                 "按资源占用实时排序各个 cgroup",
                 "systemd-cgtop",
-                "类似 top，但按 cgroup 统计。按 `m` 按内存排序，`q` 退出。"),
+                "类似 top，但按 cgroup 汇总。").Then("全屏表格每秒刷新：每行一个 cgroup 及其任务数、CPU%、内存、IO。按 `m` 按内存排序，`q` 退出。"),
             Step.Change(
                 "限制一条命令最多使用 1 GB 内存和半个 CPU 核心",
                 "systemd-run --user --scope -p MemoryMax=1G -p CPUQuota=50% <命令>",
-                "例如压缩大文件、编译代码时使用，前台游戏不会被抢占资源。"),
+                "例如压缩大文件、编译代码时使用，前台游戏不会被抢占资源。").Then("先输出 `Running as unit: run-xxxx.scope`，然后命令照常运行，但 CPU 占用不超过 50%，内存超过 1 GB 时被内核终止。命令结束后这个 scope 自动消失。"),
             Step.Read(
                 "查看某个 scope 的实际限制值",
                 "systemctl --user show -p MemoryMax,CPUQuotaPerSecUSec $(systemctl --user list-units --type=scope --no-legend | awk '/run-/{print $1; exit}')",
-                "在上一步的命令运行期间，从另一个终端执行。"),
+                "在上一步的命令运行期间，从另一个终端执行。").Then("输出两行：`MemoryMax=1073741824`（字节）与 `CPUQuotaPerSecUSec=500ms`（每秒最多 0.5 秒 CPU 时间）。没有正在运行的 scope 时输出为空。"),
         ],
 
         Verify =

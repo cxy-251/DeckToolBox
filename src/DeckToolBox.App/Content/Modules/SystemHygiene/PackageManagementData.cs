@@ -44,39 +44,39 @@ public static class PackageManagementData
             Step.Read(
                 "确认没有安装任何 Flatpak 应用和运行时",
                 "flatpak list --app; flatpak list --runtime",
-                "两条都没有输出，说明应用和运行时都已清空。"),
+                "分别列出应用和运行时。").Then("两条都没有输出，表示应用和运行时都已清空；否则列出剩余的 AppID。"),
             Step.Read(
                 "查看还剩哪些软件源",
                 "flatpak remotes --show-details",
-                "`system` 表示系统级源，`user` 表示用户级源。"),
+                "`system` 表示系统级源，`user` 表示用户级源。").Then("每个软件源一行，例如 `flathub-beta  Flathub Beta  https://dl.flathub.org/beta-repo/ ... system`；没有输出表示所有源都已删除。"),
             Step.Root(
                 "删除系统级软件源",
                 "sudo flatpak remote-delete <源名称>",
-                "例如 `flathub`、`flathub-beta`。用户级源不需要 sudo，写作 `flatpak remote-delete --user <源名称>`。"),
+                "例如 `flathub`、`flathub-beta`。用户级源不需要 sudo，写作 `flatpak remote-delete --user <源名称>`。").Then("输入 sudo 密码后没有输出即成功。之后 `flatpak remotes` 中不再有这个源，Discover 也无法再从它安装应用。"),
             Step.Read(
                 "查看 Flatpak 目录的剩余占用",
                 "du -sh /var/lib/flatpak ~/.local/share/flatpak ~/.var/app 2>/dev/null",
-                "没有应用时，这里剩下的主要是仓库元数据与缓存。"),
+                "没有应用时，这里剩下的主要是仓库元数据与缓存。").Then("每个目录一行，例如 `110M  /var/lib/flatpak`。不存在的目录不显示。"),
             Step.Change(
                 "回收已无用的运行时与仓库对象",
                 "flatpak uninstall --unused -y; flatpak repair --user",
-                "`--unused` 删除没有应用在用的运行时；`repair` 清理仓库中不再被引用的对象。"),
+                "`--unused` 删除没有应用在用的运行时；`repair` 清理仓库中不再被引用的对象。").Then("没有可回收的内容时提示 `Nothing unused to uninstall`；`repair` 会逐项检查并输出清理结果，完成后相应目录变小。"),
             Step.Read(
                 "找出「应用已卸载、数据还留着」的目录",
                 "comm -13 <(flatpak list --app --columns=application | sort) <(ls ~/.var/app | sort)",
-                "`comm -13` 输出只在右侧出现的行：`~/.var/app` 里有、但已不再安装的 AppID。"),
+                "`comm -13` 输出只在右侧出现的行。").Then("每行一个 AppID，例如 `com.google.Chrome`，表示 `~/.var/app` 里还留着它的数据；没有输出表示没有遗留。"),
             Step.Danger(
                 "删除一个遗留的应用数据目录",
                 "rm -rf ~/.var/app/<AppID>",
-                "只对上一步列出的 AppID 执行，逐个确认。"),
+                "只对上一步列出的 AppID 执行，逐个确认。").Then("没有输出。该目录及其中的配置、缓存被永久删除，不经过回收站。"),
             Step.Read(
                 "查看已有的便携应用",
                 "ls ~/Applications",
-                "这里是 Flatpak 的主要替代位置。"),
+                "这里是 Flatpak 的主要替代位置。").Then("列出 `~/Applications` 下的目录和文件名，例如 `chrome`。目录不存在时提示「没有那个文件或目录」。"),
             Step.Read(
                 "查看已有的 Distrobox 容器与导出的菜单项",
                 "distrobox list; grep -l 'distrobox' ~/.local/share/applications/*.desktop 2>/dev/null",
-                "第二条列出由容器导出到应用菜单的程序。"),
+                "第二条列出由容器导出到应用菜单的程序。").Then("先是容器表格（ID、名称、状态、镜像），然后列出由容器导出的 `.desktop` 文件路径；都没有时只显示表头。"),
         ],
 
         Verify =

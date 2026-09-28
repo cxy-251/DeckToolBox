@@ -41,23 +41,23 @@ public static class PerformanceTracingData
             Step.Read(
                 "查看系统 1/5/15 分钟平均负载与内核运行队列状态",
                 "cat /proc/loadavg",
-                "前三个数值代表过去 1、5、15 分钟的平均负载；第四段形如 2/840 代表当前活跃调度线程数 / 线程总数；最后是最新创建的进程 PID。"),
+                "前三个数是 1、5、15 分钟平均负载；`2/1280` 为正在运行 / 总线程数；最后是最近创建的进程 PID。负载除以 CPU 线程数（Deck 为 8）小于 1 表示不排队。").Then("输出一行，如 `1.20 0.95 0.80 2/1280 865432`。"),
             Step.Read(
                 "统计分析任意命令所耗费的系统调用类型与耗时分布 (strace -c)",
                 "strace -c ls -la /usr/bin > /dev/null",
-                "使用 -c 参数汇总系统调用次数、错误次数 (errors)、耗时百分比以及系统调用名称（如 openat, mmap, getdents64）。"),
+                "`-c` 只统计不逐条打印；统计结果写在标准错误，所以不会被 `> /dev/null` 丢掉。").Then("`ls` 的正常输出被丢弃；strace 在结束时输出一张表：各系统调用的耗时占比、次数、出错次数和名称，如 `getdents64`、`openat`、`statx`。"),
             Step.Read(
                 "精准追踪进程的文件寻址路径与动态链接库加载细节",
                 "strace -e trace=openat ls /tmp 2>&1 | head -n 20",
-                "使用 -e trace=openat 仅过滤文件打开系统调用，快速定位软件启动时尝试从哪些目录搜寻配置文件或 .so 库。"),
+                "`-e trace=openat` 只看打开文件的调用。排查「程序找不到配置文件或库」时最有用。").Then("每行一个 `openat(...)` 调用及其返回值，能看到 `ls` 依次打开了哪些库文件（`libc.so.6` 等）和目录；失败的调用显示 `= -1 ENOENT`。"),
             Step.Read(
                 "测量 CPU 硬件微架构性能指标与 IPC 指令吞吐率 (perf stat)",
                 "perf stat ls -la /usr/lib 2>&1 | tail -n 20",
-                "读取 PMU 硬件性能计数器：查看 task-clock, context-switches, cpu-migrations, page-faults, cycles, instructions 以及 IPC 数值。"),
+                "SteamOS 默认只允许普通用户统计自己进程在用户态的事件（显示为 `:u`）。").Then("命令结束后输出计数表：`task-clock`、`context-switches`、`page-faults`、`cycles`、`instructions`，以及 `insn per cycle`（IPC）和总耗时。"),
             Step.Root(
                 "检索内核静态追踪打点分类总览 (Tracepoints)",
                 "sudo ls /sys/kernel/tracing/events/ | head -n 25",
-                "查看内核内建的静态追踪子系统（如 sched 进程调度、syscalls 系统调用、block 磁盘块设备 IO、net 网络数据包打点）。"),
+                "每个目录下是内核中该子系统预置的追踪点。").Then("输入 sudo 密码后列出前 25 个子系统目录名，如 `block`、`sched`、`syscalls`、`net`。"),
         ],
 
         Verify =

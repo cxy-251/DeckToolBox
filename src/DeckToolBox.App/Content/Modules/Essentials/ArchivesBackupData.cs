@@ -38,27 +38,27 @@ public static class ArchivesBackupData
             Step.Read(
                 "不解压，先看压缩包里有什么",
                 "tar -tf <文件>.tar.gz | head; unzip -l <文件>.zip | head; 7z l <文件>.7z | head",
-                "三种格式各一条，按你手上的文件选用。"),
+                "三种格式各一条，按你手上的文件选用。").Then("列出压缩包中的文件路径（只显示前 10 行），不会解出任何文件。`unzip -l`、`7z l` 还会显示每个文件的大小和日期。"),
             Step.Change(
                 "解压到指定目录",
                 "mkdir -p ~/extracted && tar -xf <文件>.tar.gz -C ~/extracted",
-                "`tar -xf` 能自动识别 gz/xz/zst 压缩。zip 用 `unzip <文件>.zip -d ~/extracted`，7z 用 `7z x <文件>.7z -o\"$HOME/extracted\"`。"),
+                "`tar -xf` 能自动识别 gz/xz/zst 压缩。zip 用 `unzip <文件>.zip -d ~/extracted`，7z 用 `7z x <文件>.7z -o\"$HOME/extracted\"`。").Then("没有输出（加 `-v` 可逐个显示文件名）。`~/extracted` 下出现压缩包里的内容；已存在的同名文件会被覆盖。"),
             Step.Change(
                 "把一个目录打包压缩",
                 "tar -caf ~/backup-$(date +%F).tar.zst -C ~ Documents",
-                "`-a` 根据扩展名 `.tar.zst` 选择 zstd 压缩，速度快、压缩率高。"),
+                "`-c` 创建、`-a` 根据扩展名 `.tar.zst` 选择 zstd 压缩、`-f` 指定文件名、`-C ~` 先进入家目录再打包 `Documents`。").Then("没有输出。家目录下出现 `backup-<日期>.tar.zst`，里面是完整的 `Documents` 目录。原目录不变。"),
             Step.Read(
                 "演练：看看 rsync 将会复制什么",
                 "rsync -avhn ~/Documents/ /run/media/deck/<卷标>/backup/Documents/",
-                "`-n` 只演练不执行；`-v` 列出文件；`-h` 人类可读的大小。"),
+                "`-n` 只演练不执行；`-a` 保留属性；`-v` 列出文件；`-h` 人类可读的大小。").Then("列出将要传输的文件，末尾提示 `(DRY RUN)`。不会复制任何东西。"),
             Step.Change(
                 "执行备份",
                 "rsync -avh --info=progress2 ~/Documents/ /run/media/deck/<卷标>/backup/Documents/",
-                "`--info=progress2` 显示总体进度。再次执行时只复制变化的文件。"),
+                "`--info=progress2` 显示总体进度。再次执行时只复制变化的文件。").Then("显示一行不断刷新的总体进度（已传输量、百分比、速度、剩余时间），结束后汇总传输了多少数据。目标目录与源内容一致；源中已删除的文件在目标中保留。"),
             Step.Danger(
                 "镜像同步：让目标与源完全一致",
                 "rsync -avh --delete ~/Documents/ /run/media/deck/<卷标>/backup/Documents/",
-                "目标中多出来的文件会被删除。先把同样的命令加上 `-n` 执行一次，确认删除列表。"),
+                "目标中多出来的文件会被删除。先把同样的命令加上 `-n` 执行一次，确认删除列表。").Then("除复制新文件外，还会逐行打印 `deleting <文件>`，删除目标中源里已经没有的文件。"),
         ],
 
         Verify =

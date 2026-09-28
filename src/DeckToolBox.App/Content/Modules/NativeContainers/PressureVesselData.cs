@@ -35,19 +35,19 @@ public static class PressureVesselData
             Step.Read(
                 "查看已安装的 Steam 运行时",
                 "ls -d ~/.local/share/Steam/steamapps/common/SteamLinuxRuntime*",
-                "`SteamLinuxRuntime_sniper` / `_soldier` 等目录各是一套运行时。"),
+                "每个目录是一套运行时。").Then("列出几个目录路径，如 `SteamLinuxRuntime_sniper`、`SteamLinuxRuntime_soldier`。"),
             Step.Read(
                 "游戏运行时查看容器进程",
                 "pgrep -a -f 'pressure-vessel|bwrap' | cut -c1-200",
-                "启动任意游戏后在桌面模式终端执行；`cut` 截断过长的命令行。"),
+                "启动任意游戏后在桌面模式终端执行；`cut` 截断过长的命令行。").Then("列出 `pressure-vessel-wrap`、`bwrap` 等进程及其（被截断的）命令行；没有游戏运行时没有输出。"),
             Step.Change(
                 "用 bwrap 亲手启动一个最小沙箱",
                 "bwrap --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin --proc /proc --dev /dev --unshare-all --die-with-parent /bin/bash",
-                "SteamOS 的 `/lib`、`/bin` 都是指向 `/usr` 的符号链接，所以用 `--symlink` 在沙箱里重建它们。输入 `exit` 退出沙箱。"),
+                "SteamOS 的 `/lib`、`/bin` 都是指向 `/usr` 的符号链接，所以用 `--symlink` 在沙箱里重建它们；`--unshare-all` 隔离进程、网络等所有命名空间。").Then("提示符变为 `bash-5.x$` 这样的简单形式，说明你已经在沙箱里的新 bash 中。此时看不到家目录，也看不到系统的其他进程。输入 `exit` 返回原来的终端，沙箱随即消失。"),
             Step.Read(
                 "在沙箱里观察隔离效果",
                 "echo \"我的 PID: $$\"; ps -e; ls /; ls ~ 2>&1",
-                "在上一步打开的沙箱 shell 中执行。").On("bwrap 沙箱内"),
+                "在上一步打开的沙箱 shell 中执行。").On("bwrap 沙箱内").Then("显示 `我的 PID: 2`；`ps -e` 只列出三四个进程；`ls /` 只有 `bin dev lib lib64 proc sbin usr`；`ls ~` 报「没有那个文件或目录」。"),
         ],
 
         Verify =

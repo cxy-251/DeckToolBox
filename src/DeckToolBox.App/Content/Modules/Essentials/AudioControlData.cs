@@ -37,27 +37,27 @@ public static class AudioControlData
             Step.Read(
                 "查看所有音频设备与当前默认设备",
                 "wpctl status",
-                "看 `Audio` 部分的 `Sinks`（输出）与 `Sources`（输入），`*` 表示默认。"),
+                "`*` 表示默认设备。").Then("树状输出：`Audio` 下的 `Devices`、`Sinks`（输出）、`Sources`（输入）、`Streams`（正在发声的程序），每项前面是数字 ID，默认设备前有 `*`，后面是 `[vol: 0.12]` 这样的音量。"),
             Step.Read(
                 "查看默认输出的音量与名称",
                 "wpctl get-volume @DEFAULT_AUDIO_SINK@; wpctl inspect @DEFAULT_AUDIO_SINK@ | grep node.description",
-                "静音时音量后会显示 `[MUTED]`。"),
+                "`@DEFAULT_AUDIO_SINK@` 表示默认输出，不需要知道设备 ID。").Then("第一行 `Volume: 0.12`（即 12%，静音时后面有 `[MUTED]`），第二行 `node.description = \"ACP/ACP3X/ACP6x Audio Coprocessor Speaker\"`，即当前的默认输出设备。"),
             Step.Change(
                 "调节音量",
                 "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+",
-                "`5%-` 降低；`0.4` 直接设为 40%。"),
+                "`-l 1.0` 限制最大值为 100%；`5%-` 降低；`0.4` 直接设为 40%。").Then("没有输出。音量增加 5%，屏幕上弹出音量提示，但不会超过 100%。"),
             Step.Change(
                 "切换静音",
                 "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-                "麦克风静音把 `SINK` 换成 `SOURCE`。"),
+                "`toggle` 表示切换；也可以写 `1`（静音）或 `0`（取消静音）。麦克风把 `SINK` 换成 `SOURCE`。").Then("没有输出。原来有声音则变为静音（托盘音量图标显示静音），再执行一次恢复。"),
             Step.Change(
                 "切换默认输出设备",
                 "wpctl set-default <设备ID>",
-                "`<设备ID>` 取自 `wpctl status` 中 Sinks 列表前的数字，例如从扬声器切到 HDMI 或蓝牙耳机。"),
+                "`<设备ID>` 取自 `wpctl status` 中 Sinks 列表前的数字。").Then("没有输出。声音立即改从新设备播放，`wpctl status` 中 `*` 移到该设备前。"),
             Step.Change(
                 "录 5 秒麦克风并回放",
                 "timeout 5 pw-record /tmp/mic-test.wav; pw-play /tmp/mic-test.wav",
-                "对着麦克风说话，5 秒后自动停止并播放。"),
+                "`timeout 5` 让录音 5 秒后自动停止。").Then("终端静止 5 秒（正在录音），然后通过默认输出播放刚才录下的声音。`/tmp/mic-test.wav` 保留到重启。"),
         ],
 
         Verify =

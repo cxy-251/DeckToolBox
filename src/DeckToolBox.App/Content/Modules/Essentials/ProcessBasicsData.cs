@@ -38,27 +38,27 @@ public static class ProcessBasicsData
             Step.Read(
                 "交互式查看进程",
                 "btop",
-                "或者 `htop`。按 `q` 退出。"),
+                "或者使用 `htop`，界面更简洁。").Then("终端变成全屏的监控界面：上方是 CPU 各核心、内存、网络、磁盘的图表，下方是进程列表，持续刷新。方向键选择进程，`q` 退出。"),
             Step.Read(
                 "占用 CPU 最多的 10 个进程",
                 "ps -eo pid,pcpu,pmem,comm --sort=-pcpu | head -n 11",
-                "`pcpu` 为 CPU 占用百分比（多核时可超过 100），`pmem` 为内存占用百分比。"),
+                "`pcpu` 为 CPU 占用百分比（多核时可超过 100），`pmem` 为内存占用百分比。").Then("第一行表头 `PID %CPU %MEM COMMAND`，下面 10 行按 CPU 占用从高到低排列。"),
             Step.Read(
                 "按名称查找进程",
                 "pgrep -a <程序名关键词>",
-                "`-a` 同时显示完整命令行，便于确认是不是你要找的那个。"),
+                "`-a` 同时显示完整命令行，便于确认是不是你要找的那个。").Then("每行「PID 完整命令行」，如 `550696 /home/deck/Applications/chrome/chrome --user-data-dir=...`；没有匹配时没有输出。"),
             Step.Change(
                 "请求程序正常退出",
                 "kill <PID>",
-                "发送 SIGTERM。多数程序会在一两秒内退出。"),
+                "发送 SIGTERM；`<PID>` 用上一步查到的数字。").Then("没有输出。程序收到退出请求，保存数据后关闭（窗口消失）；若程序卡死不响应，它可能不会退出。"),
             Step.Danger(
                 "强制结束不响应的程序",
                 "kill -9 <PID>",
-                "只在正常退出无效时使用，程序中未保存的数据会丢失。"),
+                "发送 SIGKILL，程序无法拒绝。只在正常退出无效时使用。").Then("没有输出，进程立即消失，窗口关闭，未保存的内容丢失。"),
             Step.Change(
                 "按名称结束所有匹配的进程",
                 "pkill -f <程序名关键词>",
-                "先用 `pgrep -a <关键词>` 确认匹配结果。"),
+                "`-f` 匹配完整命令行。先用 `pgrep -a <关键词>` 确认匹配结果，避免误杀。").Then("没有输出，所有命令行中包含该关键词的进程都收到退出请求。"),
         ],
 
         Verify =

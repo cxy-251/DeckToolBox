@@ -38,19 +38,19 @@ public static class EditorsData
             Step.Change(
                 "用 nano 新建并编辑一个文件",
                 "nano ~/notes.txt",
-                "输入几行文字，`Ctrl+O` 回车保存，`Ctrl+X` 退出。"),
+                "`^O` 表示 `Ctrl+O`（保存），`^X` 表示 `Ctrl+X`（退出）。").Then("终端变成编辑界面：顶部是文件名，底部两行是快捷键提示。保存时底部询问文件名，回车确认；退出后回到命令行，`~/notes.txt` 中是你输入的内容。"),
             Step.Change(
                 "用 vim 打开同一个文件",
                 "vim ~/notes.txt",
-                "按 `i` 输入，`Esc` 后输入 `:wq` 回车保存退出。"),
+                "不确定当前状态时先按几次 `Esc`，再输入 `:q!` 回车不保存退出。").Then("显示文件内容，左下角是文件名与行数。按 `i` 后左下角出现 `-- 插入 --`，此时才能输入；`Esc` 后输入 `:wq` 保存退出。"),
             Step.Change(
                 "把默认编辑器设为 nano",
                 "echo 'export EDITOR=nano' >> ~/.bashrc && source ~/.bashrc",
-                "之后 `sudoedit` 等命令都会使用 nano。"),
+                "`>>` 追加到文件末尾，`source` 让当前终端立即生效。").Then("没有输出。当前终端和以后新开的终端中 `echo $EDITOR` 输出 `nano`，`sudoedit`、`git commit` 等会打开 nano。"),
             Step.Root(
                 "安全地编辑系统配置文件",
                 "sudoedit /etc/<配置文件>",
-                "例如 `/etc/hosts`。修改前先用 `sudo cp /etc/<配置文件> /etc/<配置文件>.bak` 备份。"),
+                "例如 `/etc/hosts`。修改前先用 `sudo cp /etc/<配置文件> /etc/<配置文件>.bak` 备份。").Then("输入 sudo 密码后，用你的默认编辑器打开该文件的临时副本；保存并退出编辑器后，sudoedit 把修改写回原文件。若没有修改，原文件不变。"),
         ],
 
         Verify =

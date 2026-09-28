@@ -40,27 +40,27 @@ public static class GamescopeArchitectureData
             Step.Read(
                 "查看 gamescope 的参数说明",
                 "gamescope --help 2>&1 | head -n 40",
-                "常用：`-w/-h` 游戏渲染分辨率，`-W/-H` 输出分辨率，`-r` 刷新率，`-F fsr|nis|integer|linear` 缩放滤镜，`-f` 全屏。"),
+                "常用：`-w/-h` 游戏渲染分辨率，`-W/-H` 输出分辨率，`-r` 刷新率，`-F fsr|nis|integer|linear` 缩放滤镜，`-f` 全屏。").Then("输出前 40 行帮助，按「Options」「Nested mode options」「Embedded mode options」分组列出参数。只显示帮助，不会启动合成器。"),
             Step.Read(
                 "查看显示连接器及其是否接有屏幕",
                 "for c in /sys/class/drm/card*-*/; do echo \"$(basename $c): $(cat $c/status)\"; done",
-                "`eDP-1` 是内置屏，`DP-1` 是 USB-C 外接显示器。"),
+                "`eDP-1` 是内置屏，`DP-1` 是 USB-C 外接显示器。").Then("每行一个接口，如 `card0-eDP-1: connected`、`card0-DP-1: disconnected`。"),
             Step.Read(
                 "查看内置屏支持的模式",
                 "cat /sys/class/drm/card*-eDP-1/modes",
-                "输出 `800x1280`，印证内置屏是竖屏面板。"),
+                "系统在显示时把它旋转成横屏。").Then("输出 `800x1280`：宽 800、高 1280，说明面板物理上是竖屏。"),
             Step.Read(
                 "查看当前是否有 gamescope 在运行",
                 "pgrep -a gamescope || echo '当前没有运行 gamescope（桌面模式下属正常）'",
-                "游戏模式下能看到 gamescope 及其启动参数。"),
+                "`||` 表示前一条命令没找到时才执行后一条。").Then("游戏模式下输出 gamescope 的 PID 和完整启动参数；桌面模式下输出「当前没有运行 gamescope（桌面模式下属正常）」。"),
             Step.Change(
                 "在桌面模式用 gamescope 窗口运行一个测试程序",
                 "gamescope -W 1280 -H 800 -w 640 -h 400 -F fsr -- vkcube",
-                "vkcube 以 640×400 渲染并用 FSR 放大到 1280×800 窗口。关闭窗口即退出。"),
+                "vkcube 以 640×400 渲染并用 FSR 放大到 1280×800 窗口。").Then("桌面上弹出一个 1280×800 的窗口，里面是一个旋转的彩色立方体。关闭窗口或在终端按 `Ctrl+C` 结束。"),
             Step.Change(
                 "启动选项模板：以 720p 渲染并用 FSR 放大、限制 40 FPS",
                 "gamescope -W 1280 -H 800 -w 1152 -h 720 -F fsr -r 40 -f -- %command%",
-                "用于桌面模式或其他 Linux 电脑上的 Steam。在 Deck 的游戏模式中请改用快捷菜单的缩放和帧率设置。").On(Hosts.SteamLaunchOptions),
+                "用于桌面模式或其他 Linux 电脑上的 Steam。在 Deck 的游戏模式中请改用快捷菜单的缩放和帧率设置。").On(Hosts.SteamLaunchOptions).Then("游戏在一个全屏的 gamescope 会话中运行：以 1152×720 渲染、放大到 1280×800，帧率不超过 40。退出游戏时 gamescope 一并退出。"),
         ],
 
         Verify =

@@ -38,19 +38,19 @@ public static class ProcessLifecycleSignalsData
             Step.Read(
                 "查看系统层级清晰的进程树状继承关系",
                 "pstree -p -u | head -n 30",
-                "直观查看 systemd (PID 1) 如何派生出显示管理器、会话与子进程树。"),
+                "`-p` 显示 PID，`-u` 显示用户切换。").Then("以树形显示前 30 行：最顶端是 `systemd(1)`，下面分支是各个服务和你的会话，括号中是 PID，部分分支带有 `,用户名` 表示以该用户运行。"),
             Step.Read(
                 "排查系统当前是否存在僵尸进程 (Z) 或死锁进程 (D)",
                 "ps axo stat,pid,ppid,comm | grep -E \"^(D|Z)\" || echo \"恭喜：当前系统无僵尸与死锁进程\"",
-                "快速检测系统中是否有未被父进程回收的孤儿残留。"),
+                "`D` 表示不可中断的等待（多为磁盘 IO），`Z` 表示已退出但未被父进程回收。").Then("通常输出「恭喜：当前系统无僵尸与死锁进程」；若有，每行显示状态、PID、父进程 PID 和进程名。"),
             Step.Read(
                 "列出所有信号的编号与名称",
                 "kill -l",
-                "打印出 SIGINT, SIGQUIT, SIGKILL, SIGSEGV, SIGTERM 等完整信号枚举。"),
+                "`kill -<编号>` 或 `kill -<名称>` 发送指定信号。").Then("输出多列表格：`1) SIGHUP  2) SIGINT ... 9) SIGKILL ... 15) SIGTERM`，以及 `SIGRTMIN` 开始的实时信号。"),
             Step.Change(
                 "以较低优先级启动一个子 shell",
                 "nice -n 10 bash",
-                "在这个子 shell 里运行的编译、压缩等任务都会让出 CPU 给前台程序；输入 `exit` 返回。普通用户只能调低优先级（增大 nice 值），调高需要 root。"),
+                "普通用户只能调低优先级（增大 nice 值），调高需要 root。").Then("看起来什么也没发生，但你已进入一个新的 bash；此后在其中启动的程序 nice 值都是 10。执行 `ps -o pid,ni,comm -p $$` 可以看到 `NI` 列为 10。`exit` 返回原 shell。"),
         ],
 
         Verify =

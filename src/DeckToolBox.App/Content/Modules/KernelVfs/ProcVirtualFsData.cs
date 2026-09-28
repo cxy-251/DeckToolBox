@@ -34,23 +34,23 @@ public static class ProcVirtualFsData
             Step.Read(
                 "查看指定进程启动时的完整真实环境变量快照",
                 "cat /proc/$$/environ | tr '\\0' '\\n' | head -n 20",
-                "以当前 Shell (PID: $$) 为例，将 null 字节转换为换行，清晰列出所有环境配置。"),
+                "`$$` 是当前 shell 的 PID；`environ` 中各变量以空字符分隔，`tr` 转成换行。").Then("每行一个 `名称=值`，如 `HOME=/home/deck`、`LANG=...`，显示前 20 个。"),
             Step.Read(
                 "排查进程当前打开的所有文件描述符与网络链接",
                 "ls -l /proc/$$/fd",
-                "查看当前进程打开的终端标准输入输出 (0, 1, 2) 以及持有的文件句柄。"),
+                "`fd/` 目录下每个数字是一个打开的文件描述符。").Then("列出 `0 -> /dev/pts/N`、`1 -> ...`、`2 -> ...`（标准输入、输出、错误），以及 shell 打开的其他文件；套接字显示为 `socket:[编号]`。"),
             Step.Read(
                 "查看 CPU 核心微架构与当前运行主频",
                 "cat /proc/cpuinfo | grep -E \"(model name|cpu MHz|cache size)\" | head -n 12",
-                "Steam Deck 的 APU 为 AMD Zen 2 架构，4 核 8 线程。"),
+                "Steam Deck 的 APU 为 AMD Zen 2 架构，4 核 8 线程。").Then("重复多组 `model name : AMD Custom APU 0932`、`cpu MHz : 2424.000`、`cache size : 512 KB`，每个逻辑核心一组。"),
             Step.Read(
                 "查看物理内存各细分段（可用、脏页、活跃缓存）全景",
                 "cat /proc/meminfo | head -n 16",
-                "深入了解 MemTotal、MemAvailable、Buffers、Cached 与 Dirty 脏数据量。"),
+                "`MemAvailable` 才是可以给新程序用的内存估计值。").Then("16 行「名称: 数值 kB」，如 `MemTotal`、`MemFree`、`MemAvailable`、`Buffers`、`Cached`、`SwapCached`、`Active`、`Inactive`。"),
             Step.Read(
                 "查看与调节内核 Swap 换页积极度 (Swappiness)",
                 "cat /proc/sys/vm/swappiness",
-                "数值在 0~100 之间，数值越大代表内核越倾向于把冷数据换出到 Swap 腾出物理内存。"),
+                "取值 0~200；越大内核越倾向于把不常用的内存页换出到交换空间。").Then("输出一个数字，SteamOS 上为 `60`。"),
         ],
 
         Verify =

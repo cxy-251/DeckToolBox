@@ -45,23 +45,23 @@ public static class LinuxCapabilitiesData
             Step.Read(
                 "查看当前 shell 的五组权能位图",
                 "grep ^Cap /proc/$$/status",
-                "`CapInh` 可继承、`CapPrm` 允许、`CapEff` 生效、`CapBnd` 边界、`CapAmb` 环境，均为 16 进制位图。"),
+                "`CapInh` 可继承、`CapPrm` 允许、`CapEff` 生效、`CapBnd` 边界、`CapAmb` 环境。").Then("输出五行，如 `CapInh: 0000000000800000`、`CapEff: 0000000000000000`，每行一个 16 进制位图。"),
             Step.Read(
                 "把位图解码成权能名称",
                 "capsh --decode=$(awk '/^CapBnd/{print $2}' /proc/$$/status)",
-                "边界集 `CapBnd` 通常包含全部权能，表示「上限」而非「已拥有」。把 `CapBnd` 换成 `CapEff` 可以看实际生效的权能（普通用户为空）。"),
+                "边界集 `CapBnd` 表示「上限」而非「已拥有」。把 `CapBnd` 换成 `CapEff` 可以看实际生效的权能（普通用户为空）。").Then("输出 `0x000001ffffffffff=cap_chown,cap_dac_override,...` 一长串权能名。"),
             Step.Read(
                 "列出系统中带文件权能的程序",
                 "getcap -r /usr/bin 2>/dev/null",
-                "SteamOS 上能看到：`newuidmap`/`newgidmap`（Podman、Distrobox 无需 root 运行容器靠它们），`gamescope`、`kwin_wayland` 的 `cap_sys_nice`，`btop` 的 `cap_perfmon` 等。"),
+                "`newuidmap`/`newgidmap` 让 Podman、Distrobox 无需 root 运行容器；`gamescope`、`kwin_wayland` 借 `cap_sys_nice` 提升调度优先级。").Then("每行「程序路径 权能=标志」，如 `/usr/bin/gamescope cap_sys_nice=eip`、`/usr/bin/newuidmap cap_setuid=ep`。"),
             Step.Read(
                 "对比：还剩哪些程序依赖 SUID",
                 "find /usr/bin -perm -4000 -type f 2>/dev/null",
-                "例如 `sudo`、`su`、`passwd`，它们需要切换身份，无法用单个权能替代。"),
+                "它们需要切换身份，无法用单个权能替代。").Then("每行一个程序路径，如 `/usr/bin/passwd`、`/usr/bin/sudo`、`/usr/bin/su`。"),
             Step.Root(
                 "实验：给一个临时副本授予、查看、再移除权能",
                 "cp /usr/bin/true /tmp/cap-demo && sudo setcap cap_net_bind_service=+ep /tmp/cap-demo && getcap /tmp/cap-demo && sudo setcap -r /tmp/cap-demo && getcap /tmp/cap-demo; rm -f /tmp/cap-demo",
-                "`+ep` 把权能加入 Effective 和 Permitted 集。第二次 `getcap` 无输出，说明已移除。操作的是 `/tmp` 下的副本，不影响任何系统文件。"),
+                "操作的是 `/tmp` 下的副本，不影响任何系统文件。").Then("输入 sudo 密码后，第一次 `getcap` 输出 `/tmp/cap-demo cap_net_bind_service=ep`；移除后第二次 `getcap` 没有输出；最后删除副本。"),
         ],
 
         Verify =

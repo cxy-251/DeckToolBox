@@ -43,35 +43,35 @@ public static class SteamosCommandsData
             Step.Read(
                 "列出所有 SteamOS 专有命令",
                 "ls /usr/bin | grep -E '^(steamos-|jupiter-|galileo-)'",
-                "`galileo-*` 只在 OLED 版上起作用。"),
+                "`galileo-*` 只在 OLED 版上起作用。").Then("列出六十多个命令名，例如 `steamos-readonly`、`steamos-session-select`、`jupiter-biosupdate`。"),
             Step.Read(
                 "查看某个命令的实现",
                 "less /usr/bin/steamos-session-select",
-                "按 `q` 退出。`file /usr/bin/<命令>` 可以先判断它是脚本还是二进制程序。"),
+                "`file /usr/bin/<命令>` 可以先判断它是脚本还是二进制程序。").Then("在终端里分页显示这个脚本的源代码。空格翻页、`/` 搜索、`q` 退出；不会执行它。"),
             Step.Change(
                 "从终端进入桌面模式 / 回到游戏模式",
                 "steamos-session-select gamescope",
-                "立即结束当前会话。进入桌面模式用 `steamos-session-select plasma`。"),
+                "进入桌面模式用 `steamos-session-select plasma`。").Then("当前会话立即结束，屏幕黑一两秒后进入游戏模式；所有桌面程序都会被关闭。"),
             Step.Change(
                 "生成系统诊断报告",
                 "steamos-systemreport > ~/steamos-report-$(date +%F).txt 2>&1; ls -lh ~/steamos-report-*.txt",
-                "需要十几秒。报告开头会显示只读保护状态，以及系统是否曾被以读写方式挂载过。"),
+                "报告开头会显示只读保护状态，以及系统是否曾被以读写方式挂载过。").Then("终端先静默运行十几秒，然后 `ls` 显示生成的文件，例如 `~/steamos-report-2026-09-28.txt`，大小约 100 KB。可用 `less` 打开查看。"),
             Step.Read(
                 "检查手柄固件是否需要更新",
                 "jupiter-controller-update --check",
-                "最后一行 `needs_update=0` 表示已是最新。"),
+                "检查内置手柄的固件版本。").Then("输出几行检查过程，最后一行 `needs_update=0` 表示已是最新，`needs_update=1` 表示有新固件（系统会在更新时自动刷写）。只检查，不会刷写。"),
             Step.Change(
                 "把一个程序添加到 Steam 库",
                 "steamos-add-to-steam ~/Applications/<程序>",
-                "需要 Steam 正在运行。添加后在「库 → 非 Steam」中出现。"),
+                "需要 Steam 正在运行。").Then("Steam 窗口弹出或闪一下，该程序出现在「库 → 非 Steam」分类中，终端里没有输出。"),
             Step.Change(
                 "从终端启动一个游戏",
                 "steam steam://rungameid/<AppID>",
-                "AppID 的查法见「Wine 与 Proton 原理」。需要 Steam 正在运行。"),
+                "AppID 的查法见「Wine 与 Proton 原理」。需要 Steam 正在运行。").Then("终端立即返回，Steam 开始启动该游戏，与在库中点「开始游戏」效果相同。"),
             Step.Change(
                 "验证游戏文件完整性",
                 "steam steam://validate/<AppID>",
-                "与游戏属性 → 已安装文件 → 验证完整性相同，会重新下载损坏或缺失的文件。"),
+                "与游戏属性 → 已安装文件 → 验证完整性相同。").Then("Steam 窗口显示「正在验证文件」进度条，结束后提示有几个文件验证失败并自动重新下载它们。"),
         ],
 
         Verify =

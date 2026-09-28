@@ -51,15 +51,15 @@ public static class PackageManagerRosettaData
             Step.Read(
                 "查看当前是哪个发行版",
                 "cat /etc/os-release",
-                "`ID` 是发行版标识，`ID_LIKE` 是它的上游家族（SteamOS 显示 `ID_LIKE=arch`）。"),
+                "`ID` 是发行版标识，`ID_LIKE` 是它的上游家族。").Then("输出十几行 `名称=值`：`NAME`、`ID`（SteamOS 为 `steamos`）、`ID_LIKE`（SteamOS 为 `arch`）、`VERSION_ID` 等。"),
             Step.Read(
                 "检测系统里有哪些包管理器",
                 "for pm in apt dnf pacman zypper apk rpm-ostree nix flatpak; do command -v $pm >/dev/null && echo \"有 $pm\"; done",
-                "可在任何发行版或容器中执行，快速判断该用哪一套命令。"),
+                "`command -v` 找到命令时返回成功，`&&` 后的 echo 才会执行。").Then("每找到一个输出一行，SteamOS 上是 `有 pacman`、`有 flatpak`；在 Ubuntu 容器中是 `有 apt`。"),
             Step.Read(
                 "在 Deck 上查询某个命令来自哪个包",
                 "pacman -Qo $(command -v tar)",
-                "对照表第 8 行的 Arch 写法，SteamOS 上直接可用。"),
+                "对照表第 8 行的 Arch 写法，SteamOS 上直接可用。").Then("输出 `/usr/bin/tar 由 tar 1.35-2 所拥有`。"),
         ],
 
         Verify =

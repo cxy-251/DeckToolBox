@@ -34,15 +34,15 @@ public static class BtrfsAndFilesystemsData
             Step.Read(
                 "查看系统物理磁盘与各分区的真实文件系统格式 (FSTYPE) 与 UUID",
                 "lsblk -f",
-                "清晰看到每一个分区底层是 ext4、btrfs、vfat 还是 f2fs。"),
+                "UUID 是分区的唯一标识，常用于 `/etc/fstab`。").Then("树状表格：每个分区的 `FSTYPE`（btrfs、ext4、vfat、swap）、卷标、UUID、可用空间和挂载点。"),
             Step.Read(
                 "排查全局 Inode 索引节点消耗情况 (防范假性写满)",
                 "df -i",
-                "检查 IUse% 这一列，确保没有因海量小碎片导致 Inode 耗尽。"),
+                "inode 耗尽时即使还有空间也无法新建文件。").Then("类似 `df -h` 的表格，但各列是 inode 数量；`IUse%` 为 inode 使用率。btrfs 分区显示为 0，因为它按需分配 inode。"),
             Step.Read(
                 "查看当前系统各分区的物理磁盘真实剩余容量",
                 "df -h -x tmpfs -x devtmpfs",
-                "过滤掉纯内存的临时文件系统，直接观察物理 NVMe 与 SD 卡剩余空间。"),
+                "`-x` 排除指定类型的文件系统。").Then("表格列出真实磁盘分区的总量、已用、可用和使用率，不包含内存盘。"),
         ],
 
         Verify =

@@ -44,27 +44,27 @@ public static class TerminalBasicsData
             Step.Read(
                 "显示当前所在目录",
                 "pwd",
-                "print working directory。"),
+                "pwd = print working directory。").Then("输出一行完整路径，刚打开终端时是 `/home/deck`。"),
             Step.Read(
                 "列出目录内容（含隐藏文件与详细信息）",
                 "ls -lah ~",
-                "`-l` 详细信息，`-a` 包括以 `.` 开头的隐藏文件，`-h` 用 K/M/G 显示大小。"),
+                "`-l` 详细信息，`-a` 包括隐藏文件，`-h` 用 K/M/G 显示大小。").Then("每行一个条目：权限（如 `drwxr-xr-x`，开头 `d` 表示目录）、链接数、所有者、组、大小、修改时间、名称。以 `.` 开头的是隐藏文件，如 `.bashrc`、`.config`。"),
             Step.Read(
                 "切换目录并返回",
                 "cd ~/Downloads && pwd && cd - && pwd",
-                "`cd -` 回到上一个目录；单独输入 `cd` 回到家目录。"),
+                "`cd -` 回到上一个目录；单独输入 `cd` 回到家目录。").Then("依次输出 `/home/deck/Downloads`、`/home/deck`（`cd -` 会先打印要回到的目录），最后回到原来的位置。"),
             Step.Read(
                 "查看一个命令的帮助",
                 "ls --help | head -n 30",
-                "`| head -n 30` 只显示前 30 行；想完整翻阅可改为 `| less`（空格翻页，`q` 退出）。"),
+                "想完整翻阅可改为 `| less`（空格翻页，`q` 退出）。").Then("显示 `用法：ls [选项]... [文件]...` 和各个选项的中文说明，只显示前 30 行。"),
             Step.Read(
                 "查看一个命令是什么、在哪里",
                 "type cd ls; command -v nano",
-                "`type` 会说明它是 shell 内建命令、别名还是外部程序。"),
+                "`type` 会说明它是 shell 内建命令、别名还是外部程序；`command -v` 给出程序的完整路径。").Then("输出三行：`cd 是 shell 内建`、`ls 是 \"ls --color=auto\" 的别名`、`/usr/bin/nano`。"),
             Step.Read(
                 "搜索最近用过的命令",
                 "history | tail -n 20",
-                "也可以直接按 `Ctrl+R` 然后输入关键词，回车执行找到的命令。"),
+                "也可以直接按 `Ctrl+R` 然后输入关键词，回车执行找到的命令。").Then("每行「编号  命令」，显示最近 20 条。输入 `!编号` 可以重新执行对应的命令。"),
         ],
 
         Verify =

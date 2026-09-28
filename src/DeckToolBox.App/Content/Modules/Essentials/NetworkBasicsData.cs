@@ -36,39 +36,39 @@ public static class NetworkBasicsData
             Step.Read(
                 "查看网卡状态和 IP 地址",
                 "ip -br addr",
-                "`-br` 简洁输出。`lo` 是本机回环，`wlan0` 是无线网卡。"),
+                "`-br` 简洁输出。`lo` 是本机回环。").Then("每个网卡一行，如 `wlan0  UP  192.168.0.21/24 fe80::.../64`。无线网卡显示 `DOWN` 或没有 IPv4 地址，说明没连上网络。"),
             Step.Read(
                 "查看当前生效的连接",
                 "nmcli -f NAME,TYPE,DEVICE connection show --active",
-                "同时列出已保存的所有连接：`nmcli connection show`。"),
+                "同时列出已保存的所有连接：`nmcli connection show`。").Then("表格：`NAME TYPE DEVICE`，如 `CXY  802-11-wireless  wlan0`。"),
             Step.Read(
                 "扫描附近的 Wi-Fi 及信号强度",
                 "nmcli dev wifi list",
-                "当前连接的网络前面有 `*`。"),
+                "按 `q` 退出分页（如果出现）。").Then("表格列出附近的网络：BSSID、SSID（名称）、信道、速率、`SIGNAL` 信号强度（0~100）、`BARS` 信号格、加密方式。当前连接的网络前有 `*`。"),
             Step.Read(
                 "查看当前无线连接的信号强度与速率",
                 "iw dev wlan0 link",
-                "`signal` 以 dBm 表示：-50 以上很好，-60 左右正常，-70 以下容易卡顿断线。`freq` 2412~2484 为 2.4 GHz，5000 以上为 5 GHz。"),
+                "`signal` 越接近 0 越好：-50 以上很好，-60 左右正常，-70 以下容易卡顿断线。`freq` 2412~2484 为 2.4 GHz，5000 以上为 5 GHz。").Then("输出 `SSID: CXY`、`freq: 2462.0`、`signal: -59 dBm`、`rx bitrate: 81.0 MBit/s` 等行；未连接时显示 `Not connected.`。"),
             Step.Change(
                 "连接一个 Wi-Fi",
                 "nmcli --ask dev wifi connect '<网络名称>'",
-                "`--ask` 让 nmcli 交互式询问密码，密码不会留在命令历史里。"),
+                "`--ask` 让 nmcli 交互式询问密码，密码不会留在命令历史里。").Then("提示输入密码（输入时不显示），成功后输出 `成功用 'xxx' 激活了设备 'wlan0'`。连接配置会保存下来，以后自动连接。"),
             Step.Read(
                 "测试到网关和外网的连通性",
                 "ping -c 3 $(ip route | awk '/default/{print $3; exit}'); ping -c 3 223.5.5.5",
-                "`-c 3` 只发 3 个包。第一条测网关，第二条测外网（阿里公共 DNS 的 IP）。"),
+                "`-c 3` 只发 3 个包。第一条测网关，第二条测外网（阿里公共 DNS 的 IP）。").Then("两段 ping 输出，各 3 行 `64 字节，来自 ... 时间=3.2 毫秒`，最后是统计：`0% packet loss` 表示通畅。若网关通而外网不通，问题在路由器或运营商。"),
             Step.Read(
                 "测试 DNS 解析",
                 "resolvectl query store.steampowered.com",
-                "能返回 IP 地址说明 DNS 正常。"),
+                "IP 能 ping 通而这里失败，就是 DNS 的问题。").Then("输出若干 IP 地址及 `-- Information acquired via protocol DNS in xx.xms.`；失败时显示解析错误。"),
             Step.Read(
                 "测试网页访问并显示耗时",
                 "curl -sS -o /dev/null -w 'HTTP %{http_code}  总耗时 %{time_total}s\\n' https://store.steampowered.com",
-                "`HTTP 200` 表示访问成功。"),
+                "`-o /dev/null` 丢弃网页内容，`-w` 只显示状态码与耗时。").Then("输出一行，如 `HTTP 200  总耗时 0.85s`。`000` 表示连接失败。"),
             Step.Change(
                 "重新连接无线网络",
                 "nmcli dev disconnect wlan0 && nmcli dev connect wlan0",
-                "很多「连着 Wi-Fi 却上不了网」的问题重连后即可恢复。"),
+                "很多「连着 Wi-Fi 却上不了网」的问题重连后即可恢复。").Then("先提示设备已断开，再提示成功激活；网络中断几秒后恢复。"),
         ],
 
         Verify =

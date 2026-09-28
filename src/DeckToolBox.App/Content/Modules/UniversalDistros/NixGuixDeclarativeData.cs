@@ -38,31 +38,31 @@ public static class NixGuixDeclarativeData
             Step.Read(
                 "查看 store 中的包目录形态",
                 "ls /nix/store | head -n 20",
-                "每个目录名以 32 位哈希开头。").On(Hosts.Nix),
+                "每个目录名以 32 位哈希开头。").On(Hosts.Nix).Then("列出 20 个目录名，形如 `0a1b2c...-bash-5.2`：哈希、包名、版本。"),
             Step.Read(
                 "临时进入一个带有指定工具的环境",
                 "nix-shell -p cowsay jq",
-                "工具只在这个 shell 中可用，`exit` 退出后环境恢复原样。").On(Hosts.Nix),
+                "工具只在这个 shell 中可用。").On(Hosts.Nix).Then("首次需要下载这些包，然后进入一个新 shell，其中 `cowsay`、`jq` 可用；`exit` 回到原 shell 后这两个命令不再可用。"),
             Step.Read(
                 "查看用户环境的历史代",
                 "nix-env --list-generations",
-                "带 `(current)` 的是当前代。").On(Hosts.Nix),
+                "每次安装、删除都会生成新的一代。").On(Hosts.Nix).Then("每行一代：编号、创建时间，当前代后面标有 `(current)`。"),
             Step.Change(
                 "回滚到上一代",
                 "nix-env --rollback",
-                "只切换符号链接，瞬间完成。").On(Hosts.Nix),
+                "只切换符号链接，瞬间完成。").On(Hosts.Nix).Then("输出 `switching profile from version N to N-1`，用户环境立即变回上一代的软件集合。"),
             Step.Change(
                 "删除旧的代并回收空间",
                 "nix-collect-garbage -d",
-                "`-d` 删除除当前代以外的所有旧代，之后将无法再回滚到它们。").On(Hosts.Nix),
+                "`-d` 删除除当前代以外的所有旧代，之后将无法再回滚到它们。").On(Hosts.Nix).Then("列出被删除的旧代和 store 路径，最后显示释放了多少空间，如 `1234 store paths deleted, 2.1 GiB freed`。"),
             Step.Read(
                 "查看 Fedora Atomic 的部署状态",
                 "rpm-ostree status",
-                "列出当前部署和上一个部署，以及叠加安装了哪些包。").On(Hosts.Silverblue),
+                "列出当前部署和上一个部署。").On(Hosts.Silverblue).Then("列出两个部署：带 `●` 的是当前启动的部署，另一个是回滚备用；每个部署显示版本号、提交哈希和叠加安装的包 (`LayeredPackages`)。"),
             Step.Root(
                 "回滚到上一个部署",
                 "sudo rpm-ostree rollback",
-                "重启后生效。").On(Hosts.Silverblue),
+                "重启后生效。").On(Hosts.Silverblue).Then("提示已将默认启动的部署改为上一个，并建议重启；重启后系统回到上一次更新前的状态。"),
         ],
 
         Verify =

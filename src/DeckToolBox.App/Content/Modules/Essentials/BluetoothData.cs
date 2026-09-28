@@ -37,31 +37,31 @@ public static class BluetoothData
             Step.Read(
                 "查看蓝牙适配器状态",
                 "bluetoothctl show | grep -E 'Name|Powered|Discoverable|Pairable'",
-                "`Powered: yes` 表示蓝牙已开启。"),
+                "`Powered: yes` 表示蓝牙已开启。").Then("输出几行：`Name: <主机名>`、`Powered: yes`、`Discoverable: no`、`Pairable: yes`。"),
             Step.Read(
                 "列出已配对的设备与当前已连接的设备",
                 "bluetoothctl devices Paired; echo; bluetoothctl devices Connected",
-                "每行显示设备的 MAC 地址和名称。"),
+                "MAC 地址用于后续命令。").Then("两组列表，每行 `Device D0:FA:3F:BC:EA:20 Logi M750` 这样的「MAC 地址 名称」；上一组是已配对的，空行后是此刻已连接的。"),
             Step.Read(
                 "查看某个设备的详细信息与电量",
                 "bluetoothctl info <MAC地址>",
-                "`Connected`、`Trusted`、`Battery Percentage` 等字段；电量只有设备支持时才显示。"),
+                "括号里的是十进制电量百分比。").Then("列出该设备的名称、类型图标、`Paired`、`Trusted`、`Connected`、支持的服务 UUID，支持时还有 `Battery Percentage: 0x50 (80)`。"),
             Step.Change(
                 "扫描附近的设备",
                 "bluetoothctl --timeout 15 scan on",
-                "先让设备进入配对模式，15 秒后自动停止扫描，记下目标设备的 MAC 地址。"),
+                "先让设备进入配对模式（通常长按配对键直到指示灯快闪）。").Then("15 秒内滚动出现 `[NEW] Device xx:xx:... 名称` 行，找到处于配对模式的目标设备后记下它的地址；时间到自动停止。"),
             Step.Change(
                 "配对、信任并连接一个新设备",
                 "bluetoothctl pair <MAC地址> && bluetoothctl trust <MAC地址> && bluetoothctl connect <MAC地址>",
-                "键盘配对时可能要求在键盘上输入屏幕显示的数字并回车。"),
+                "键盘配对时可能要求在键盘上输入屏幕显示的数字并回车。").Then("依次提示 `Pairing successful`、`Changing ... trust succeeded`、`Connection successful`。设备的指示灯变为常亮或熄灭，随即可以使用。"),
             Step.Change(
                 "删除一个设备的配对",
                 "bluetoothctl remove <MAC地址>",
-                "用于解决「配对了却连不上」的问题，之后重新配对。"),
+                "用于解决「配对了却连不上」的问题，之后需要让设备重新进入配对模式再配对。").Then("提示 `Device has been removed`，设备断开并从已配对列表中消失。"),
             Step.Change(
                 "重启蓝牙适配器",
                 "bluetoothctl power off && bluetoothctl power on",
-                "所有蓝牙设备会断开，已信任的设备随后自动重连。"),
+                "蓝牙整体异常时使用。").Then("依次提示 `Changing power off succeeded` 与 `Changing power on succeeded`。所有蓝牙设备先断开，几秒后已信任的设备自动重连。"),
         ],
 
         Verify =

@@ -53,6 +53,8 @@ public sealed partial class StepViewModel
     public string Command => Step.Command;
     public string Note => Step.Note;
     public bool HasNote => !string.IsNullOrWhiteSpace(Step.Note);
+    public string Outcome => Step.Outcome;
+    public bool HasOutcome => !string.IsNullOrWhiteSpace(Step.Outcome);
 
     public string RiskLabel => Labels.Risk(Step.Risk);
     public bool IsRead => Step.Risk == Risk.Read;

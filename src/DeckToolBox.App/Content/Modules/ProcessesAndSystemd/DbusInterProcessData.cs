@@ -37,15 +37,15 @@ public static class DbusInterProcessData
             Step.Read(
                 "查看当前用户会话总线上连接的所有软件与服务清单",
                 "busctl --user list --no-pager | sed -n '1,25p'",
-                "查看有哪些桌面组件正在监听或发送消息。"),
+                "会话总线上是桌面组件与应用。").Then("表格列出前 25 个连接：总线名（`:1.23` 或 `org.kde.xxx`）、PID、进程名、用户等。"),
             Step.Read(
                 "反射检查指定总线对象的所有公开接口与方法 (Introspect)",
                 "busctl --system introspect org.freedesktop.UPower /org/freedesktop/UPower",
-                "犹如查看一份实时的 API 接口说明书。"),
+                "`introspect` 让服务报告自己提供了哪些方法、属性与信号。").Then("按接口分组列出 `.EnumerateDevices`（方法）、`.OnBattery`（属性，带当前值）、`.DeviceAdded`（信号）等成员。"),
             Step.Change(
                 "直接调用 D-Bus 方法：向桌面发一条通知",
                 "busctl --user call org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications Notify susssasa{sv}i DeckToolBox 0 '' 'D-Bus 测试' '这条通知是直接调用总线方法发出的' 0 0 5000",
-                "签名 `susssasa{sv}i` 依次对应：应用名、替换 ID、图标、标题、正文、动作数组（`0` 表示空数组）、提示字典（`0` 表示空）、超时毫秒。`notify-send` 命令做的就是同一次调用。"),
+                "签名 `susssasa{sv}i` 依次对应：应用名、替换 ID、图标、标题、正文、动作数组（`0` 表示空数组）、提示字典（`0` 表示空）、超时毫秒。`notify-send` 做的就是同一次调用。").Then("桌面右下角弹出一条标题为「D-Bus 测试」的通知，5 秒后消失；终端输出 `u 17` 这样的返回值（通知 ID）。"),
         ],
 
         Verify =

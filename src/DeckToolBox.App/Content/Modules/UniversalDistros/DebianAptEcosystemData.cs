@@ -41,39 +41,39 @@ public static class DebianAptEcosystemData
             Step.Change(
                 "在 Deck 上创建一个 Ubuntu 练习容器并进入",
                 "distrobox create --name ubuntu -i docker.io/library/ubuntu:24.04 && distrobox enter ubuntu",
-                "之后的步骤都在这个容器里执行。练习完可用 `distrobox rm ubuntu` 删除。"),
+                "之后的步骤都在这个容器里执行。练习完可用 `distrobox rm ubuntu` 删除。").Then("下载 Ubuntu 24.04 镜像并初始化，完成后提示符变为 `(deck@ubuntu ~)$`。"),
             Step.Root(
                 "刷新软件源索引",
                 "sudo apt update",
-                "安装或升级之前先执行。").On(Hosts.Debian),
+                "安装或升级之前先执行。").On(Hosts.Debian).Then("逐行显示 `获取:1 http://archive.ubuntu.com ...`，最后提示有多少个软件包可以升级。只下载索引，不安装任何东西。"),
             Step.Read(
                 "搜索并查看软件包信息",
                 "apt search <关键词>; apt show <包名>",
-                "`apt show` 会列出版本、依赖、大小和说明。").On(Hosts.Debian),
+                "`<关键词>` 如 `htop`。").On(Hosts.Debian).Then("`apt search` 列出名称或描述匹配的包（绿色包名 + 版本 + 一行描述）；`apt show` 显示单个包的版本、大小、依赖和完整说明。"),
             Step.Root(
                 "安装软件包",
                 "sudo apt install <包名>",
-                "会列出将要额外安装的依赖，确认后输入 Y。").On(Hosts.Debian),
+                "会自动安装所需依赖。").On(Hosts.Debian).Then("列出「将会同时安装下列软件」和需要的磁盘空间，询问 `您希望继续执行吗？ [Y/n]`，回车后下载并配置，最后出现 `正在设置 <包名>`。"),
             Step.Read(
                 "查询：包里有哪些文件 / 某个文件属于哪个包",
                 "dpkg -L <包名>; dpkg -S $(command -v <命令名>)",
-                "排查「这个命令从哪来」时非常有用。").On(Hosts.Debian),
+                "排查「这个命令从哪来」时非常有用。").On(Hosts.Debian).Then("`dpkg -L` 逐行列出该包安装的所有文件路径；`dpkg -S` 输出 `<包名>: /usr/bin/<命令名>`。"),
             Step.Read(
                 "查看候选版本与来自哪个源",
                 "apt policy <包名>",
-                "显示已安装版本、候选版本以及各个源的优先级。").On(Hosts.Debian),
+                "`候选` 是 `apt install` 会安装的版本。").On(Hosts.Debian).Then("显示 `已安装：`、`候选：` 两个版本号，以及版本表中每个版本来自哪个源和优先级（如 `500`）。"),
             Step.Root(
                 "升级整个系统",
                 "sudo apt update && sudo apt full-upgrade",
-                "`full-upgrade` 允许为了升级而增删依赖；日常更新用它即可。").On(Hosts.Debian),
+                "`full-upgrade` 允许为了升级而增删依赖；日常更新用它即可。").On(Hosts.Debian).Then("刷新索引后列出要升级、新装、删除的包，询问确认，然后下载并升级。"),
             Step.Root(
                 "清理不再需要的依赖与下载缓存",
                 "sudo apt autoremove --purge && sudo apt clean",
-                "`--purge` 同时删除这些包的系统级配置文件。").On(Hosts.Debian),
+                "`--purge` 同时删除这些包的系统级配置文件。").On(Hosts.Debian).Then("列出将被删除的不再需要的包并询问确认；`apt clean` 没有输出，清空 `/var/cache/apt/archives/` 中已下载的 .deb 文件。"),
             Step.Root(
                 "按现行规范添加第三方软件源（模板）",
                 "sudo install -d -m 0755 /etc/apt/keyrings\ncurl -fsSL <密钥URL> | sudo gpg --dearmor -o /etc/apt/keyrings/<名称>.gpg\nprintf 'Types: deb\\nURIs: <仓库URL>\\nSuites: <发行代号>\\nComponents: main\\nSigned-By: /etc/apt/keyrings/<名称>.gpg\\n' | sudo tee /etc/apt/sources.list.d/<名称>.sources\nsudo apt update",
-                "按软件厂商文档替换占位符。密钥只对这一个源生效。").On(Hosts.Debian),
+                "按软件厂商文档替换占位符。密钥只对这一个源生效。").On(Hosts.Debian).Then("创建密钥目录、写入转换后的密钥文件、在 `sources.list.d` 生成 `.sources` 文件（`tee` 会把内容回显出来），最后 `apt update` 的输出中出现这个新源。"),
         ],
 
         Verify =

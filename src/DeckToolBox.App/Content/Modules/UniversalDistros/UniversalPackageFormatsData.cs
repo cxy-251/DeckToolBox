@@ -41,19 +41,19 @@ public static class UniversalPackageFormatsData
             Step.Read(
                 "查看系统中的 loop 设备",
                 "lsblk -o NAME,TYPE,SIZE,MOUNTPOINTS | grep -E '^NAME|loop'",
-                "在 Ubuntu 上，每个 snap 都是一个 loop 设备；在 SteamOS 上通常没有。"),
+                "`grep -E '^NAME|loop'` 保留表头和 loop 行。").Then("输出表头 `NAME TYPE SIZE MOUNTPOINTS`；SteamOS 上通常只有这一行，Ubuntu 上会列出许多 `loopN` 及其挂载点 `/snap/...`。"),
             Step.Read(
                 "在 Ubuntu 上列出已安装的 snap",
                 "snap list",
-                "`Publisher` 列带 ✓ 的是经过验证的发布者。").On(Hosts.Debian),
+                "`Publisher` 列带 ✓ 的是经过验证的发布者。").On(Hosts.Debian).Then("表格：名称、版本、修订号、跟踪通道、发布者、备注。"),
             Step.Change(
                 "查看 AppImage 内部的文件结构",
                 "./<程序名>.AppImage --appimage-extract && ls squashfs-root",
-                "解出到当前目录的 `squashfs-root/`，可以看到 `AppRun` 和自带的 `usr/lib`。"),
+                "解出到当前目录的 `squashfs-root/`。").Then("先逐行打印解出的文件，最后 `ls` 显示 `AppRun`、`.desktop` 文件、图标以及 `usr/` 目录。"),
             Step.Read(
                 "查看 AppImage 自带了哪些运行库",
                 "ls squashfs-root/usr/lib | head -n 30",
-                "在上一步解包后执行。能看到它打包的 Qt、GTK 等库，这就是 AppImage 不依赖系统库、但体积较大的原因。"),
+                "在上一步解包后执行。这就是 AppImage 不依赖系统库、但体积较大的原因。").Then("列出一批 `.so` 文件，如 `libQt6Core.so.6`、`libgtk-3.so.0`。"),
         ],
 
         Verify =

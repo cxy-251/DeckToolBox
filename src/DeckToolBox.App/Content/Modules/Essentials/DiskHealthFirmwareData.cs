@@ -38,31 +38,31 @@ public static class DiskHealthFirmwareData
             Step.Read(
                 "列出硬盘型号与容量",
                 "lsblk -d -o NAME,MODEL,SIZE,TRAN,ROTA",
-                "`TRAN` 是接口类型（nvme、usb、mmc），`ROTA` 为 0 表示固态硬盘。"),
+                "`-d` 只列磁盘不列分区；`TRAN` 是接口类型；`ROTA` 为 0 表示固态存储。").Then("每个磁盘一行，如 `nvme0n1  Micron_2400_MTFDKBK512QFM  476.9G  nvme  0`、`mmcblk0  953.6G  mmc  0`。"),
             Step.Root(
                 "查看 NVMe 硬盘的健康摘要",
                 "sudo smartctl -H -A /dev/nvme0",
-                "`-H` 总体评估（PASSED 即正常），`-A` 列出各项属性，重点看上面提到的几项。"),
+                "`-H` 总体评估，`-A` 列出各项属性。").Then("先是版本信息，然后 `SMART overall-health self-assessment test result: PASSED`，接着一张属性表：温度、`Percentage Used`、`Data Units Written`、`Power On Hours`、`Media and Data Integrity Errors` 等。"),
             Step.Root(
                 "用 nvme 工具查看健康日志",
                 "sudo nvme smart-log /dev/nvme0",
-                "与 smartctl 的数据来源相同，字段名略有差异。"),
+                "与 smartctl 的数据来源相同，字段名略有差异。").Then("一张键值表：`critical_warning`、`temperature`、`percentage_used`、`data_units_written`、`power_on_hours`、`media_errors` 等。"),
             Step.Read(
                 "查看 TRIM 支持情况",
                 "lsblk --discard",
-                "`DISC-GRAN` 与 `DISC-MAX` 非 0 表示该设备支持 TRIM。"),
+                "zram 也会显示支持，它是内存设备。").Then("表格列出每个设备的 `DISC-GRAN`（TRIM 粒度）与 `DISC-MAX`（单次最大量）；非 0 表示支持 TRIM。"),
             Step.Change(
                 "在 SteamOS 上执行一次 TRIM",
                 "steamosctl trim-devices",
-                "由 steamos-manager 对适用的设备执行 TRIM。在其他发行版上用 `sudo fstrim -av`。"),
+                "由 steamos-manager 执行。在其他发行版上用 `sudo fstrim -av`，会逐个显示每个挂载点回收了多少空间。").Then("通常没有输出或只输出简短结果，后台对内置硬盘和 SD 卡执行 TRIM，期间磁盘 IO 短暂升高。"),
             Step.Read(
                 "查看 fwupd 识别到的设备",
                 "fwupdmgr get-devices",
-                "列出可由 fwupd 管理的设备及当前固件版本。"),
+                "Deck 本身的 BIOS 不走 fwupd，一般标记为不可更新。").Then("一棵设备树：顶部是机型（如 `Valve Galileo`），下面列出固态硬盘、UEFI 固件等，每个设备有设备 ID、当前版本、是否可更新等字段。"),
             Step.Change(
                 "检查是否有可用的固件更新",
                 "fwupdmgr refresh; fwupdmgr get-updates",
-                "`refresh` 下载最新的固件目录。有更新时用 `fwupdmgr update` 安装。"),
+                "有更新时用 `fwupdmgr update` 安装。").Then("`refresh` 显示下载元数据的进度；`get-updates` 在 Deck 上通常输出 `No updatable devices`，接上支持的扩展坞或接收器时会列出新版本。"),
         ],
 
         Verify =

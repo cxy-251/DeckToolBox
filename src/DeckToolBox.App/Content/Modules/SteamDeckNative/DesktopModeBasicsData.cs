@@ -37,23 +37,23 @@ public static class DesktopModeBasicsData
             Step.Read(
                 "确认当前处于哪种会话",
                 "echo \"$XDG_SESSION_TYPE  $XDG_CURRENT_DESKTOP\"",
-                "桌面模式输出 `wayland  KDE`。"),
+                "`$XDG_SESSION_TYPE` 是会话类型，`$XDG_CURRENT_DESKTOP` 是桌面环境名。").Then("输出一行文字。桌面模式下是 `wayland  KDE`；若为空，说明你是通过 SSH 等非图形会话登录的。"),
             Step.Read(
                 "查看系统版本与硬件型号",
                 "grep -E '^(PRETTY_NAME|VERSION_ID|BUILD_ID)=' /etc/os-release; cat /sys/devices/virtual/dmi/id/product_name",
-                "`Jupiter` 是 LCD 版 Deck，`Galileo` 是 OLED 版。"),
+                "`grep -E` 只挑出这三个字段；`product_name` 是主板固件报告的机型代号。").Then("先输出三行 `名称=值`（系统名、版本号、构建日期），最后一行是机型：`Jupiter` 表示 LCD 版，`Galileo` 表示 OLED 版。"),
             Step.Change(
                 "设置 deck 用户密码（仅需一次）",
                 "passwd",
-                "输入时屏幕不显示字符，属正常。"),
+                "为当前用户设置登录密码。").Then("依次提示「新的密码」「重新输入新的密码」（已有密码时先要求输入当前密码）。输入时屏幕上**不显示任何字符**，这是正常的。成功后显示 `passwd：已成功更新密码`，此后 sudo、SSH 登录都使用这个密码。"),
             Step.Read(
                 "查找你的截图",
                 "ls -t ~/.local/share/Steam/userdata/*/760/remote/*/screenshots/*.jpg 2>/dev/null | head",
-                "按时间从新到旧列出游戏截图。"),
+                "`ls -t` 按修改时间排序，`2>/dev/null` 隐藏「找不到文件」的报错，`head` 只取前 10 行。").Then("按时间从新到旧列出最多 10 个截图文件的完整路径；没有任何截图时没有输出。"),
             Step.Read(
                 "查看本机的 IP 地址（SSH、局域网传文件时要用）",
                 "ip -4 -br addr show wlan0",
-                "斜杠前的部分就是 IP。"),
+                "`-4` 只看 IPv4，`-br` 简洁格式，`show wlan0` 只看无线网卡。").Then("输出一行，例如 `wlan0  UP  192.168.0.21/24`：`UP` 表示网卡已连接，斜杠前的 `192.168.0.21` 就是 Deck 在局域网里的地址。"),
         ],
 
         Verify =

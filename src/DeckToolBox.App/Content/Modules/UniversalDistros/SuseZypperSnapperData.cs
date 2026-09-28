@@ -36,35 +36,35 @@ public static class SuseZypperSnapperData
             Step.Change(
                 "在 Deck 上创建一个 openSUSE Tumbleweed 练习容器并进入",
                 "distrobox create --name tumbleweed -i registry.opensuse.org/opensuse/tumbleweed:latest && distrobox enter tumbleweed",
-                "之后的 zypper 步骤都在容器里执行。"),
+                "之后的 zypper 步骤都在容器里执行。").Then("下载 Tumbleweed 镜像并初始化，完成后提示符变为 `(deck@tumbleweed ~)$`。"),
             Step.Read(
                 "查看软件源及其优先级",
                 "zypper lr -d",
-                "`-d` 显示 URI、优先级等详情。").On(Hosts.OpenSuse),
+                "`-d` 显示 URI、优先级等详情。").On(Hosts.OpenSuse).Then("表格列出每个源的编号、别名、名称、是否启用、是否 GPG 检查、是否自动刷新、优先级和 URI。"),
             Step.Read(
                 "搜索软件包与模式",
                 "zypper se <关键词>; zypper patterns",
-                "`se` 是 `search` 的简写。").On(Hosts.OpenSuse),
+                "`se` 是 `search` 的简写。").On(Hosts.OpenSuse).Then("`zypper se` 以表格列出匹配的包（`S` 列为 `i` 表示已安装）；`zypper patterns` 列出所有模式及其是否已安装。"),
             Step.Root(
                 "安装软件包",
                 "sudo zypper in <包名>",
-                "`in` 是 `install` 的简写。").On(Hosts.OpenSuse),
+                "`in` 是 `install` 的简写。").On(Hosts.OpenSuse).Then("显示将要安装的包、下载大小，询问 `继续吗？ [y/n/v/...]`，输入 `y` 后安装。遇到依赖冲突时列出几个编号方案供你选择。"),
             Step.Root(
                 "Tumbleweed 整体升级",
                 "sudo zypper ref && sudo zypper dup",
-                "先刷新源，再做发行版级升级。").On(Hosts.OpenSuse),
+                "先刷新源，再做发行版级升级。").On(Hosts.OpenSuse).Then("先刷新所有源，然后计算整个发行版的升级方案（可能有上千个包），确认后下载并安装。在真实系统上，Snapper 会在前后各打一个快照。"),
             Step.Root(
                 "列出快照",
                 "sudo snapper list",
-                "每行一个快照，`Description` 列会写明是哪条 zypper 命令触发的。只能在真实的 openSUSE 系统上执行。").On(Hosts.OpenSuse),
+                "只能在真实的 openSUSE 系统上执行。").On(Hosts.OpenSuse).Then("表格：编号、类型（single/pre/post）、pre 对应编号、日期、用户、清理策略、描述（如 `zypp(zypper)`）。"),
             Step.Root(
                 "对比两个快照之间改动了哪些文件",
                 "sudo snapper status <旧快照号>..<新快照号>",
-                "`snapper diff` 可进一步查看具体文件内容的差异。").On(Hosts.OpenSuse),
+                "`snapper diff` 可进一步查看具体文件内容的差异。").On(Hosts.OpenSuse).Then("每行一个文件，前缀 `+` 新增、`-` 删除、`c` 内容改变。"),
             Step.Danger(
                 "回滚到指定快照",
                 "sudo snapper rollback <快照号>",
-                "把该快照设为新的默认根子卷，重启后生效。通常先从 GRUB 菜单用该快照启动验证，再执行此命令。").On(Hosts.OpenSuse),
+                "通常先从 GRUB 菜单用该快照启动验证，再执行此命令。").On(Hosts.OpenSuse).Then("提示已创建新的读写快照并设为默认子卷，需要重启；重启后系统回到该快照的状态。"),
         ],
 
         Verify =

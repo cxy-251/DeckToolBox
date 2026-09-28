@@ -34,23 +34,23 @@ public static class SysDeviceModelData
             Step.Read(
                 "查看电池健康度（满电容量 / 设计容量）",
                 "cd /sys/class/power_supply/BAT1 && echo \"健康度 $((100 * $(cat charge_full) / $(cat charge_full_design)))%  循环次数 $(cat cycle_count)\"",
-                "Deck 的电池名为 `BAT1`，大多数笔记本是 `BAT0`，可先 `ls /sys/class/power_supply/` 确认。"),
+                "Deck 的电池名为 `BAT1`，大多数笔记本是 `BAT0`，可先 `ls /sys/class/power_supply/` 确认。").Then("输出一行，如 `健康度 103%  循环次数 0`（部分电池不报告循环次数，显示 0）。"),
             Step.Read(
                 "计算电池当前充放电功率",
                 "cd /sys/class/power_supply/BAT1 && awk 'NR==FNR{c=$1; next} {printf \"%.2f W\\n\", c*$1/1e12}' current_now voltage_now",
-                "Deck 的电池没有 `power_now`，用电流 (µA) × 电压 (µV) 计算。接着电源且不在充电时显示 0。"),
+                "Deck 的电池没有 `power_now`，用电流 (µA) × 电压 (µV) 计算。").Then("输出一个功率值，如 `8.42 W`；插着电源且不在充电时为 `0.00 W`。"),
             Step.Read(
                 "查看每个 CPU 核心的当前频率",
                 "paste <(ls -d /sys/devices/system/cpu/cpu[0-9]* | grep -oE 'cpu[0-9]+') <(awk '{printf \"%.0f MHz\\n\", $1/1000}' /sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_cur_freq)",
-                "`scaling_cur_freq` 的单位是 kHz。"),
+                "`scaling_cur_freq` 的单位是 kHz。").Then("每行「核心名  频率」，如 `cpu0  2425 MHz`，共 8 行；多执行几次可以看到频率随负载跳动。"),
             Step.Read(
                 "查看 CPU 调频策略",
                 "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
-                "Deck 使用 `amd-pstate-epp` 驱动，由硬件根据能耗偏好自动调频。"),
+                "这里的 powersave 由硬件按能耗偏好调频，并不意味着锁在低频。").Then("输出两行：`amd-pstate-epp`（调频驱动）和 `powersave`（调速策略）。"),
             Step.Read(
                 "查看各温区温度",
                 "paste <(cat /sys/class/thermal/thermal_zone*/type) <(awk '{printf \"%.1f °C\\n\", $1/1000}' /sys/class/thermal/thermal_zone*/temp)",
-                "更完整的传感器读数见 `sensors` 命令（「硬件传感器、功耗与风扇」模块）。"),
+                "更完整的传感器读数见 `sensors` 命令（「硬件传感器、功耗与风扇」模块）。").Then("每行「温区类型  温度」，Deck 上通常只有 `acpitz  62.0 °C`。"),
         ],
 
         Verify =

@@ -38,27 +38,27 @@ public static class ShellConfigData
             Step.Read(
                 "查看 PATH，每个目录一行",
                 "echo \"$PATH\" | tr ':' '\\n'",
-                "如果同一个目录出现多次，说明启动文件里有重复的添加语句。"),
+                "同一目录出现多次说明启动文件里有重复的添加语句。").Then("每行一个目录，如 `/home/deck/.local/bin`、`/usr/local/bin`、`/usr/bin`。输入命令名时，shell 从上往下依次查找。"),
             Step.Read(
                 "查看全部环境变量",
                 "env | sort | less",
-                "按 `q` 退出。只看某一个：`echo \"$LANG\"`。"),
+                "只看某一个：`echo \"$LANG\"`。").Then("以分页界面按字母顺序显示所有 `名称=值`。空格翻页，`/` 搜索，`q` 退出。"),
             Step.Read(
                 "找出启动文件中修改 PATH 的所有行",
                 "grep -n 'PATH' ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null",
-                "检查是否有重复或冲突的写法。"),
+                "检查是否有重复或冲突的写法。").Then("每行「文件:行号:内容」，例如 `/home/deck/.bashrc:5:case \":$PATH:\" in`。"),
             Step.Change(
                 "修改前备份 .bashrc",
                 "cp ~/.bashrc ~/.bashrc.bak-$(date +%F)",
-                "出问题时用 `cp ~/.bashrc.bak-<日期> ~/.bashrc` 恢复。"),
+                "出问题时用 `cp ~/.bashrc.bak-<日期> ~/.bashrc` 恢复。").Then("没有输出，家目录下出现 `.bashrc.bak-<日期>`（隐藏文件，用 `ls -a` 才能看到）。"),
             Step.Change(
                 "以「不重复」的方式把 ~/.local/bin 加入 PATH",
                 "cat >> ~/.bashrc <<'EOF'\n\n# 把 ~/.local/bin 加入 PATH（已存在则跳过）\ncase \":$PATH:\" in\n  *\":$HOME/.local/bin:\"*) ;;\n  *) export PATH=\"$HOME/.local/bin:$PATH\" ;;\nesac\nEOF",
-                "`case` 先检查 PATH 中是否已有该目录。追加前先确认 `.bashrc` 里没有同样的语句，已有就不要重复执行这一步。"),
+                "`case` 先检查 PATH 中是否已有该目录。追加前先确认 `.bashrc` 里没有同样的语句，已有就不要重复执行这一步。").Then("没有输出，`.bashrc` 末尾多出这段 case 语句。新开的终端里 `~/.local/bin` 在 PATH 中且只出现一次。"),
             Step.Change(
                 "添加一个别名并立即生效",
                 "echo \"alias ll='ls -lah'\" >> ~/.bashrc && source ~/.bashrc && type ll",
-                "`source` 在当前 shell 中重新执行 .bashrc。"),
+                "`source` 在当前 shell 中重新执行 .bashrc。").Then("最后输出 `ll 是 \"ls -lah\" 的别名`。之后输入 `ll` 就等于 `ls -lah`。"),
         ],
 
         Verify =

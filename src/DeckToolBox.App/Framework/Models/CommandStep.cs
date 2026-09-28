@@ -14,15 +14,21 @@ public enum Risk
 }
 
 /// <summary>
-/// 一条可复制的操作指令。Host 为 null 表示在本机 Konsole 终端执行；
-/// 否则表示指令应在哪里执行/粘贴（见 <see cref="Hosts"/>）。
+/// 一条可复制的操作指令。
+/// Note 讲「怎么用、参数是什么意思」；Outcome 讲「执行后会发生什么」：屏幕上会看到什么、系统里改变了什么。
+/// Host 为 null 表示在本机 Konsole 终端执行；否则表示指令应在哪里执行/粘贴（见 <see cref="Hosts"/>）。
 /// </summary>
 public sealed record CommandStep(string Title, string Command, string Note, Risk Risk)
 {
     public string? Host { get; init; }
 
+    public string Outcome { get; init; } = string.Empty;
+
     /// <summary>指定该指令的执行环境，例如 <c>Step.Read(...).On(Hosts.Ubuntu)</c>。</summary>
     public CommandStep On(string host) => this with { Host = host };
+
+    /// <summary>说明执行后会发生什么，例如 <c>Step.Read(...).Then("列出……")</c>。</summary>
+    public CommandStep Then(string outcome) => this with { Outcome = outcome };
 }
 
 /// <summary>内容作者使用的简写工厂：Step.Read / Change / Root / Danger。</summary>

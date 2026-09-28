@@ -35,15 +35,15 @@ public static class GameModeIntegrationData
             Step.Change(
                 "在 Steam 桌面客户端中添加程序",
                 "Steam 桌面客户端 → 左下角「添加游戏」→「添加非 Steam 游戏」→ 勾选程序，或点「浏览」选择 ~/Applications 下的文件 →「添加所选程序」",
-                "这是界面操作步骤，不是终端命令。添加后可在该条目的「属性」里改名称、启动选项和图标。").On(Hosts.SteamClient),
+                "这是界面操作步骤，不是终端命令。添加后可在该条目的「属性」里改名称、启动选项和图标。").On(Hosts.SteamClient).Then("弹出程序列表窗口；勾选并确认后，程序出现在「库」的「非 Steam」分类中，可以像游戏一样启动、设置控制器布局。"),
             Step.Change(
                 "为有问题的程序编写包装脚本",
                 "mkdir -p ~/Applications/<程序名> && cat > ~/Applications/<程序名>/launch.sh <<'EOF'\n#!/usr/bin/env bash\n# 清除 Steam 注入的覆盖层，再启动真正的程序\nunset LD_PRELOAD\nexec \"$HOME/Applications/<程序名>/<可执行文件>\" \"$@\"\nEOF\nchmod +x ~/Applications/<程序名>/launch.sh",
-                "`exec` 让程序替换脚本进程，Steam 能正确追踪程序何时退出。然后把 `launch.sh` 作为非 Steam 游戏添加。"),
+                "`<<'EOF'` 到 `EOF` 之间是写入文件的内容。`exec` 让程序替换脚本进程，Steam 能正确追踪程序何时退出。").Then("没有输出。`~/Applications/<程序名>/` 下出现可执行的 `launch.sh`；把它添加为非 Steam 游戏后，Steam 启动的是这个脚本，由它清理环境再启动真正的程序。"),
             Step.Read(
                 "确认快捷方式文件的位置",
                 "ls -l ~/.local/share/Steam/userdata/*/config/shortcuts.vdf",
-                "每个登录过的 Steam 账号一个目录。备份这个文件即可备份全部非 Steam 快捷方式。"),
+                "每个登录过的 Steam 账号一个目录。备份这个文件即可备份全部非 Steam 快捷方式。").Then("每个 Steam 账号一行，显示 `shortcuts.vdf` 的大小、修改时间和完整路径；从未添加过非 Steam 游戏的账号可能没有这个文件。"),
         ],
 
         Verify =

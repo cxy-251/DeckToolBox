@@ -38,23 +38,23 @@ public static class TmuxData
             Step.Change(
                 "新建一个命名会话",
                 "tmux new -s work",
-                "进入后终端底部出现绿色状态栏。"),
+                "`-s` 给会话起名字。").Then("终端清屏，底部出现绿色状态栏，左侧显示 `[work]`。看起来和普通终端一样，但它运行在 tmux 里。"),
             Step.Change(
                 "在会话中运行一个耗时任务，然后脱离",
                 "rsync -avh --info=progress2 ~/Documents/ /run/media/deck/<卷标>/backup/",
-                "在 tmux 会话中执行，然后按 `Ctrl+B` `d` 脱离，任务在后台继续。").On("tmux 会话内"),
+                "在 tmux 会话中执行。").On("tmux 会话内").Then("rsync 开始显示进度；按 `Ctrl+B` 再按 `d` 后回到原来的终端，并提示 `[detached (from session work)]`，任务在后台继续运行。"),
             Step.Read(
                 "列出所有会话",
                 "tmux ls",
-                "显示会话名、窗口数和是否有终端连接着它。"),
+                "`(attached)` 表示当前有终端连着它。").Then("每行一个会话，如 `work: 1 windows (created ...)`；没有会话时报错 `no server running`。"),
             Step.Change(
                 "接回会话",
                 "tmux attach -t work",
-                "从 SSH 或另一个 Konsole 窗口都可以接回。"),
+                "从 SSH 或另一个 Konsole 窗口都可以接回。").Then("回到之前脱离的会话，能看到任务的最新输出，就像从未离开过。"),
             Step.Change(
                 "结束会话",
                 "tmux kill-session -t work",
-                "会结束其中所有程序。"),
+                "会结束其中所有程序。").Then("没有输出，会话及其中所有程序被结束；`tmux ls` 中不再有它。"),
         ],
 
         Verify =

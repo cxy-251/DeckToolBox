@@ -38,27 +38,27 @@ public static class LinuxNetworkStackData
             Step.Read(
                 "查看全量网络接口状态、MAC 地址与 IP 分配详情",
                 "ip -brief addr show",
-                "使用 -brief (-br) 精简输出表格，一目了然查看 wlan0 (Wi-Fi)、lo (环回口)、tun/tap 或虚拟容器网卡的 UP/DOWN 状态与 IPv4/IPv6 地址。"),
+                "`-brief` 精简输出。").Then("每个网卡一行：名称、状态（`UP`/`DOWN`/`UNKNOWN`）、IPv4 与 IPv6 地址。容器运行时还会出现 `podman0`、`veth...` 等虚拟网卡。"),
             Step.Read(
                 "查看内核当前路由决策表与默认网关出口",
                 "ip route show",
-                "检查 default via <网关IP> dev <网卡> metric <优先级>，诊断多网卡同时在线时数据包从哪块物理网卡流出。"),
+                "多网卡同时在线时，`metric` 小的默认路由优先。").Then("第一行一般是 `default via 192.168.0.1 dev wlan0 proto dhcp ... metric 600`：所有不在本地网段的流量都交给 192.168.0.1（路由器）；其余行是本地网段路由。"),
             Step.Read(
                 "排查系统当前所有正在监听的 TCP 与 UDP 服务端口及所属进程",
                 "ss -tulnp",
-                "参数解析：-t (TCP), -u (UDP), -l (Listening 监听状态), -n (Numeric 数字端口不解析域名), -p (Process 显示持有该 Socket 的进程名与 PID)。"),
+                "`-t` TCP、`-u` UDP、`-l` 只看监听、`-n` 不解析名称、`-p` 显示进程。").Then("表格：协议、状态、本地地址:端口、对端地址、进程。例如 `0.0.0.0:22` 是 sshd。普通用户只能看到自己进程的名称，其他进程的列为空。"),
             Step.Read(
                 "观测活跃 TCP 连接的微观拥塞控制指标与延时 (RTT)",
                 "ss -tie state established | head -n 25",
-                "参数解析：-i 显示内部 TCP 信息（包括 rtt 往返时间、cwnd 拥塞窗口、rto 超时时间），直接洞悉内核网络健康状况。"),
+                "`rtt` 是往返时延（毫秒），`cwnd` 是拥塞窗口。").Then("每个已建立的连接两行：第一行地址和端口，第二行 `cubic rto:... rtt:23.5/4.2 ... cwnd:10 ...` 等内部指标。"),
             Step.Read(
                 "排查本地 DNS 解析中继链与各网络接口绑定的 DNS 上游",
                 "resolvectl status",
-                "查看 systemd-resolved 当前为每个网络适配器（如 Wi-Fi）分配的 DNS 服务器地址、搜索域以及 DNSSEC 状态。"),
+                "systemd-resolved 为每个网卡分别记录 DNS 服务器。").Then("先是 `Global` 全局设置，然后按网卡分段，如 `Link 3 (wlan0)` 下的 `Current DNS Server` 与 `DNS Servers`。"),
             Step.Read(
                 "审计网络协议栈全局统计数据与丢包/错误计数",
                 "ip -s link show wlan0",
-                "参数 -s 显示 RX (接收) 与 TX (发送) 的字节数、包数、errors (错误包) 与 dropped (因缓冲区满丢弃的包)，诊断硬件或驱动层物理丢包。"),
+                "`-s` 显示统计数据。").Then("除网卡基本信息外，多出 `RX:` 与 `TX:` 两组统计：字节数、包数、错误、丢弃、溢出等。`errors`、`dropped` 持续增长说明信号或驱动有问题。"),
         ],
 
         Verify =

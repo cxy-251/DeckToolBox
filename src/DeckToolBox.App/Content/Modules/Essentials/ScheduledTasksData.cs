@@ -39,31 +39,31 @@ public static class ScheduledTasksData
             Step.Read(
                 "查看现有的定时器",
                 "systemctl --user list-timers --all --no-pager; systemctl list-timers --no-pager | head",
-                "第一条是你的用户定时器，第二条是系统定时器（可以参考它们的写法）。"),
+                "第一条是你的用户定时器，第二条是系统定时器。").Then("两张表：每个定时器的 `NEXT`（下次触发时间）、`LEFT`（剩余时间）、`LAST`（上次触发）、`UNIT`、`ACTIVATES`（触发的服务）。用户定时器通常为空，系统定时器有日志清理、更新检查等。"),
             Step.Change(
                 "创建一个示例任务：每天备份文档目录",
                 "mkdir -p ~/.config/systemd/user && cat > ~/.config/systemd/user/backup-docs.service <<'EOF'\n[Unit]\nDescription=每日备份 Documents\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/rsync -a %h/Documents/ %h/Backups/Documents/\nEOF",
-                "`%h` 是 systemd 对家目录的写法。可以把 `ExecStart` 换成你自己脚本的绝对路径。"),
+                "`%h` 是 systemd 对家目录的写法。可以把 `ExecStart` 换成你自己脚本的绝对路径。").Then("没有输出，生成 `~/.config/systemd/user/backup-docs.service`。此时还不会执行任何备份。"),
             Step.Change(
                 "创建对应的定时器",
                 "cat > ~/.config/systemd/user/backup-docs.timer <<'EOF'\n[Unit]\nDescription=每天 21:00 备份 Documents\n\n[Timer]\nOnCalendar=*-*-* 21:00:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target\nEOF",
-                "文件名主体必须与 .service 相同，timer 才知道要触发哪个服务。"),
+                "文件名主体必须与 .service 相同，timer 才知道要触发哪个服务。").Then("没有输出，生成同名的 `.timer` 文件。尚未启用。"),
             Step.Read(
                 "检查时间表达式的含义",
                 "systemd-analyze calendar '*-*-* 21:00:00'",
-                "显示规范化写法和下一次触发时间，写复杂表达式时很有用。"),
+                "写复杂表达式时先用它确认。").Then("输出规范化写法 `Normalized form: *-*-* 21:00:00` 和下次触发时间 `Next elapse: ...`。"),
             Step.Change(
                 "加载并启用定时器",
                 "mkdir -p ~/Backups/Documents && systemctl --user daemon-reload && systemctl --user enable --now backup-docs.timer",
-                "先创建备份目标目录。"),
+                "先创建备份目标目录。").Then("可能输出 `Created symlink ...`。定时器开始计时，`list-timers` 中出现 `backup-docs.timer` 及下次触发时间。"),
             Step.Change(
                 "立即手动执行一次任务来测试",
                 "systemctl --user start backup-docs.service && systemctl --user status backup-docs.service --no-pager",
-                "`status` 中显示 `status=0/SUCCESS` 表示成功。"),
+                "oneshot 类型的服务执行完就结束，所以状态是 inactive。").Then("status 中显示 `Active: inactive (dead)` 以及 `Process: ... status=0/SUCCESS`，说明刚才执行成功；`~/Backups/Documents` 中出现文件。"),
             Step.Change(
                 "停用并删除这个定时任务",
                 "systemctl --user disable --now backup-docs.timer && rm ~/.config/systemd/user/backup-docs.{service,timer} && systemctl --user daemon-reload",
-                "备份出来的 `~/Backups` 目录不会被删除。"),
+                "备份出来的 `~/Backups` 目录不会被删除。").Then("可能输出 `Removed ...`。定时器停止并被删除，不会再触发；已经备份出来的文件保留。"),
         ],
 
         Verify =

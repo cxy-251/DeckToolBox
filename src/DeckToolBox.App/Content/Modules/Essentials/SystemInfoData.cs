@@ -40,35 +40,35 @@ public static class SystemInfoData
             Step.Read(
                 "系统概况",
                 "hostnamectl",
-                "`Hardware Model: Galileo` 表示 OLED 版 Deck，`Jupiter` 为 LCD 版。"),
+                "`Galileo` 表示 OLED 版 Deck，`Jupiter` 为 LCD 版。").Then("十几行键值：`Static hostname`、`Operating System: SteamOS`、`Kernel`、`Hardware Vendor: Valve`、`Hardware Model: Galileo`、`Firmware Version` 等。"),
             Step.Read(
                 "CPU 信息",
                 "lscpu | head -n 20",
-                "关注型号名称、CPU(s)、每个核的线程数、最大/最小频率。"),
+                "关注型号名称、CPU 数、每个核的线程数、频率范围。").Then("前 20 行：架构 `x86_64`、`CPU(s): 8`、`型号名称：AMD Custom APU 0932`、`每个核的线程数：2`、最大/最小频率等。"),
             Step.Read(
                 "PCI 设备及其驱动",
                 "lspci -k | grep -A4 -E 'VGA|Display|Network|Audio'",
-                "`Kernel driver in use` 一行是正在使用的驱动，如 `amdgpu`、`ath11k_pci`。"),
+                "`-k` 显示内核驱动；`grep -A4` 显示匹配行及其后 4 行。").Then("每个设备几行，如 `04:00.0 VGA compatible controller: ... [AMD Custom GPU 0405]`，其下的 `Kernel driver in use: amdgpu`。"),
             Step.Read(
                 "USB 设备",
                 "lsusb",
-                "插入新设备前后各执行一次，对比即可找到它的 `ID`。"),
+                "`ID` 后是「厂商:产品」编号。").Then("每行一个设备：`Bus 003 Device 002: ID 28de:1205 Valve Software Steam Controller`，外接的键鼠、U 盘也会列出。"),
             Step.Read(
                 "时间、时区与同步状态",
                 "timedatectl",
-                "`System clock synchronized: yes` 表示时间已与网络同步。"),
+                "时间不同步会导致证书校验、联机登录失败。").Then("显示本地时间、UTC 时间、硬件时钟、`Time zone: Asia/Shanghai (CST, +0800)`、`System clock synchronized: yes`。"),
             Step.Root(
                 "修改时区",
                 "sudo timedatectl set-timezone <时区>",
-                "例如 `Asia/Shanghai`。可用 `timedatectl list-timezones | grep Asia` 查找。"),
+                "例如 `Asia/Shanghai`。可用 `timedatectl list-timezones | grep Asia` 查找。").Then("输入 sudo 密码后没有输出，系统时区立即改变，任务栏时钟随之更新。"),
             Step.Read(
                 "电池与外设电量",
                 "upower -d | grep -E 'native-path|model|percentage|state' | sed 's/^ *//'",
-                "能同时看到 Deck 电池和已连接的蓝牙鼠标、键盘等设备的电量。"),
+                "由 UPower 汇总。").Then("按设备分组：`native-path: BAT1`、`model: ...`、`state: ...`、`percentage: 79%`，以及蓝牙鼠标、键盘各自的电量。"),
             Step.Read(
                 "一次性输出求助用的基本信息",
                 "{ hostnamectl; echo; lscpu | grep -iE 'model name|型号'; free -h; lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINTS; } 2>&1",
-                "`{ ...; }` 把多条命令的输出合在一起，方便整体复制或 `> 文件` 保存。"),
+                "`{ ...; }` 把多条命令的输出合在一起，也可以在末尾加 `> ~/sysinfo.txt` 保存为文件。").Then("依次输出系统概况、CPU 型号、内存表和磁盘分区表，可以一次性复制。"),
         ],
 
         Verify =

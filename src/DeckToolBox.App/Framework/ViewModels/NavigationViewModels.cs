@@ -50,7 +50,7 @@ public sealed class NavModuleViewModel : ViewModelBase
         SelectCommand = new RelayCommand(() => select(this));
         _searchText = string.Join('\n', new[] { module.Title, module.Keywords, module.Overview, category.Name }
             .Concat(module.Why).Concat(module.Consequences).Concat(module.Verify)
-            .Concat(module.Steps.SelectMany(s => new[] { s.Title, s.Command, s.Note })));
+            .Concat(module.Steps.SelectMany(s => new[] { s.Title, s.Command, s.Note, s.Outcome })));
     }
 
     public ModuleDefinition Module { get; }

@@ -34,27 +34,27 @@ public static class PowerSleepData
             Step.Read(
                 "查看当前有哪些程序在阻止或推迟休眠",
                 "systemd-inhibit --list --no-pager",
-                "`WHAT` 列是被抑制的操作，`WHY` 是原因，`MODE` 为 block 或 delay。"),
+                "`block` 阻止，`delay` 只推迟片刻。").Then("表格：`WHO`（程序）、`UID`、`USER`、`PID`、`WHAT`（被抑制的操作）、`WHY`（原因）、`MODE`。通常能看到 NetworkManager、UPower 等的 `delay` 锁。"),
             Step.Change(
                 "运行一个命令，期间禁止系统休眠",
                 "systemd-inhibit --what=sleep:idle --why='备份中' <命令>",
-                "例如把 rsync 备份命令放在最后。命令结束后恢复正常休眠。"),
+                "例如把 rsync 备份命令放在最后。").Then("命令照常运行并输出；运行期间即使长时间不操作或按电源键，系统也不会休眠。命令结束后锁自动释放。"),
             Step.Read(
                 "查看电池耗电功率与剩余时间",
                 "upower -i $(upower -e | grep BAT) | grep -E 'state|percentage|energy-rate|time to'",
-                "`energy-rate` 是当前功率（瓦），拔掉电源时才有意义。"),
+                "`energy-rate` 是当前功率（瓦），拔掉电源时才有意义。").Then("输出几行：`state: discharging`、`energy-rate: 9.8 W`、`percentage: 76%`、`time to empty: 3.1 hours`；插电时 state 为 `charging` 或 `pending-charge`。"),
             Step.Change(
                 "一小时后自动关机",
                 "systemd-run --user --on-active=1h --unit=auto-poweroff systemctl poweroff",
-                "取消：`systemctl --user stop auto-poweroff.timer`。"),
+                "取消：`systemctl --user stop auto-poweroff.timer`。").Then("输出 `Running timer as unit: auto-poweroff.timer`，一小时后系统关机。"),
             Step.Change(
                 "立即休眠",
                 "systemctl suspend",
-                "按电源键唤醒。"),
+                "休眠期间仍会缓慢耗电。").Then("屏幕熄灭，Deck 进入睡眠（电源灯熄灭或闪烁），按电源键唤醒后回到原来的界面。"),
             Step.Change(
                 "重启 / 关机",
                 "systemctl reboot",
-                "关机用 `systemctl poweroff`。"),
+                "关机用 `systemctl poweroff`。").Then("所有程序被关闭，系统立即重启。"),
         ],
 
         Verify =

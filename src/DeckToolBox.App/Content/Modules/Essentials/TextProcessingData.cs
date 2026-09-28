@@ -40,27 +40,27 @@ public static class TextProcessingData
             Step.Read(
                 "统计：哪些程序的进程最多",
                 "ps -eo comm= | sort | uniq -c | sort -rn | head",
-                "经典的「计数排名」三连：`sort | uniq -c | sort -rn`。"),
+                "经典的「计数排名」组合：`sort | uniq -c | sort -rn`。").Then("10 行「数量 程序名」，如 `17 chrome`、`10 steamwebhelper`，数量最多的在最前。"),
             Step.Read(
                 "取列：列出所有账户及其登录 shell",
                 "cut -d: -f1,7 /etc/passwd | column -t -s:",
-                "`column -t -s:` 按冒号分列并对齐。"),
+                "`cut -d: -f1,7` 取第 1、7 列；`column -t -s:` 按冒号分列并对齐。").Then("两列对齐的表格：账户名和它的 shell，如 `deck /bin/bash`、`root /bin/bash`；系统账户多为 `/usr/bin/nologin`。"),
             Step.Read(
                 "条件筛选：使用率超过 80% 的分区",
                 "df -h | awk 'NR>1 && $5+0 > 80 {print $6, $5}'",
-                "`NR>1` 跳过表头；`$5+0` 把「82%」转成数字 82。"),
+                "`NR>1` 跳过表头；`$5+0` 把「82%」转成数字 82。").Then("每行「挂载点 使用率」，如 `/home 92%`；没有超过 80% 的分区时没有输出。"),
             Step.Read(
                 "提取：从配置文件中取出某个值",
                 "sed -n 's/^PRETTY_NAME=\"\\(.*\\)\"/\\1/p' /etc/os-release",
-                "`\\(...\\)` 捕获内容，`\\1` 引用它；`-n` 与末尾的 `p` 配合，只输出匹配的行。"),
+                "`\\(...\\)` 捕获内容，`\\1` 引用它；`-n` 与末尾的 `p` 配合，只输出匹配的行。").Then("输出一行 `SteamOS`（引号已被去掉）。"),
             Step.Read(
                 "日志统计：本次开机出现最多的警告",
                 "journalctl -b -p warning -o cat --no-pager | cut -c1-60 | sort | uniq -c | sort -rn | sed -n '1,10p'",
-                "`-o cat` 去掉时间戳等前缀，只保留消息本身，相同的消息才能被合并计数。"),
+                "`-o cat` 去掉时间戳等前缀，相同的消息才能被合并计数。").Then("10 行「次数 消息开头」，出现次数最多的警告排在最前，可以快速看出哪个程序在反复报错。"),
             Step.Change(
                 "安全地批量替换文件内容",
                 "sed -i.bak 's/<旧文本>/<新文本>/g' <文件>",
-                "原文件自动备份为 `<文件>.bak`。确认无误后再删除备份。"),
+                "`s/旧/新/g` 中的 `g` 表示每行所有匹配都替换。确认无误后再删除备份。").Then("没有输出。文件中所有「旧文本」被替换为「新文本」，同目录下多出 `<文件>.bak`（修改前的原样）。"),
         ],
 
         Verify =

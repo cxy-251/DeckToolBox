@@ -37,31 +37,31 @@ public static class SshRemoteData
             Step.Read(
                 "查看 Deck 的 IP 地址",
                 "ip -4 -br addr show wlan0",
-                "其他设备用这个地址连接 Deck，例如 `192.168.1.23`。"),
+                "其他设备用这个地址连接 Deck。").Then("输出一行，如 `wlan0  UP  192.168.0.21/24`，斜杠前是 IP。"),
             Step.Read(
                 "查看 sshd 服务状态",
                 "systemctl status sshd --no-pager",
-                "`active (running)` 表示已在运行。"),
+                "`--no-pager` 直接输出。").Then("显示服务状态：`Active: active (running)` 表示正在运行；`inactive (dead)` 表示未启动。下方有最近几行日志。"),
             Step.Root(
                 "启动 sshd 并设为开机自启",
                 "sudo systemctl enable --now sshd",
-                "需要已设置 deck 用户的密码。关闭用 `sudo systemctl disable --now sshd`。"),
+                "需要已设置 deck 用户的密码。关闭用 `sudo systemctl disable --now sshd`。").Then("输入 sudo 密码后可能输出 `Created symlink ...`，sshd 立即启动，并且以后开机自动启动。"),
             Step.Read(
                 "从另一台电脑登录 Deck",
                 "ssh deck@<Deck的IP>",
-                "在你的电脑上执行（Windows 可用 PowerShell）。首次连接输入 `yes` 确认指纹，然后输入 deck 用户的密码。").On("另一台电脑"),
+                "在你的电脑上执行（Windows 可用 PowerShell）。").On("另一台电脑").Then("首次连接显示主机指纹并询问 `Are you sure you want to continue connecting`，输入 `yes`；再输入 deck 用户的密码，提示符变为 `(deck@steamdeck ~)$`，之后输入的命令都在 Deck 上执行。`exit` 断开。"),
             Step.Change(
                 "在电脑上生成密钥并把公钥发给 Deck",
                 "ssh-keygen -t ed25519 && ssh-copy-id deck@<Deck的IP>",
-                "`ssh-keygen` 一路回车即可（可选设置密钥口令）。之后 `ssh deck@<Deck的IP>` 不再需要密码。Windows 没有 `ssh-copy-id`，需手动把 `.pub` 内容追加到 Deck 的 `~/.ssh/authorized_keys`。").On("另一台电脑"),
+                "Windows 没有 `ssh-copy-id`，需手动把 `.pub` 内容追加到 Deck 的 `~/.ssh/authorized_keys`。").On("另一台电脑").Then("`ssh-keygen` 询问保存位置和口令（可直接回车），生成 `~/.ssh/id_ed25519` 与 `.pub` 两个文件；`ssh-copy-id` 要求输入一次 Deck 密码，提示 `Number of key(s) added: 1`。此后登录不再询问密码。"),
             Step.Change(
                 "从电脑复制文件到 Deck",
                 "scp <本地文件> deck@<Deck的IP>:~/Downloads/",
-                "反方向：`scp deck@<Deck的IP>:~/<文件> .`。").On("另一台电脑"),
+                "反方向：`scp deck@<Deck的IP>:~/<文件> .`。").On("另一台电脑").Then("显示文件名、进度百分比、大小、速度和剩余时间，完成后文件出现在 Deck 的 `~/Downloads/` 中。"),
             Step.Change(
                 "把远程目录挂载到本地",
                 "mkdir -p ~/remote && sshfs <用户名>@<对方IP>:/home/<用户名> ~/remote",
-                "在 Deck 上挂载另一台 Linux 机器的家目录。卸载：`fusermount3 -u ~/remote`。"),
+                "卸载：`fusermount3 -u ~/remote`。").Then("要求输入对方账户的密码（或使用密钥），没有其他输出。之后 `~/remote` 里显示的就是对方家目录的内容，可以用 Dolphin 直接浏览和拷贝。"),
         ],
 
         Verify =

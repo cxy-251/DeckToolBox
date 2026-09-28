@@ -40,27 +40,27 @@ public static class WineProtonRuntimeData
             Step.Read(
                 "查看已安装的 Proton 版本",
                 "ls ~/.local/share/Steam/steamapps/common/ | grep -i proton",
-                "Proton 也是 Steam「库 → 工具」里的条目，可以像游戏一样安装和卸载。"),
+                "Proton 也是 Steam「库 → 工具」里的条目，可以像游戏一样安装和卸载。").Then("每行一个 Proton 目录名，例如 `Proton 10.0`、`Proton - Experimental`、`Proton Hotfix`。"),
             Step.Read(
                 "列出已安装游戏的 AppID 与名称",
                 "grep -H '\"name\"' ~/.local/share/Steam/steamapps/appmanifest_*.acf | sed -E 's#.*appmanifest_([0-9]+)\\.acf:[[:space:]]*\"name\"[[:space:]]*\"(.*)\"#\\1  \\2#'",
-                "每行输出「AppID  名称」。只包含内置存储上的库；SD 卡上的游戏把路径换成 `/run/media/deck/<卡名>/steamapps/`。"),
+                "只包含内置存储上的库；SD 卡上的游戏把路径换成 `/run/media/deck/<卡名>/steamapps/`。").Then("每行「AppID  名称」，例如 `105600  Terraria`。Proton、Steam Runtime 等工具也有 AppID，会一起列出。"),
             Step.Read(
                 "查看某个游戏前缀的结构",
                 "ls ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/",
-                "能看到 `drive_c`、`dosdevices`、`system.reg`、`user.reg`。"),
+                "`<AppID>` 替换为上一步查到的数字。").Then("列出 `dosdevices  drive_c  system.reg  user.reg  userdef.reg` 等条目。"),
             Step.Read(
                 "确认内核提供 ntsync",
                 "ls -l /dev/ntsync",
-                "存在即表示内核支持。"),
+                "字符设备存在即表示内核支持。").Then("显示一行设备信息，如 `crw-rw-rw- 1 root root 10, 260 ... /dev/ntsync`；若提示「没有那个文件或目录」则内核不支持。"),
             Step.Change(
                 "启用 DXVK 自带的性能浮层",
                 "DXVK_HUD=fps,frametimes,gpuload %command%",
-                "填到游戏的「属性 → 通用 → 启动选项」。只对 D3D9~11 游戏生效。").On(Hosts.SteamLaunchOptions),
+                "填到游戏的「属性 → 通用 → 启动选项」。只对 D3D9~11 游戏生效。").On(Hosts.SteamLaunchOptions).Then("游戏画面左上角出现 DXVK 的文字浮层：帧率、帧时间曲线和 GPU 负载。D3D12 或原生游戏不显示。"),
             Step.Change(
                 "记录 Proton 运行日志",
                 "PROTON_LOG=1 %command%",
-                "游戏退出后在家目录生成 `steam-<AppID>.log`。排查完记得删掉这个选项，日志可能很大。").On(Hosts.SteamLaunchOptions),
+                "排查完记得删掉这个启动选项。").On(Hosts.SteamLaunchOptions).Then("游戏照常运行；退出后家目录出现 `steam-<AppID>.log`，可能有几 MB 到上百 MB，记录了加载的组件与报错。"),
         ],
 
         Verify =

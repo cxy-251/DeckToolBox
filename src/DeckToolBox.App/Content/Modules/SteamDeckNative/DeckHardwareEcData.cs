@@ -37,27 +37,27 @@ public static class DeckHardwareEcData
             Step.Read(
                 "一次性查看所有传感器",
                 "sensors",
-                "`amdgpu` 下的 `edge` 是 APU 温度，`slowPPT`/`fastPPT` 是功耗与上限；`steamdeck_hwmon` 下是风扇转速和电池温度。"),
+                "来自 lm_sensors，汇总所有 hwmon 传感器。").Then("按设备分组输出：`amdgpu` 组的 `edge` 是 APU 温度，`slowPPT`/`fastPPT` 是当前功耗及上限 (`cap`)；`steamdeck_hwmon` 组有 `System Fan` 转速、电池温度和 USB-C 充电协商的电压电流；另有 nvme、Wi-Fi 网卡温度。"),
             Step.Read(
                 "列出所有 hwmon 设备及其驱动名",
                 "for d in /sys/class/hwmon/hwmon*; do echo \"$d  $(cat $d/name)\"; done",
-                "编写脚本时用驱动名定位目录。"),
+                "编号每次开机可能变化，编写脚本时用驱动名定位目录。").Then("每行「目录  驱动名」，例如 `/sys/class/hwmon/hwmon6  amdgpu`、`/sys/class/hwmon/hwmon3  steamdeck_hwmon`。"),
             Step.Read(
                 "查看当前 TDP 上限与允许范围（瓦）",
                 "d=$(grep -l '^amdgpu$' /sys/class/hwmon/hwmon*/name | xargs dirname); for f in power1_cap power1_cap_min power1_cap_max; do awk -v n=$f '{printf \"%-16s %.1f W\\n\", n, $1/1000000}' $d/$f; done",
-                "`power1_cap` 就是快捷菜单 TDP 滑块当前生效的值。"),
+                "`power1_cap` 就是快捷菜单 TDP 滑块当前生效的值；`_max` 是硬件上限，比 SteamOS 允许设置的 15 W 高。").Then("输出三行，例如 `power1_cap 15.0 W`、`power1_cap_min 0.0 W`、`power1_cap_max 29.0 W`。"),
             Step.Read(
                 "查看风扇转速",
                 "cat $(grep -l '^steamdeck_hwmon$' /sys/class/hwmon/hwmon*/name | xargs dirname)/fan1_input",
-                "单位 RPM。待机时可能为 0，高负载时约 4000~6000。"),
+                "按驱动名找到 steamdeck_hwmon 目录再读取。").Then("输出一个数字，如 `3366`，单位是每分钟转数 (RPM)。待机时可能为 0，高负载时约 4000~6000。"),
             Step.Read(
                 "查看电池状态与健康度",
                 "cd /sys/class/power_supply/BAT1 && echo \"状态 $(cat status)  电量 $(cat capacity)%  健康度 $((100 * $(cat charge_full) / $(cat charge_full_design)))%\"",
-                "健康度 = 当前满电容量 / 设计容量。新电池可能略高于 100%。"),
+                "健康度 = 当前满电容量 / 设计容量，新电池可能略高于 100%。").Then("输出一行，例如 `状态 Not charging  电量 79%  健康度 103%`。状态可能是 Charging（充电中）、Discharging（放电中）、Full、Not charging（插电但未充电，常因达到充电上限）。"),
             Step.Read(
                 "查看风扇控制服务状态",
                 "systemctl status jupiter-fan-control --no-pager",
-                "`Active: active (running)` 表示正常工作。"),
+                "`--no-pager` 直接输出，不进入分页界面。").Then("显示服务的几行状态，其中 `Active: active (running)` 表示正常运行，下方还有最近几行日志。"),
         ],
 
         Verify =

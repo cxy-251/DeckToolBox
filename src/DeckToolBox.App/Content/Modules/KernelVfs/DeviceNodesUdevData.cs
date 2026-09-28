@@ -36,19 +36,19 @@ public static class DeviceNodesUdevData
             Step.Read(
                 "查看系统已识别的所有输入设备节点 (事件流)",
                 "ls -l /dev/input/",
-                "查看字符设备属性 (crw-rw----) 与主次设备号。"),
+                "`/dev/input` 下每个 `eventN` 对应一个输入设备。").Then("列出 `event0`、`event1`… 以及 `by-id/`、`by-path/` 两个目录；每行开头的 `c` 表示字符设备，`13, 64` 这样的两个数字是主、次设备号。"),
             Step.Read(
                 "列出当前掌机全部手柄与传感器硬件名称与事件映射",
                 "cat /proc/bus/input/devices | grep -E \"(Name|Handlers)\"",
-                "定位当前手柄对应的 event* 与 js* 节点编号。"),
+                "`/proc/bus/input/devices` 是内核维护的输入设备清单。").Then("成对输出 `N: Name=\"...\"` 与 `H: Handlers=... eventN`，可以据此知道某个设备对应哪个 `eventN`。"),
             Step.Read(
                 "实时动态监控硬件热插拔事件 (拔插 USB 即刻捕获)",
                 "udevadm monitor --environment --udev",
-                "按下 Ctrl+C 退出。拔插任意设备时，会实时在屏幕上滚出内核 uevent 详细属性。"),
+                "`--environment` 显示每个事件的全部属性，`--udev` 只看 udev 处理后的事件。").Then("开始后静止等待；插拔 U 盘、手柄时，每个事件打印一段 `ACTION=add`/`remove`、`DEVNAME=`、`ID_VENDOR_ID=` 等键值。按 `Ctrl+C` 退出。"),
             Step.Read(
                 "查询指定输入设备节点的完整 udev 属性树 (规则编写必备)",
                 "udevadm info -a -n /dev/input/event0 | head -n 30",
-                "提取设备的 idVendor、idProduct 等关键匹配字段。"),
+                "`-a` 遍历整条父设备链，`-n` 指定设备节点；把 `event0` 换成你要查的设备。").Then("从设备本身开始逐级向上打印父设备的属性，如 `ATTRS{name}==\"Power Button\"`；写 udev 规则时就是从这里抄匹配条件。"),
         ],
 
         Verify =
