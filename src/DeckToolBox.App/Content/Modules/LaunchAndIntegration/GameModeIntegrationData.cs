@@ -8,44 +8,48 @@ public static class GameModeIntegrationData
     {
         Id = "non-steam-games",
         Title = "非 Steam 程序接入游戏模式",
-        Keywords = "shortcuts.vdf · 启动脚本",
+        Keywords = "添加非 Steam 游戏 · shortcuts.vdf · 启动脚本",
         Level = ModuleLevel.Basic,
-        Overview = "将 ~/Applications 下的便携应用与脚本无缝挂载至 Steam 游戏模式，享受手柄大屏与全局 Steam Input 键位映射。",
+        Overview = "游戏模式里只能启动 Steam 库中的条目。把便携应用、模拟器、Flatpak 程序或脚本「添加为非 Steam 游戏」，就能在游戏模式中用手柄启动，并使用 Steam Input 和快捷菜单。",
 
         Why =
         [
-            "1. 掌机游戏模式的独立性：SteamOS 的掌机模式不加载 KDE 桌面组件与桌面菜单。要在掌机主界面运行应用，必须注册进 Steam 客户端自身的数据库中。",
-            "2. 底层存储文件：shortcuts.vdf：Steam 将所有非 Steam 快捷方式集中保存在 ~/.local/share/Steam/userdata/<用户ID>/config/shortcuts.vdf 二进制文件中。包含 AppID、路径、启动参数、图标等元信息。",
-            "3. 接入游戏模式的三大红利：",
-            "• 独享 Gamescope 合成器加速：享受掌机系统级的 FSR 超分辨率与锁帧。",
-            "• 强大的 Steam Input：直接为任意非 Steam 软件配置触摸板模拟鼠标、背键宏和陀螺仪准星。",
-            "• 快速休眠与唤醒：支持掌机电源键一键无损休眠随时随地继续。",
+            "1. 游戏模式不加载 KDE 桌面，也没有应用菜单，所有可启动的东西都来自 Steam 库。",
+            "2. 非 Steam 快捷方式保存在 `~/.local/share/Steam/userdata/<Steam 用户 ID>/config/shortcuts.vdf`（二进制格式），由 Steam 客户端读写。**不要在 Steam 运行时直接编辑它**，Steam 退出时会覆盖你的修改。",
+            "3. 添加后可获得：",
+            "- Steam Input：为程序单独配置按键、触控板和陀螺仪映射。",
+            "- 快捷菜单中的帧率限制、缩放、TDP 设置。",
+            "- 休眠与恢复：按电源键挂起，唤醒后接着用。",
+            "4. 为什么有时需要包装脚本：从 Steam 启动的进程会继承 Steam 注入的环境变量（`LD_PRELOAD` 中的覆盖层库等）。少数程序（部分 Electron / Chromium 应用）会因此黑屏或卡死，这时用一个脚本先清理环境再启动程序。",
         ],
 
         Consequences =
         [
-            "• 覆盖层环境变量污染：从 Steam 启动应用时，Steam 会强制向子进程注入 LD_PRELOAD (Steam Overlay 钩子) 与 Vulkan 层。对于某些 Chromium / Electron 应用（如浏览器、编辑器），极易引发窗口黑屏或无响应卡死，需要用独立脚本 unset 清理。",
+            "• 添加、删除快捷方式都在 Steam 界面完成，不影响程序本身。",
+            "• 包装脚本清除 `LD_PRELOAD` 后，该程序中无法使用 Steam 覆盖层（`Steam` 键菜单仍可用）。",
+            "• Flatpak 程序添加后，Steam 会把启动命令设为 `flatpak run <AppID>`，通常无需脚本。",
         ],
 
         Steps =
         [
-            Step.Read(
-                "查看本机 shortcuts.vdf 文件位置",
-                "find ~/.local/share/Steam/userdata/ -name \"shortcuts.vdf\"",
-                "确认当前 Steam 用户的非 Steam 快捷方式数据库物理路径。"),
-            Step.Read(
-                "通过 Steam 原生客户端界面添加（最安全规范）",
-                "# 在 Steam 桌面客户端操作：\n# 1. 顶部菜单【游戏】 -> 【添加非 Steam 游戏到我的库】\n# 2. 点击【浏览】选择 ~/Applications 下的可执行程序或脚本\n# 3. 勾选并确认添加",
-                "Steam 会自动为其计算专属 Non-Steam AppID 并完成封装。"),
             Step.Change(
-                "编写防黑屏的标准 launch.sh 启动包装脚本",
-                "cat <<'EOF' > ~/Applications/MyTool/launch.sh\n#!/usr/bin/env bash\nunset LD_PRELOAD\nunset LD_LIBRARY_PATH\nexport DISABLE_VK_LAYER_VALVE_steam_overlay_1=1\nexec \"/home/deck/Applications/MyTool/app_binary\" \"$@\"\nEOF\nchmod +x ~/Applications/MyTool/launch.sh",
-                "在启动前主动清理覆盖层与注入层，保证应用原生干净拉起。"),
+                "在 Steam 桌面客户端中添加程序",
+                "Steam 桌面客户端 → 左下角「添加游戏」→「添加非 Steam 游戏」→ 勾选程序，或点「浏览」选择 ~/Applications 下的文件 →「添加所选程序」",
+                "这是界面操作步骤，不是终端命令。添加后可在该条目的「属性」里改名称、启动选项和图标。").On(Hosts.SteamClient),
+            Step.Change(
+                "为有问题的程序编写包装脚本",
+                "mkdir -p ~/Applications/<程序名> && cat > ~/Applications/<程序名>/launch.sh <<'EOF'\n#!/usr/bin/env bash\n# 清除 Steam 注入的覆盖层，再启动真正的程序\nunset LD_PRELOAD\nexec \"$HOME/Applications/<程序名>/<可执行文件>\" \"$@\"\nEOF\nchmod +x ~/Applications/<程序名>/launch.sh",
+                "`exec` 让程序替换脚本进程，Steam 能正确追踪程序何时退出。然后把 `launch.sh` 作为非 Steam 游戏添加。"),
+            Step.Read(
+                "确认快捷方式文件的位置",
+                "ls -l ~/.local/share/Steam/userdata/*/config/shortcuts.vdf",
+                "每个登录过的 Steam 账号一个目录。备份这个文件即可备份全部非 Steam 快捷方式。"),
         ],
 
         Verify =
         [
-            "在 Steam 库中找到新添加的应用，双击桌面图标“返回游戏模式 (Return to Gaming Mode)”，在掌机非 Steam 分类中点击即可直接畅玩启动！",
+            "1. 切回游戏模式（桌面上的「返回游戏模式」图标），在「库 → 非 Steam」分类中能看到新条目并正常启动。",
+            "2. 程序运行时按 `…` 键能打开快捷菜单并调整帧率限制，说明它已处于 Gamescope 管理之下。",
         ],
     };
 }

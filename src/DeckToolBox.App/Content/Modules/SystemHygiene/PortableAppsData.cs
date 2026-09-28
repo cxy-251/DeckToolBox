@@ -8,43 +8,64 @@ public static class PortableAppsData
     {
         Id = "portable-apps",
         Title = "便携应用与 AppImage",
-        Keywords = "~/Applications · AppImage",
+        Keywords = "~/Applications · ~/.local/bin · AppImage",
         Level = ModuleLevel.Basic,
-        Overview = "建立完全自包含的独立应用存放目录，解压即用、删除目录即卸载，摆脱包管理器束缚。",
+        Overview = "不经过任何包管理器，把软件放在自己的目录里：AppImage 单文件、解压即用的压缩包、单个可执行文件。放在 /home 下，系统更新永远不会动它们。",
 
         Why =
         [
-            "1. 摆脱系统版本依赖：现代 Linux 掌机（如 SteamOS）采用不可变只读根分区。传统包管理器升级会被覆盖抹去，而 Flatpak 又过于封闭。自包含便携应用不受任何系统更新影响。",
-            "2. 自包含与高内聚（AppImage / 静态二进制）：绿色应用将核心运行时库打包在自身内部，依靠 rpath 或 AppRun 引导，不污染系统全局动态链接库。",
-            "3. 极简生命周期管理：安装只需解压到子文件夹，卸载只需直接 rm 对应文件夹，真正做到“零注册表、零深层残留、100% 掌控”。",
+            "1. 为什么便携应用在 SteamOS 上好用：",
+            "• 它们只是 `/home` 里的普通文件，不写入只读的系统分区，不依赖包数据库，系统更新后照常可用。",
+            "• 卸载就是删除它的文件或目录，没有注册表，也不会有散落各处的残留（配置目录除外，通常在 `~/.config/<程序名>`）。",
+            "2. 两个约定俗成的位置：",
+            "- `~/Applications/`：图形程序、AppImage、解压出来的程序目录，每个软件一个子目录。KDE 的 AppImage 集成也默认识别这里。",
+            "- `~/.local/bin/`：命令行工具的单个可执行文件。它通常已在 `PATH` 中（见「环境变量与 Shell 配置」），放进去就能在终端直接输入命令名运行。",
+            "3. AppImage 的原理：",
+            "• AppImage 是一个自带运行库的只读镜像（SquashFS）。运行时通过 FUSE 把镜像挂载到 `/tmp` 下的临时目录，再启动里面的程序；关闭程序后自动卸载。",
+            "• SteamOS 同时带有 `libfuse.so.2` 和 `libfuse3`，常见的 AppImage 可以直接运行。",
         ],
 
         Consequences =
         [
-            "• 优势：应用完全存放在用户持久分区 (/home)，系统无论怎么 OTA 大版本更新，软件及用户数据永远安全无损。",
-            "• 注意事项：绿色软件需要用户手动赋予执行权限 (chmod +x)；AppImage 格式若遇到缺少 libfuse 的系统，可使用 --appimage-extract-and-run 参数无阻运行。",
+            "• 下载的文件默认没有执行权限，需要 `chmod +x` 一次。",
+            "• 便携应用**不会自动更新**，需要自己关注新版本；也没有沙箱，能读写你的整个 home 目录，只运行来源可信的程序。",
+            "• AppImage 不会自动出现在应用菜单里，需要写一个 `.desktop` 文件（见「XDG 目录与 .desktop 菜单」），或添加进 Steam 在游戏模式中使用。",
+            "• 删除程序目录不会删除它的配置，彻底清理时记得检查 `~/.config`、`~/.local/share` 下同名目录。",
         ],
 
         Steps =
         [
             Step.Change(
-                "创建标准便携应用根目录",
-                "mkdir -p ~/Applications",
-                "在用户持久分区建立集中管理的便携软件目录。"),
+                "创建便携应用目录",
+                "mkdir -p ~/Applications ~/.local/bin",
+                "`-p` 表示目录已存在时不报错，可重复执行。"),
             Step.Change(
-                "下载独立软件后以专属目录存放（以示例应用为例）",
-                "mkdir -p ~/Applications/MyTool && chmod +x ~/Applications/MyTool/start.sh",
-                "赋予执行权限，每个软件独立为子文件夹。"),
+                "给下载的 AppImage 加上执行权限",
+                "chmod +x ~/Applications/<程序名>.AppImage",
+                "之后在 Dolphin 里双击或在终端执行它即可运行。"),
             Step.Read(
-                "针对 AppImage 格式的原生免 FUSE 运行技巧",
-                "./App.AppImage --appimage-extract-and-run",
-                "直接在 /tmp 中自解包运行，避免底层内核 FUSE 驱动版本冲突。"),
+                "查看 AppImage 自带的运行参数",
+                "~/Applications/<程序名>.AppImage --appimage-help",
+                "所有 type 2 AppImage 都支持 `--appimage-*` 系列参数。"),
+            Step.Change(
+                "解包 AppImage（FUSE 不可用或想查看内容时）",
+                "cd ~/Applications && ./<程序名>.AppImage --appimage-extract",
+                "解出到当前目录的 `squashfs-root/`，运行其中的 `AppRun` 即可。"),
+            Step.Change(
+                "安装单文件命令行工具",
+                "install -m 755 <下载的文件> ~/.local/bin/<命令名>",
+                "`install` 一步完成复制和设置权限；之后在任意目录输入命令名即可运行。"),
+            Step.Read(
+                "列出已有的便携应用及其占用",
+                "du -sh ~/Applications/* ~/.local/bin/* 2>/dev/null | sort -h",
+                "`sort -h` 按人类可读的大小（K/M/G）排序。"),
         ],
 
         Verify =
         [
-            "在终端执行检查指令：ls -la ~/Applications",
-            "预期输出：看到结构整齐的各绿色应用子目录（如 Telegram, Discord, Chrome 等均独立成文件夹）。",
+            "1. 执行权限：`ls -l ~/Applications` 中对应文件的权限以 `-rwx` 开头。",
+            "2. 命令行工具：`command -v <命令名>` 输出 `/home/deck/.local/bin/<命令名>`，说明它已在 PATH 中生效。",
+            "3. 更新不丢失：系统更新重启后，这些文件和它们的配置都原样保留。",
         ],
     };
 }

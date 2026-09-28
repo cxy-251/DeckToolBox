@@ -8,58 +8,63 @@ public static class DeckHardwareEcData
     {
         Id = "deck-hardware-ec",
         Title = "硬件传感器、功耗与风扇",
-        Keywords = "hwmon · TDP · jupiter-fan-control",
-        Level = ModuleLevel.Advanced,
-        Overview = "深入解密 Steam Deck 定制嵌入式控制器 (EC 芯片)、Linux 内核 hwmon 传感器拓扑、Valve 官方 jupiter-fan 风扇静音算法与 AMD APU 毫瓦级 TDP 功耗调控。",
+        Keywords = "sensors · hwmon · TDP · jupiter-fan-control",
+        Level = ModuleLevel.Intermediate,
+        Overview = "Steam Deck 的温度、风扇转速、APU 功耗上限和电池状态，内核都以普通文本文件的形式放在 /sys 下。快捷菜单里的 TDP 滑块、性能浮层读的也是这些文件。",
 
         Why =
         [
-            "1. 独立于 CPU 运行的微型主板管家 (Embedded Controller - EC)：",
-            "• 掌机主板上集成了一颗专用的 EC 微控制器。在 AMD APU 处理器尚未上电前，EC 就负责 Type-C PD 快速充电握手、电池充放电曲线保护、以及风扇 PWM 硬件脉宽控制。",
-            "• Linux 内核通过定制平台驱动与 EC 通信，将其传感器统一映射到内核标准的 `/sys/class/hwmon/` (Hardware Monitoring) 虚拟文件目录树下。",
-            "2. Valve 官方风扇静音调度算法 (jupiter-fan-control)：",
-            "• 早期传统 BIOS 硬件风扇曲线极其敏感，APU 稍有瞬时负载风扇便呼啸狂转，发热回落后又急停，噪音极度刺耳。",
-            "• Valve 研发了 `jupiter-fan-control` 守护进程：通过软件级 PID 动态滤波算法平滑温度突刺，根据历史散热趋势柔和变速，兼顾芯片寿命与绝对静音体验。",
-            "3. 掌机 TDP 功耗墙与 GPU 锁频的内核真相：",
-            "• 掌机右侧【...】快捷菜单中的“TDP 限制 (3W~15W)”本质上没有任何神秘魔法——它直接在向内核的 `/sys/class/hwmon/hwmon*/power1_cap` 接口写入微瓦 (μW) 整数（例如 10W 即写入 10000000）！",
-            "• 锁显卡频率则是直接写入 AMDGPU 驱动的 DPM 运行级接口 (`pp_dpm_sclk` / `pp_od_clk_voltage`)，将宝贵的 APU 功耗预算精准留给 CPU 运算或 GPU 图形渲染。",
+            "1. hwmon：内核统一的硬件监控接口：",
+            "• 每个传感器驱动在 `/sys/class/hwmon/hwmonN/` 下注册一个目录，`name` 文件是驱动名。Deck 上常见的有：",
+            "- `amdgpu`：APU 的边缘温度 (`temp1_input`)、功耗 (`power1_input`) 与功耗上限 (`power1_cap`)。",
+            "- `steamdeck_hwmon`：Valve 的平台驱动，提供风扇转速 (`fan1_input`)、电池温度、USB-C PD 协商电压电流。",
+            "- `nvme`、`ath11k_hwmon`（Wi-Fi 网卡）、`BAT1`、`acpitz` 等。",
+            "• `N` 的编号每次开机可能变化，脚本里要按 `name` 查找，不要写死 `hwmon6`。",
+            "2. 数值单位：温度是毫摄氏度（`65000` = 65 °C），功耗是微瓦（`15000000` = 15 W），电压是毫伏。",
+            "3. TDP 滑块的本质：快捷菜单（`…` 键）→ 性能 → TDP 限制，由 SteamOS 写入 `amdgpu` 的 `power1_cap`。APU 的实际功耗不会长时间超过这个上限，因此降低 TDP 能换来更长续航和更低温度。",
+            "4. 风扇控制：`jupiter-fan-control` 是一个系统服务，根据 APU 与电池温度计算目标转速，比固件默认曲线更平缓、更安静。",
         ],
 
         Consequences =
         [
-            "• 查询只读传感器绝对安全：读取温度、当前转速、实时放电瓦数纯属内核内存数据镜像，0 硬件开销。",
-            "• TDP 调节的下限保护：TDP 最低不宜限制在 3W 以下，否则可能导致 Wayland 桌面渲染发生严重丢帧或掉驱动；若限制在 15W 以上由于掌机散热模组物理限制会引发剧烈降频。",
-            "• 芯片过热硬件断电兜底：即便有错误脚本误停风扇，AMD APU 与 EC 芯片内部均硬编码了 105°C 物理熔断关机保护，不会发生芯片物理烧毁事故。",
+            "• 读取 `/sys` 下的传感器文件完全无副作用。",
+            "• 不建议用 `sudo` 直接写 `power1_cap`、风扇或 GPU 频率文件：SteamOS 会在切换游戏或调整快捷菜单时覆盖你的值，而错误的值可能导致降频或不稳定。日常调节请使用快捷菜单。",
+            "• 停止 `jupiter-fan-control` 服务后风扇交回固件控制，噪音会增大；APU 自身有过热降频与过热关机保护，但不应长期依赖它。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看系统当前全部注册的 hwmon 硬件传感器设备清单与驱动名",
-                "for d in /sys/class/hwmon/hwmon*; do echo -e \"$d -> \\t$(cat $d/name 2>/dev/null)\"; done",
-                "识别 amdgpu (显卡核显)、k10temp (AMD CPU 核心测温)、acpitz (主板热区) 与掌机专属平台驱动。"),
+                "一次性查看所有传感器",
+                "sensors",
+                "`amdgpu` 下的 `edge` 是 APU 温度，`slowPPT`/`fastPPT` 是功耗与上限；`steamdeck_hwmon` 下是风扇转速和电池温度。"),
             Step.Read(
-                "查看当前各个硬件组件的毫摄氏度实时温度榜",
-                "for d in /sys/class/hwmon/hwmon*; do name=$(cat $d/name 2>/dev/null); for t in $d/temp*_input; do [ -f \"$t\" ] && awk -v dev=\"$name\" -v file=\"$(basename $t)\" '{printf \"[%s / %s]: %.1f °C\\n\", dev, file, $1/1000}' $t; done; done",
-                "全面扫描掌机各关键芯片与热区温度，折算为直观的摄氏度列表。"),
+                "列出所有 hwmon 设备及其驱动名",
+                "for d in /sys/class/hwmon/hwmon*; do echo \"$d  $(cat $d/name)\"; done",
+                "编写脚本时用驱动名定位目录。"),
             Step.Read(
-                "读取掌机散热风扇当前实际转速 (RPM 转/分钟)",
-                "cat /sys/class/hwmon/hwmon*/fan1_input 2>/dev/null | awk '{printf \"风扇当前实时转速: %d RPM\\n\", $1}'",
-                "获取当前风扇的实际转速读数（待机约 0~2000 RPM，满载约 4500~6000 RPM）。"),
+                "查看当前 TDP 上限与允许范围（瓦）",
+                "d=$(grep -l '^amdgpu$' /sys/class/hwmon/hwmon*/name | xargs dirname); for f in power1_cap power1_cap_min power1_cap_max; do awk -v n=$f '{printf \"%-16s %.1f W\\n\", n, $1/1000000}' $d/$f; done",
+                "`power1_cap` 就是快捷菜单 TDP 滑块当前生效的值。"),
             Step.Read(
-                "查看 APU 当前设定的 TDP 功耗上限与硬件最大允许功耗",
-                "cat /sys/class/hwmon/hwmon*/power1_cap 2>/dev/null | awk '{printf \"当前 TDP 功耗限制: %.2f W (微瓦: %d)\\n\", $1/1000000, $1}'",
-                "验证掌机当前正在生效的 APU 功耗墙数值。"),
+                "查看风扇转速",
+                "cat $(grep -l '^steamdeck_hwmon$' /sys/class/hwmon/hwmon*/name | xargs dirname)/fan1_input",
+                "单位 RPM。待机时可能为 0，高负载时约 4000~6000。"),
             Step.Read(
-                "查看 Valve 官方风扇智能调谐服务运行状态",
-                "systemctl status jupiter-fan-control 2>/dev/null | grep -E \"(Active:|Loaded:)\" || echo \"未运行独立守护进程，当前由内核原生温控接管\"",
-                "检查掌机温控软件层是否正常工作。"),
+                "查看电池状态与健康度",
+                "cd /sys/class/power_supply/BAT1 && echo \"状态 $(cat status)  电量 $(cat capacity)%  健康度 $((100 * $(cat charge_full) / $(cat charge_full_design)))%\"",
+                "健康度 = 当前满电容量 / 设计容量。新电池可能略高于 100%。"),
+            Step.Read(
+                "查看风扇控制服务状态",
+                "systemctl status jupiter-fan-control --no-pager",
+                "`Active: active (running)` 表示正常工作。"),
         ],
 
         Verify =
         [
-            "1. 温度正常区间：掌机在桌面待机状态下 APU 温度通常在 40°C~55°C 之间；运行 3A 大作满载状态下在 75°C~88°C 属于 AMD Zen 微架构的健康工作设计范围。",
-            "2. 动态调节验证：若通过快捷菜单将 TDP 调至 8W，再次执行步骤 4 的命令，读数将精确变为 `8.00 W`，证实用户态配置已穿透至内核驱动层。",
+            "1. 在快捷菜单中把 TDP 限制调到 8 W，重新执行第 3 步，`power1_cap` 应显示 8.0 W；关闭限制后恢复为默认值。",
+            "2. 运行游戏时执行 `watch -n1 sensors`，可以看到温度与 PPT 功耗随负载实时变化（`Ctrl+C` 退出）。",
+            "3. 参考范围：桌面待机时 APU 约 45~60 °C，满载游戏约 70~90 °C 都属于正常工作区间。",
         ],
     };
 }

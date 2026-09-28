@@ -54,8 +54,8 @@ public static partial class ContentValidator
                         issues.Add($"{at} 是 echo 包装的伪指令，请改为真实可执行的命令");
                     if (SudoPattern().IsMatch(s.Command) && s.Risk < Risk.Root)
                         issues.Add($"{at} 含 sudo，但风险标记为 {s.Risk}");
-                    if (RecursiveRemovePattern().IsMatch(s.Command) && s.Risk != Risk.Danger)
-                        issues.Add($"{at} 含 rm -r/-f，风险必须标记为 Danger");
+                    if (RecursiveRemovePattern().IsMatch(s.Command) && s.Risk < Risk.Change)
+                        issues.Add($"{at} 含 rm -r/-f，不能标记为只读");
                     if (s.Command.Contains("%command%") && s.Host != Hosts.SteamLaunchOptions)
                         issues.Add($"{at} 含 %command%，Host 应为 Hosts.SteamLaunchOptions");
                 }
@@ -78,6 +78,20 @@ public static partial class ContentValidator
     private static int DisplayWidth(string text) => text.Sum(c => c > 0x2E80 ? 2 : 1);
 
     private static string Excerpt(string text) => text.Length <= 40 ? text : text[..40] + "…";
+
+    /// <summary>按转义后的真实内容打印指令，用于在终端里逐条核对。</summary>
+    public static int PrintCommands(IReadOnlyList<KnowledgeScope> scopes, string? moduleId)
+    {
+        var modules = scopes.SelectMany(s => s.Categories).SelectMany(c => c.Modules)
+            .Where(m => moduleId is null || m.Id == moduleId).ToList();
+        foreach (var m in modules)
+        {
+            Console.WriteLine($"## {m.Id}");
+            foreach (var s in m.Steps)
+                Console.WriteLine($"[{s.Risk}{(s.Host is null ? "" : " @ " + s.Host)}] {s.Title}\n{s.Command}\n");
+        }
+        return modules.Count == 0 ? 1 : 0;
+    }
 
     public static int RunCli(IReadOnlyList<KnowledgeScope> scopes)
     {

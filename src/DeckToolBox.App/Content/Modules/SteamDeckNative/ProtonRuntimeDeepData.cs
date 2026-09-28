@@ -8,58 +8,66 @@ public static class ProtonRuntimeDeepData
     {
         Id = "proton-prefix",
         Title = "Proton 前缀与运行库修复",
-        Keywords = "compatdata · protontricks · DLL 覆盖",
+        Keywords = "compatdata · 存档 · protontricks · DLL 覆盖",
         Level = ModuleLevel.Intermediate,
-        Overview = "深入解析 Proton 独立沙箱前缀目录架构 (compatdata / pfx)、Protontricks 运行库静默补齐原理与 WINEDLLOVERRIDES 动态链接库劫持生效法则。",
+        Overview = "游戏闪退、缺运行库、Mod 不生效、存档在哪——这些问题都围绕同一个东西：游戏的 Proton 前缀。学会找到它、备份它、往里面装运行库，以及安全地重建它。",
 
         Why =
         [
-            "1. 每一个游戏拥有一套独立的虚拟 Windows 系统 (WINEPREFIX)：",
-            "• Steam 为每个 Windows 游戏在 `~/.steam/steam/steamapps/compatdata/<AppID>/pfx/` 目录下建立了一套专属的沙箱前缀 (Prefix)。",
-            "• 里面包含完整的 `drive_c/windows/`、`drive_c/users/steamuser/AppData/` 以及文本形式的 Windows 注册表文件 (`system.reg` / `user.reg`)。这保证了一个游戏的注册表损坏或存档崩溃绝不会连累其他任何游戏！",
-            "2. 很多单机大作或汉化补丁闪退的真正原因：",
-            "• 很多游戏依赖特定版本的微软运行库（如 Visual C++ 2015-2022、DirectX 9、.NET 4.8 或 Media Foundation 视频解码）。Proton 自带的逆向开源实现并非 100% 涵盖所有专有未公开 API，遇到空指针调用时游戏便会瞬间闪退。",
-            "• **Protontricks** 工具能够直接调用微软官方的可再发行组件包 (Redistributable)，将原装正版的微软官方 DLL 库与注册表项静默安装注入到指定 AppID 的虚拟 C 盘中，瞬间起死回生！",
-            "3. `WINEDLLOVERRIDES` 动态链接库劫持与 Mod 加载机制：",
-            "• 为什么所有单机游戏 Mod (如 Unity BepInEx、Unreal UE4SS、老滚 ASI Loader) 都要求把一个伪装的 `version.dll` 或 `dinput8.dll` 放进游戏目录？",
-            "• 默认情况下，Proton 启动游戏时会优先加载 Wine 自身内部编写的虚拟系统库 (`b`, Builtin)。",
-            "• 必须在启动项中加入 `WINEDLLOVERRIDES=\"dinput8=n,b;version=n,b\" %command%`：**强制指示转译器优先加载游戏根目录下用户放置的原生 DLL (`n`, Native)**，加载成功后再回退到内置库 (`b`, Builtin)，这是让所有注入型 Mod 在 Linux 掌机上顺利跑起来的唯一金钥匙！",
+            "1. 前缀是每个游戏独立的：一个游戏的前缀被改坏，不会影响其他游戏（结构见「Wine 与 Proton 原理」）。",
+            "2. 为什么有的游戏缺运行库：",
+            "• 少数游戏依赖 Proton 未完整实现的微软组件（某些 VC++ 运行库、.NET Framework、Media Foundation 视频解码等），表现为启动即退或播放过场动画时崩溃。",
+            "• **protontricks** 可以把官方的可再发行组件安装进指定游戏的前缀。它不是系统自带的，需要从 Flathub 安装（`com.github.Matoking.protontricks`）。",
+            "3. DLL 覆盖与 Mod 加载：",
+            "• 许多 Mod 加载器（BepInEx、UE4SS、ASI Loader、ReShade 等）把一个同名 DLL（如 `version.dll`、`dinput8.dll`、`winhttp.dll`、`dxgi.dll`）放在游戏目录里。",
+            "• Wine 默认优先使用自己的内置实现 (builtin)，必须用 `WINEDLLOVERRIDES` 告诉它优先加载游戏目录里的原生版本 (native)：`n,b` 表示先 native 后 builtin。",
+            "4. 前缀可以重建：删除前缀后，下次启动游戏时 Proton 会自动创建一个全新的。代价是前缀里的数据（包括本地存档、游戏设置）全部丢失。",
         ],
 
         Consequences =
         [
-            "• 极致的隔离安全性：所有使用 protontricks 注入的 DLL 和注册表修改完全禁锢在 `compatdata/<AppID>` 内部，绝不污染 SteamOS 宿主系统。",
-            "• 终极无损自愈能力：若某个游戏的前缀被 Mod 或插件彻底改坏导致打不开，只需直接删除对应的 `~/.steam/steam/steamapps/compatdata/<AppID>` 文件夹；下次在 Steam 中点击开始游戏时，Proton 会在 10 秒内自动重新克隆生成一个全新、纯净出厂状态的 Windows 运行环境！",
+            "• 往前缀里装运行库、改 DLL 覆盖只影响这一个游戏。",
+            "• **删除前缀会删除其中的存档**。删除前务必确认：游戏支持 Steam 云存档，或者你已备份 `drive_c/users/steamuser` 目录。",
+            "• `WINEDLLOVERRIDES` 写错 DLL 名不会报错，只是不生效；覆盖了不该覆盖的系统 DLL 则可能导致游戏无法启动，删掉启动选项即可恢复。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前掌机已生成的全部 Windows 游戏沙箱前缀目录清单",
-                "ls -lh ~/.steam/steam/steamapps/compatdata/ 2>/dev/null | head -n 25",
-                "每个数字文件夹即对应 Steam 商店中该游戏的唯一数字身份标识 (AppID)。"),
+                "按名称查找游戏的 AppID",
+                "grep -l -i '\"name\".*<游戏名关键词>' ~/.local/share/Steam/steamapps/appmanifest_*.acf",
+                "输出的文件名 `appmanifest_<AppID>.acf` 中的数字就是 AppID。"),
             Step.Read(
-                "查看指定游戏沙箱内部的真实 Windows 虚拟目录树与注册表文件",
-                "ls -la ~/.steam/steam/steamapps/compatdata/*/pfx/ 2>/dev/null | head -n 25",
-                "查看 drive_c, dosdevices (盘符软链), system.reg 与 user.reg 存储形态。"),
-            Step.Read(
-                "使用 protontricks 为指定游戏静默安装缺失的微软 VC++ 运行库（示例）",
-                "echo '安装命令模板: protontricks <AppID> vcrun2022 d3dx9 (可自动为游戏注入微软官方 2022 运行库与 DirectX 9 组件)'",
-                "为指定 AppID 虚拟 C 盘静默安装正版微软 VC++ 与 DirectX 9 运行库，解决老游戏与特定引擎闪退问题。"),
+                "查看前缀里的用户目录（存档常在这里）",
+                "ls ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/drive_c/users/steamuser/",
+                "重点看 `AppData/Local`、`AppData/LocalLow`、`AppData/Roaming`、`Documents`（部分版本中显示为 `My Documents`）。"),
             Step.Change(
-                "实战掌握加载单机 Mod 与动态链接库劫持的标准 Steam 启动项",
-                "echo '启动项模板: WINEDLLOVERRIDES=\"version=n,b;dinput8=n,b;dxgi=n,b\" %command%'",
-                "强制转译器优先加载游戏根目录下用户放置的原生 Mod DLL (Native)，是单机 Mod 生效的通用标准启动项。"),
+                "备份整个前缀的用户目录",
+                "tar -czf ~/prefix-<AppID>-$(date +%F).tar.gz -C ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/drive_c/users steamuser",
+                "在做任何修改或删除前先备份。恢复时用 `tar -xzf` 解压回同一位置。"),
+            Step.Change(
+                "从 Flathub 安装 protontricks",
+                "flatpak install flathub com.github.Matoking.protontricks",
+                "需要已配置 flathub 源（见「Flatpak 应用管理」）。"),
+            Step.Change(
+                "为游戏安装 VC++ 运行库（示例）",
+                "flatpak run com.github.Matoking.protontricks <AppID> vcrun2022",
+                "其他常用组件：`d3dcompiler_47`、`dotnet48`、`xact`。装之前先在 ProtonDB 确认该游戏确实需要。"),
+            Step.Change(
+                "让游戏优先加载目录里的 Mod DLL",
+                "WINEDLLOVERRIDES=\"winhttp,version,dinput8=n,b\" %command%",
+                "只保留你的 Mod 实际使用的那个 DLL 名，多个用逗号分隔。").On(Hosts.SteamLaunchOptions),
             Step.Danger(
-                "一键重置损坏的游戏虚拟 C 盘环境（故障秒级自愈）",
-                "echo '自愈指令: rm -rf ~/.steam/steam/steamapps/compatdata/<AppID> (下次启动自动原地重建干净环境)'",
-                "直接物理删除损坏的虚拟 C 盘前缀，Steam 会在下次启动时自动重新克隆生成干净出厂状态的 Windows 环境。"),
+                "删除前缀以彻底重建",
+                "rm -rf ~/.local/share/Steam/steamapps/compatdata/<AppID>",
+                "**会删除本地存档**，先完成上面的备份。下次启动游戏时自动生成全新前缀。"),
         ],
 
         Verify =
         [
-            "1. DLL 劫持成功验证：启动包含 Mod 的游戏后，查看游戏根目录下是否生成了对应的日志文件（如 `BepInEx/LogOutput.log`），若生成且包含 `Loaded plugins`，证实 WINEDLLOVERRIDES 成功驱动了 Native DLL 加载。",
-            "2. 运行库安装验证：使用 `ls -l ~/.steam/steam/steamapps/compatdata/<AppID>/pfx/drive_c/windows/system32/vcruntime140.dll`，若文件存在且为微软原始二进制，证实运行库注入成功。",
+            "1. 备份：`tar -tzf ~/prefix-<AppID>-*.tar.gz | head` 能列出 `steamuser/` 下的文件。",
+            "2. Mod 加载：以 BepInEx 为例，启动一次游戏后游戏目录下出现 `BepInEx/LogOutput.log`，说明 DLL 覆盖已生效。",
+            "3. 运行库：`ls ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/drive_c/windows/system32/ | grep -i vcruntime` 能看到对应 DLL。",
         ],
     };
 }

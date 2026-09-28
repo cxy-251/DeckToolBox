@@ -8,46 +8,52 @@ public static class PressureVesselData
     {
         Id = "pressure-vessel",
         Title = "Steam Runtime 游戏容器",
-        Keywords = "pressure-vessel · bwrap · sniper",
+        Keywords = "pressure-vessel · bwrap · sniper · soldier",
         Level = ModuleLevel.Advanced,
-        Overview = "揭秘 SteamOS 底层类似于 Docker 的轻量非特权容器技术，深入 Linux 命名空间与游戏环境沙箱隔离。",
+        Overview = "Steam 启动游戏时，会先用 pressure-vessel 建一个轻量容器，让游戏看到一套固定版本的运行库。它用的 bubblewrap (bwrap) 也是 Flatpak 的沙箱基础，你可以亲手用它搭一个最小沙箱。",
 
         Why =
         [
-            "1. 为什么 Steam 游戏需要独立的轻量容器？",
-            "• 游戏通常依赖特定版本的 glibc、动态库与编译环境。传统 Linux 发行版升级往往导致老游戏崩溃。Valve 为此开发了 Steam Runtime（包含 Sniper 与 Soldier 两个容器镜像）。",
-            "• 每次你点击【开始游戏】，Steam 在后台调用 Pressure-Vessel，利用底层 Bubblewrap (bwrap) 建立命名空间沙箱，将一个纯净的只读 Linux 环境挂载给游戏，完全与宿主机系统包解耦！",
-            "2. 底层支柱：Bubblewrap (bwrap) 核心机制：",
-            "• 非特权沙箱 (Unprivileged)：bwrap 借助 Linux 内核 user_namespaces，无需 root 提权即可动态挂载文件系统与隔离进程树。",
-            "• Mount Namespace 隔离：游戏看到的是容器内的虚拟 /usr 和 /lib，但宿主机的 Mesa 驱动、Vulkan 层和 PipeWire 音频通过 bind mount 穿透进去，实现零额外性能损耗。",
-            "• PID 隔离：游戏在容器中拥有专属 PID 树，游戏退出时，Pressure-Vessel 能瞬间收割并彻底杀死所有残留子进程，防止后台卡死。",
+            "1. 为什么需要游戏运行时：",
+            "• 游戏发布后很少更新，而发行版的库在不断升级。游戏依赖的 glibc、SDL、图形库版本一旦和系统不一致，就可能无法启动。",
+            "• Valve 提供 Steam Linux Runtime：`scout`（最早，基于 Ubuntu 12.04）、`soldier`（Proton 5.13~7 使用）、`sniper`（新版 Proton 与原生游戏使用）等，每个都是一套固定版本的用户空间库。",
+            "2. pressure-vessel 做了什么：",
+            "• 把运行时作为容器里的 `/usr`，同时把宿主的显卡驱动（Mesa、Vulkan 层）和必要设备带进容器，因此游戏既有稳定的库，又能用最新驱动。",
+            "• 底层用 **bubblewrap (`bwrap`)**：借助 Linux 的用户命名空间 (user namespace)，普通用户无需 root 就能为进程构造独立的挂载视图和进程视图。",
+            "3. 这对调试的影响：游戏运行在另一个挂载命名空间中，它看到的 `/usr` 与你终端里看到的不同；从宿主附加调试器、注入工具时要考虑这一点。",
         ],
 
         Consequences =
         [
-            "• 很多 Mod 注入器在 Linux 下失效的原因：很多开发者在宿主机终端里运行外部注入器或调试器，但游戏本身运行在 bwrap 隔离容器内，外部进程根本无法直接访问容器内的虚拟内存与私有命名空间！",
-            "• 正确姿势：Mod 注入和挂钩必须直接放入游戏目录让 Proton / 容器内部自身加载（如 BepInEx / Harmony），或者使用容器调试参数进入同一个命名空间。",
+            "• 查看运行时目录和进程只读无害。",
+            "• 下面的 bwrap 实验只创建一个临时沙箱：沙箱里只读挂载 `/usr`，看不到你的家目录，退出 shell 即销毁，不会修改任何文件。",
+            "• 不要删除 `SteamLinuxRuntime_*` 目录，Steam 会在下次启动游戏时重新下载；要卸载请在 Steam 库的「工具」中操作。",
         ],
 
         Steps =
         [
             Step.Read(
-                "检查 Steam 原生预装的 Pressure-Vessel 运行时镜像",
-                "ls -la ~/.local/share/Steam/steamapps/common/SteamLinuxRuntime_*",
-                "查看当前设备上持有的官方容器环境版本。"),
+                "查看已安装的 Steam 运行时",
+                "ls -d ~/.local/share/Steam/steamapps/common/SteamLinuxRuntime*",
+                "`SteamLinuxRuntime_sniper` / `_soldier` 等目录各是一套运行时。"),
             Step.Read(
-                "查看正在运行的 bwrap 原生沙箱容器进程树",
-                "ps aux | grep -E \"(pressure-vessel|bwrap)\" | grep -v grep",
-                "启动任何 Steam 游戏后执行此命令，即可抓到后台正在运行的容器沙箱。"),
+                "游戏运行时查看容器进程",
+                "pgrep -a -f 'pressure-vessel|bwrap' | cut -c1-200",
+                "启动任意游戏后在桌面模式终端执行；`cut` 截断过长的命令行。"),
+            Step.Change(
+                "用 bwrap 亲手启动一个最小沙箱",
+                "bwrap --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin --proc /proc --dev /dev --unshare-all --die-with-parent /bin/bash",
+                "SteamOS 的 `/lib`、`/bin` 都是指向 `/usr` 的符号链接，所以用 `--symlink` 在沙箱里重建它们。输入 `exit` 退出沙箱。"),
             Step.Read(
-                "动手实验：无需 Docker，用系统自带的 bwrap 手动拉起一个轻量隔离 Shell",
-                "bwrap --ro-bind /usr /usr --ro-bind /lib /lib --ro-bind /lib64 /lib64 --proc /proc --dev /dev --unshare-all /bin/bash",
-                "利用 Linux 原生内核特性，零开销创建独立沙箱并赋予虚拟命名空间！"),
+                "在沙箱里观察隔离效果",
+                "echo \"我的 PID: $$\"; ps -e; ls /; ls ~ 2>&1",
+                "在上一步打开的沙箱 shell 中执行。").On("bwrap 沙箱内"),
         ],
 
         Verify =
         [
-            "进入由 bwrap 启动的隔离 Shell 后，在里面执行 ps aux，你会惊奇地发现：宿主机的几百个进程全都不见了，容器内只有 PID 1 和你的 bash！这就是完全原生的 Linux 容器威力。",
+            "1. 沙箱里 `echo $$` 输出 `2`（bwrap 自己是 1 号进程），`ps -e` 只能看到寥寥几个进程，而宿主上有几百个。",
+            "2. 沙箱里 `ls /` 只有 `bin dev lib lib64 proc sbin usr` 等少数目录，`ls ~` 报错「没有那个文件或目录」：家目录根本不存在于这个挂载视图中。",
         ],
     };
 }

@@ -8,60 +8,80 @@ public static class SteamOsImmutabilityData
     {
         Id = "steamos-immutable",
         Title = "只读系统与 A/B 更新",
-        Keywords = "steamos-readonly · RAUC · 恢复",
+        Keywords = "steamos-readonly · RAUC · 更新通道 · 恢复",
         Level = ModuleLevel.Intermediate,
-        Overview = "深入解密 SteamOS 3.x 工业级 A/B 根分区对刷机制、RAUC 控制器、只读根保护锁 (steamos-readonly) 与持久化目录 (/home /etc /var) 安全边界。",
+        Overview = "SteamOS 3.x 的系统分区是只读的，并且有 A、B 两套。理解这套设计，就知道哪些改动会在系统更新后消失、哪些会永久保留，以及系统坏了怎么救回来。",
 
         Why =
         [
-            "1. 传统 Linux 滚更的脆弱性 vs 掌机高可靠性要求：",
-            "• 传统 Arch/Ubuntu 在线升级包时，一旦中途断电、网络中断或脚本报错，系统极其容易挂掉（动态链接库损坏导致连 bash 都打不开）。",
-            "• SteamOS 彻底摒弃传统在线升级，采用嵌入式高可靠方案 **RAUC (Robust Auto-Update Controller)**：固态硬盘中划出完全镜像对称的 `rootfs-A` (如 /dev/nvme0n1p3) 和 `rootfs-B` (如 /dev/nvme0n1p4)。",
-            "2. A/B 无缝对刷与原子切换：",
-            "• 当 SteamOS 收到系统更新推送时，系统是在后台将全新的只读系统镜像写入**当前非活动的那个备用分区**（例如当前运行 A，写入 B）。写入完成后进行哈希校验，完全不影响你当前正在玩的游戏！",
-            "• 只有当你主动点击“重启以应用更新”时，引导加载程序 (EFI Bootloader) 才会原子级切换默认启动分区指向 B。如果 B 分区因驱动兼容性启动失败，内核健康检测机制会自动在 3 次超时后无缝回滚至原先完好的 A 分区！",
-            "3. 不可变只读根分区与三大持久化“安全孤岛”：",
-            "• 系统根目录 `/` 和 `/usr` 默认以 `ro` (Read-Only) 挂载，防止误删系统动态库。",
-            "• **真正持久保存的三个目录**：",
-            "  - `/home`：独立的用户数据分区，OTA 系统对刷绝对不会触碰！存放所有游戏、配置与便携应用。",
-            "  - `/etc`：系统配置文件，升级时通过专门的合并工具保留用户自定义网络与硬件配置。",
-            "  - `/var`：动态系统数据与日志。",
+            "1. 两套系统槽位 (A/B)：",
+            "• 内置固态硬盘上，系统相关分区都成对出现：`efi-A/efi-B`、`rootfs-A/rootfs-B`（各 5 GB，btrfs）、`var-A/var-B`（各 256 MB）；最后一个大分区 `home` 存放你的全部数据和游戏。",
+            "• 系统更新时，更新程序（steamos-atomupd，底层用 **RAUC**）把新系统镜像写进**当前没在用的那个槽位**，写完校验通过后才把下次启动指向它。更新过程中断电也不会弄坏正在运行的系统。",
+            "• 新系统若启动失败，引导程序会回退到原来的槽位；开机时按住 `…` 键还能手动选择从哪个槽位启动。",
+            "2. 只读根分区：",
+            "• `/`（含 `/usr`）是 btrfs 子卷，靠 btrfs 的 `ro` 属性锁成只读，所以 `mount` 输出里看到的是 `rw`，要用 `btrfs property get / ro` 才能看到真实状态。",
+            "• 用 `steamos-readonly disable` 解锁后可以用 `pacman` 装包，但**下次系统更新会换成全新的槽位镜像，装进 `/usr` 的东西全部消失**。",
+            "3. 哪些改动会被保留：",
+            "- `/home`：独立分区，系统更新从不触碰。游戏、Flatpak 应用、`~/.local`、`~/Applications` 都在这里。",
+            "- `/etc`：是一层 overlay，你的修改保存在 `/var/lib/overlays/etc/upper`，更新后会叠加回新系统。",
+            "- `/var`：随槽位成对，但 `/var/log`、`/var/lib/flatpak`、`/var/cache/pacman` 等常用目录实际绑定挂载自 `/home` 分区，所以同样会保留。",
+            "4. 更新通道：`rel`（稳定版）、`beta`、`preview`、`main`。切换通道只影响之后收到的更新。",
         ],
 
         Consequences =
         [
-            "• 解锁只读保护的后果：执行 `sudo steamos-readonly disable` 允许直接对根分区执行写操作或 `pacman -S` 安装软件；**但是，一旦下次 SteamOS 推送大版本系统更新，非活动分区被重刷，你在 /usr 下安装的全部软件都将被彻底物理抹除！**",
-            "• 推荐最佳实践：需要安装复杂编译依赖时，应使用原生预装的 `distrobox`，或者将工具放在 `~/Applications` 和 `~/.local/bin` 中，永久免疫系统更新抹除风险。",
+            "• 查看状态（`steamos-readonly status`、`rauc status`、`findmnt`）完全只读。",
+            "• 解锁只读是临时的：改动会在下次系统更新时被覆盖，甚至可能让更新出错。需要长期使用的软件应该用 Flatpak、便携应用或 Distrobox 容器。",
+            "• 如果确实解锁过，操作完成后立即重新锁定，减少误操作的窗口期。",
+            "• `sudo` 需要先给 deck 用户设置密码（桌面模式下在终端执行 `passwd`），SteamOS 出厂时没有密码。",
+            "• 切换到 `beta` / `main` 通道可能遇到未完成的功能；切回 `rel` 后要等稳定版追上当前版本号才会收到「更新」。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前系统只读根分区保护状态 (Read-Only Status)",
+                "查看只读保护是否开启",
                 "steamos-readonly status",
-                "检查系统当前处于 enabled (只读受保护) 还是 disabled (可读写) 状态。"),
+                "输出 `enabled` 表示根分区处于只读保护状态。"),
             Step.Read(
-                "审计系统底层 A/B 分区布局与当前激活的分区槽位 (RAUC)",
-                "rauc status --detailed 2>/dev/null || lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT,LABEL",
-                "查看 rootfs.0 与 rootfs.1 的槽位状态，确认当前正在挂载为 / 根目录的具体物理分区。"),
+                "查看根子卷的真实只读属性",
+                "btrfs property get / ro",
+                "`ro=true` 才是只读的真正依据；`mount` 里显示 `rw` 是正常的。"),
             Step.Read(
-                "查看系统的版本构建时间戳与系统镜像标识",
-                "cat /etc/os-release | grep -E \"(BUILD_ID|VARIANT_ID|VERSION_ID)\"",
-                "获取 Valve 官方发行的 SteamOS 镜像版本号、构建日期与通道分支 (Release / Beta / Main)。"),
+                "查看磁盘分区布局",
+                "lsblk -o NAME,SIZE,FSTYPE,PARTLABEL,MOUNTPOINTS",
+                "`PARTLABEL` 列能直接看到 rootfs-A / rootfs-B / var-A / var-B / home；挂载在 `/` 的就是当前槽位。"),
             Step.Read(
-                "查看 EFI 引导项与双启动槽位顺序 (efibootmgr)",
-                "efibootmgr -v 2>/dev/null || echo \"需 root 权限读取 NVRAM 引导列表，常规引导文件位于 /esp/EFI/steamos/\"",
-                "查看主板 NVRAM 中注册的 SteamOS 引导顺序以及自动回滚策略。"),
+                "查看 A/B 槽位状态",
+                "rauc status",
+                "`Booted from` 是当前槽位，每个槽位的 `boot status: good` 表示可正常启动。"),
+            Step.Read(
+                "查看 /etc 的覆盖层实现",
+                "findmnt /etc",
+                "`upperdir=` 指向保存你修改内容的位置。"),
+            Step.Read(
+                "查看系统版本与当前更新通道",
+                "grep -E '^(VERSION_ID|BUILD_ID)=' /etc/os-release; steamos-select-branch -c",
+                "通道 `rel` 为稳定版。"),
+            Step.Read(
+                "检查是否有可用的系统更新",
+                "steamos-update check",
+                "只检查不安装；安装更新建议在「设置 → 系统」里操作。"),
+            Step.Danger(
+                "临时解除只读保护",
+                "sudo steamos-readonly disable",
+                "解锁后装进 `/usr` 的任何东西都会在下次系统更新时丢失。只在你清楚要改什么时使用。"),
             Step.Root(
-                "临时解锁与重新锁定只读保护的操作语法（应急必备）",
-                "echo '解锁: sudo steamos-readonly disable ; 锁回: sudo steamos-readonly enable'",
-                "仅在必须修改特殊底层驱动配置文件时使用，操作完毕后务必重新 enable 锁回系统。"),
+                "重新开启只读保护",
+                "sudo steamos-readonly enable",
+                "改完立刻锁回。"),
         ],
 
         Verify =
         [
-            "1. 挂载标志验证：执行 `mount | grep \"on / type\"`，输出中必须包含 `(ro,` 字段，证明只读安全机制正常生效。",
-            "2. 紧急恢复手段：若因双系统引导损坏导致无法开机，关机状态下长按【音量减 (-) + 电源键】可调出主板 EFI 快速引导菜单；长按【快速访问键 (...) + 电源键】可唤出 SteamOS 历史启动还原点选择菜单。",
+            "1. 保护状态：`steamos-readonly status` 为 `enabled`，且 `btrfs property get / ro` 输出 `ro=true`。",
+            "2. 槽位健康：`rauc status` 中两个槽位的 `boot status` 都是 `good`。",
+            "3. 救援手段：关机状态下按住 `…` 键再按电源键，可进入启动槽位选择菜单，选择上一个系统版本启动；按住「音量 −」再按电源键进入引导管理器，可从 U 盘上的恢复镜像启动。",
         ],
     };
 }

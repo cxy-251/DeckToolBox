@@ -8,54 +8,65 @@ public static class WineProtonRuntimeData
     {
         Id = "wine-proton",
         Title = "Wine 与 Proton 原理",
-        Keywords = "Wine · DXVK · VKD3D · PROTON_LOG",
+        Keywords = "Wine · DXVK · VKD3D-Proton · ntsync",
         Level = ModuleLevel.Intermediate,
-        Overview = "彻底搞懂 Linux 运行 Windows 软件的底层原理：系统调用翻译、虚拟 WINEPREFIX 架构与 DXVK 图形转译。",
+        Overview = "Windows 游戏能在 Deck 上运行，靠的是 Proton：Valve 基于 Wine 的兼容层，加上把 DirectX 翻译成 Vulkan 的 DXVK / VKD3D-Proton。理解它的结构，排查问题时就知道该看哪里。",
 
         Why =
         [
-            "1. Wine 不是硬件模拟器（零 CPU 模拟损耗）：",
-            "• 模拟器（如 3DS 模拟器）需要通过纯软件在内存里重建一套虚拟 CPU 芯片和寄存器，CPU 性能损失极大。而 Wine (Wine Is Not an Emulator) 是一套标准的“系统调用转译库”。当 Windows 软件调用 CreateFileW / VirtualAlloc 时，Wine 直接将其等价翻译为 Linux 内核原生的 open / mmap，CPU 指令是在物理 CPU 上以 100% 原生速度执行的！",
-            "2. WINEPREFIX 架构：虚拟 C 盘与注册表容器：",
-            "• 在 Linux 下，每个 Windows 应用都拥有独立的 WINEPREFIX（位于 Steam 的 compatdata/<AppID>/pfx 目录下）。它包含：",
-            "  - drive_c/：伪装的 Windows 根目录（内有 Windows、Program Files、users/steamuser/AppData 等）。",
-            "  - system.reg & user.reg：用可读纯文本存储的 Windows 注册表数据库。",
-            "  - dosdevices/：Linux 软链接，c: 指向 drive_c，z: 映射到整个 Linux 宿主机文件系统。",
-            "3. Valve Proton 的四大革命性技术支柱：",
-            "• DXVK：利用 Vulkan 原生计算着色器，把 DirectX 9/10/11 图形指令实时编译为 Vulkan，帧率经常反超 Windows 原生。",
-            "• VKD3D-Proton：负责将现代 DirectX 12 API 高效转译到 Vulkan。",
-            "• Fsync (Fast Synchronization)：Valve 推动 Linux 内核引入的多线程同步机制，将 Windows 互斥锁映射为 Linux 原生极速同步，彻底根除掉帧卡顿。",
+            "1. Wine 不是模拟器：",
+            "• 游戏的 x86 指令直接在 CPU 上原生执行，没有指令模拟开销。",
+            "• Wine 重新实现了 Windows 的 DLL 与系统接口：游戏调用 `CreateFileW` 时，Wine 把它转换成 Linux 的 `open`；窗口、输入、音频同理。",
+            "2. 前缀 (WINEPREFIX)：每个游戏一套独立的「Windows 环境」，位于 `steamapps/compatdata/<AppID>/pfx/`：",
+            "- `drive_c/`：虚拟 C 盘，存档常在 `drive_c/users/steamuser/` 下的 `AppData` 或 `Documents` 里。",
+            "- `system.reg`、`user.reg`：纯文本格式的注册表。",
+            "- `dosdevices/`：盘符映射，`c:` 指向 `drive_c`，`z:` 指向 Linux 根目录 `/`。",
+            "3. Proton 在 Wine 之上加入的关键组件：",
+            "- **DXVK**：把 Direct3D 9/10/11 翻译为 Vulkan。",
+            "- **VKD3D-Proton**：把 Direct3D 12 翻译为 Vulkan。",
+            "- **同步原语加速**：Windows 游戏大量使用互斥锁、事件等同步对象。早期用 esync/fsync 模拟，新内核提供 `ntsync` 驱动（`/dev/ntsync`），语义更贴近 Windows，新版 Proton 可以直接使用。",
+            "4. 版本并存：Steam 可同时安装多个 Proton（Experimental、10.0、9.0…），每个游戏可在「属性 → 兼容性」里单独指定。",
         ],
 
         Consequences =
         [
-            "• 掌握存档真身：无论游戏怎么隐藏，其存档必然落在 compatdata/<AppID>/pfx/drive_c/users/steamuser/AppData 或 Documents 下，你可以直接手动备份与修改。",
-            "• 摆脱黑盒恐慌：遇到游戏黑屏、视频播放失败时，不再盲目重装，而是通过 PROTON_LOG 输出精准定位是缺了哪个系统 DLL 或注册表键值。",
+            "• 查看前缀目录、Proton 版本都是只读操作。",
+            "• 为某个游戏更换 Proton 版本可能让已有前缀不兼容，出现问题时可退回原版本。",
+            "• 性能通常接近 Windows，个别游戏更快或更慢；反作弊、部分 DRM 仍可能导致无法运行，这不是配置能解决的问题，可在 ProtonDB 查看其他玩家的报告。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看系统安装的 Valve 官方 Proton 运行时",
-                "ls -la ~/.local/share/Steam/steamapps/common/Proton*",
-                "列出当前机器可用的各个版本 Proton（Experimental, 10, 9 等）。"),
+                "查看已安装的 Proton 版本",
+                "ls ~/.local/share/Steam/steamapps/common/ | grep -i proton",
+                "Proton 也是 Steam「库 → 工具」里的条目，可以像游戏一样安装和卸载。"),
             Step.Read(
-                "探测特定游戏或应用的虚拟 C 盘路径",
-                "find ~/.local/share/Steam/steamapps/compatdata/ -maxdepth 2 -name \"pfx\"",
-                "找到各个游戏的专属虚拟 Windows 环境目录。"),
+                "列出已安装游戏的 AppID 与名称",
+                "grep -H '\"name\"' ~/.local/share/Steam/steamapps/appmanifest_*.acf | sed -E 's#.*appmanifest_([0-9]+)\\.acf:[[:space:]]*\"name\"[[:space:]]*\"(.*)\"#\\1  \\2#'",
+                "每行输出「AppID  名称」。只包含内置存储上的库；SD 卡上的游戏把路径换成 `/run/media/deck/<卡名>/steamapps/`。"),
+            Step.Read(
+                "查看某个游戏前缀的结构",
+                "ls ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/",
+                "能看到 `drive_c`、`dosdevices`、`system.reg`、`user.reg`。"),
+            Step.Read(
+                "确认内核提供 ntsync",
+                "ls -l /dev/ntsync",
+                "存在即表示内核支持。"),
             Step.Change(
-                "启用 DXVK 原生 HUD 监控（帧率/显存/着色器管线实时显示）",
-                "DXVK_HUD=fps,frametimes,devinfo %command%",
-                "在 Steam 游戏属性的“启动选项”中填入此参数，即可在屏幕左上角唤出底层渲染监视器。"),
+                "启用 DXVK 自带的性能浮层",
+                "DXVK_HUD=fps,frametimes,gpuload %command%",
+                "填到游戏的「属性 → 通用 → 启动选项」。只对 D3D9~11 游戏生效。").On(Hosts.SteamLaunchOptions),
             Step.Change(
-                "捕获游戏运行期底层崩溃日志 (排错神技)",
+                "记录 Proton 运行日志",
                 "PROTON_LOG=1 %command%",
-                "启动后日志会自动写入 ~/steam-<appid>.log，所有缺失的 DLL、崩溃断点一览无余。"),
+                "游戏退出后在家目录生成 `steam-<AppID>.log`。排查完记得删掉这个选项，日志可能很大。").On(Hosts.SteamLaunchOptions),
         ],
 
         Verify =
         [
-            "在 Steam 游戏启动后，检查 ~/ 目录下是否生成了 steam-<appid>.log，查看第一行即可看到完整的 Wine 版本、Vulkan 物理显卡设备信息及加载的动态转译链。",
+            "1. 开启 `PROTON_LOG=1` 运行一次游戏后，`ls ~/steam-*.log` 能看到日志；用 `grep -i -E 'err:|fixme:.*dll' ~/steam-<AppID>.log | head` 查找缺失 DLL 等线索。",
+            "2. 开启 DXVK_HUD 后，游戏画面左上角出现帧率、帧时间曲线和 GPU 负载。",
         ],
     };
 }

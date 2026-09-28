@@ -12,6 +12,8 @@ internal static class Program
     {
         if (args is ["--check"])
             return ContentValidator.RunCli(ContentRegistry.Scopes);
+        if (args is ["--commands", ..])
+            return ContentValidator.PrintCommands(ContentRegistry.Scopes, args.Length > 1 ? args[1] : null);
 
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }

@@ -8,56 +8,59 @@ public static class DeckInputSubsystemData
     {
         Id = "deck-input",
         Title = "手柄输入链与 Steam Input",
-        Keywords = "hid-steam · evdev · uinput",
+        Keywords = "hidraw · hid-steam · uinput · 蜥蜴模式",
         Level = ModuleLevel.Advanced,
-        Overview = "深入解密 Steam Deck 触控板、背键与六轴陀螺仪硬件输入链，剖析 Linux IIO 工业传感器接口、hid-steam 内核驱动与 /dev/uinput 虚拟游戏手柄映射机制。",
+        Overview = "Deck 的按键、摇杆、触控板、背键和陀螺仪都来自同一个内置 USB 控制器。Steam 读取它的原始数据，按你的 Steam Input 配置转换后，再虚拟出一个标准手柄给游戏。",
 
         Why =
         [
-            "1. 超越传统手柄协议的硬件拓扑：",
-            "• 传统手柄（如 Xbox 手柄）只有固定的按键与双摇杆协议。而 Steam Deck 拥有双线性触觉触控板、4 颗背键 (L4/L5/R4/R5)、摇杆电容触摸传感器，以及一颗高精度的六轴 IMU (陀螺仪 + 加速度计)。",
-            "• 这些非标硬件如果直接暴露给普通 Windows 游戏，游戏根本无法识别和映射！",
-            "2. IIO (Industrial I/O) 工业传感器子系统：",
-            "• 掌机的博世/InvenSense 六轴传感器接入了 Linux 内核的 **IIO (Industrial I/O)** 子系统（暴露在 `/sys/bus/iio/devices/`）。",
-            "• 内核以极低延时持续采集角速度 (`in_anglvel_x_raw`) 与重力加速度，驱动陀螺仪体感瞄准。",
-            "3. 核心分发中枢：`/dev/uinput` 与虚拟手柄合成：",
-            "• **第一层**：掌机物理手柄通过内核模块 `hid_steam.ko` 作为原始 HID 设备挂载到 `/dev/hidraw*`。",
-            "• **第二层**：Steam 客户端常驻进程独占读取原始按键与陀螺仪数据流，并根据你在 Steam 输入设置中配置的复杂逻辑（如触控板径向轮盘菜单、按压切换操作集、陀螺仪转鼠标）。",
-            "• **第三层**：Steam 通过调用内核的 `/dev/uinput` (User Input) 接口，**动态凭空虚拟出一个标准的 Xbox 360 / DualShock 4 控制器设备**，游戏读到的就是这个虚拟手柄！",
-            "4. 固件级保底防御：蜥蜴模式 (Lizard Mode)：",
-            "• 当系统刚开机、或 Steam 客户端闪退/未启动时，手柄芯片会自动回退至硬件固化烧录的 **“蜥蜴模式”**：右触控板强制模拟为标准 USB 鼠标移动，右扳机 R2 强制模拟为鼠标左键，确保你永远不会陷入没有鼠标无法操作桌面的死局！",
+            "1. 内置控制器是一个 USB HID 设备：",
+            "• 在系统里它叫 `Valve Software Steam Controller`（厂商 ID `28de`）。按键、摇杆、触控板、4 个背键、摇杆电容触摸，以及 **六轴陀螺仪（IMU）** 的数据都通过它的 HID 报文上报。",
+            "• 陀螺仪集成在控制器上，并不走内核的 IIO 传感器子系统。`/sys/bus/iio/devices/` 下能看到的 `ltrf216a` 是屏幕上方的环境光传感器，用于自动亮度。",
+            "2. 三层输入链：",
+            "- 第一层：内核为控制器创建 `/dev/hidraw*` 原始节点，并通过 udev 的 `uaccess` 规则授权给当前登录用户。",
+            "- 第二层：Steam 客户端直接读取 hidraw 原始数据，套用 Steam Input 配置（触控板当鼠标、背键宏、陀螺仪瞄准等）。",
+            "- 第三层：Steam 通过 `/dev/uinput` 创建虚拟设备（通常是 `Microsoft X-Box 360 pad`），游戏看到的是这个标准手柄。",
+            "3. 内核驱动 `hid-steam`：Steam 没有运行时，它把控制器注册成普通手柄；Steam 打开原始接口后它会自动让位，避免游戏收到两份输入。",
+            "4. 蜥蜴模式 (Lizard Mode)：没有程序接管控制器时（开机阶段、Steam 崩溃），控制器固件自己模拟键盘和鼠标：右触控板移动鼠标、R2 左键、L2 右键，保证桌面始终可操作。",
         ],
 
         Consequences =
         [
-            "• 读取 IIO 传感器与 input 事件只读无害：使用 cat 读取陀螺仪原始数值或监控事件流不会产生任何副作用。",
-            "• 严禁篡改 `/dev/uinput` 访问权限：`/dev/uinput` 是 Steam 动态创建虚拟手柄的核心通道，若权限被误改将导致进入游戏后手柄完全无法操控。",
+            "• 查看输入设备、hidraw 节点和 udev 属性都是只读操作。",
+            "• 不要手动修改 `/dev/uinput` 或 `/dev/hidraw*` 的权限，它们由 udev 在每次开机时设置；改错会导致 Steam 无法创建虚拟手柄，游戏里手柄失灵。",
+            "• 用 `evtest` 之类的工具独占（grab）某个输入设备时，其他程序会暂时收不到该设备的输入。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前系统所有已识别的物理与虚拟输入设备硬件名称与通道映射",
-                "cat /proc/bus/input/devices | grep -E \"(Name=|Handlers=|Phys=)\"",
-                "定位 Valve Neptune Controller 物理节点与 Steam 虚拟手柄生成的 event* 句柄。"),
+                "列出所有输入设备及其事件节点",
+                "grep -E '^(N|H):' /proc/bus/input/devices",
+                "`N:` 是设备名，`H:` 是对应的 `eventN`。Steam 运行时能看到 `Microsoft X-Box 360 pad` 虚拟手柄。"),
             Step.Read(
-                "探测内核 IIO 工业传感器总线下的掌机六轴陀螺仪设备节点",
-                "ls -la /sys/bus/iio/devices/ && cat /sys/bus/iio/devices/iio:device*/name 2>/dev/null",
-                "确认掌机主板板载 IMU (如 bmi160 或 icm42607) 传感器设备驱动已被内核正确接管。"),
+                "找到内置控制器对应的 hidraw 节点",
+                "for h in /sys/class/hidraw/hidraw*; do grep -q '28DE' $h/device/uevent && echo \"/dev/$(basename $h): $(grep HID_NAME $h/device/uevent)\"; done",
+                "控制器有多个 HID 接口，所以可能列出不止一个节点。"),
             Step.Read(
-                "实时读取掌机六轴陀螺仪当前空间角速度与重力加速度瞬时原始采样",
-                "for f in /sys/bus/iio/devices/iio:device*/in_*_raw; do [ -f \"$f\" ] && awk -v n=\"$(basename $f)\" '{printf \"%-24s: %d\\n\", n, $1}' $f; done | head -n 8",
-                "倾斜掌机或转动手腕，实时观察角速度和加速度数值随着物理移动而剧烈跳变。"),
+                "查看 uinput 与 hidraw 的访问权限",
+                "getfacl -p /dev/uinput 2>/dev/null | grep user:",
+                "应能看到 `user:deck:rw-`：这是 udev 的 `uaccess` 规则按当前登录用户动态授予的 ACL。"),
             Step.Read(
-                "检查内核用户空间输入注入通道 (/dev/uinput) 权限与状态",
-                "ls -l /dev/uinput",
-                "验证权限为 `crw-rw-rw-` 或通过 udev 规则赋予桌面用户读写权限，确保虚拟手柄注入通道畅通。"),
+                "查看环境光传感器读数",
+                "cat /sys/bus/iio/devices/iio:device*/name; cat /sys/bus/iio/devices/iio:device0/in_illuminance_input",
+                "用手遮住屏幕上方再执行一次，数值会明显下降。"),
+            Step.Read(
+                "实时观察输入设备的热插拔事件",
+                "udevadm monitor --udev --subsystem-match=input",
+                "插拔外接手柄或蓝牙连接时会滚动输出事件，`Ctrl+C` 退出。"),
         ],
 
         Verify =
         [
-            "1. 虚拟手柄存活验证：当在 Steam 中启动任意手柄游戏时，执行 `ls -l /dev/input/by-id/`，你会看到诸如 `usb-Valve_Software_Steam_Controller-event-joystick` 或虚拟 Xbox 游戏杆节点已自动动态挂载，证实 uinput 链路工作正常。",
-            "2. 陀螺仪基线验证：掌机静止平放于桌面时，读取陀螺仪角速度 (`in_anglvel_*_raw`) 读数应稳定在 0 附近微幅波动，重力轴输出接近 1G 加速度当量。",
+            "1. Steam 运行时，第 1 步输出中有 `Microsoft X-Box 360 pad`，说明 Steam 已通过 uinput 创建虚拟手柄。",
+            "2. 在桌面模式退出 Steam 后再执行第 1 步，虚拟手柄消失；此时右触控板仍能移动鼠标，即蜥蜴模式生效。",
+            "3. 陀螺仪是否工作：Steam → 设置 → 控制器 → 校准，倾斜机身时陀螺仪指示随之移动。",
         ],
     };
 }

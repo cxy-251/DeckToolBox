@@ -8,52 +8,56 @@ public static class LaunchOptionsData
     {
         Id = "launch-options",
         Title = "Steam 启动选项",
-        Keywords = "%command% · 环境变量",
+        Keywords = "%command% · 环境变量 · 包装器",
         Level = ModuleLevel.Intermediate,
-        Overview = "玩转 Steam 属性面板的“启动选项”机制，掌握 %command% 宏语法与核心调优环境变量清单。",
+        Overview = "游戏「属性 → 通用 → 启动选项」是调整游戏运行方式的入口。掌握 %command% 的三种写法，就能看懂网上各种启动选项的含义，而不是照抄。",
 
         Why =
         [
-            "在 Steam 游戏的【属性】 -> 【通用】面板中，最下方有一个【启动选项 (Launch Options)】输入框。这是 Linux 玩家最强大的调谐入口：",
-            "1. 前置注入规则 (环境变量)：VAR=value %command%",
-            "• %command% 代表 Steam 原本要执行的全部命令（包含 Proton 运行时、容器命令与主程序 exe）。写在它前面的 VAR=value 会作为进程环境变量直接注入给游戏！",
-            "2. 包装器调用规则 (Wrapper)：tool %command%",
-            "• 如 mangohud %command%，代表先启动监控性能工具，再由该工具拉起游戏自身。",
-            "3. 后置参数规则 (应用自身参数)：%command% --flag",
-            "• 写在 %command% 后面的参数，会被作为命令行传参直接送给游戏本体的 Main(string[] args)。",
+            "1. `%command%` 是什么：Steam 原本要执行的完整命令（包括 Steam Runtime 容器、Proton 和游戏本体）。启动选项就是围绕它拼出最终命令行。",
+            "2. 三种写法：",
+            "- `变量=值 %command%`：在前面设置**环境变量**，传给整条命令链，例如 `PROTON_LOG=1 %command%`。",
+            "- `程序 %command%`：用一个**包装器**启动游戏，例如 `mangohud %command%`，由 MangoHud 先启动再拉起游戏。",
+            "- `%command% 参数`：写在后面的是**传给游戏本体的参数**，例如 `%command% -dx11`；游戏是否认识该参数取决于游戏本身。",
+            "3. 三种写法可以组合：`变量=值 包装器 %command% 参数`。",
+            "4. 如果启动选项里没有 `%command%`，Steam 会把整段内容当作追加在末尾的游戏参数。",
         ],
 
         Consequences =
         [
-            "• 救砖神器：很多黑屏无法启动的游戏，只需加一个环境变量（如 LD_PRELOAD=\"\" 或 PROTON_NO_ESYNC=1）就能立即起死回生。",
-            "• 隔离保证：使用独立 STEAM_COMPAT_DATA_PATH 可以防止游戏更新时把自己的 Mod 补丁或特殊注册表覆盖丢掉。",
+            "• 启动选项只影响这一个游戏，清空输入框即可恢复默认。",
+            "• 很多启动选项只对特定引擎或特定游戏有效，照抄前先确认它适用于你的游戏（ProtonDB 的玩家报告是好的参考）。",
+            "• 调试用的选项（如 `PROTON_LOG=1`）排查完要删掉，否则每次启动都会写大量日志。",
         ],
 
         Steps =
         [
             Step.Change(
-                "规避 Steam Overlay 干扰（解决独立软件黑屏卡死）",
+                "用 MangoHud 显示帧率、温度与功耗",
+                "mangohud %command%",
+                "SteamOS 自带 MangoHud。在 Deck 游戏模式中，快捷菜单的「性能浮层」就是 MangoHud，因此这条主要用于桌面模式。").On(Hosts.SteamLaunchOptions),
+            Step.Change(
+                "禁用 Steam 覆盖层的注入",
                 "LD_PRELOAD=\"\" %command%",
-                "添加非 Steam 浏览器、网盘客户端或工具软件时，防止被覆盖层钩子注入导致崩溃。"),
+                "个别原生 Linux 程序与 Steam 覆盖层冲突（黑屏、崩溃）时使用；代价是游戏内无法呼出 Steam 覆盖层。").On(Hosts.SteamLaunchOptions),
             Step.Change(
-                "重定向至专属独立 WINEPREFIX 虚拟 C 盘容器",
-                "STEAM_COMPAT_DATA_PATH=\"/home/deck/.local/share/my_custom_pfx\" %command%",
-                "多版本 Mod 测试、避免 Steam 自动重装时冲掉默认存档的最佳解法。"),
+                "让 DXVK 限制帧率",
+                "DXVK_FRAME_RATE=40 %command%",
+                "只对 D3D9~11 游戏生效。在 Deck 上通常用快捷菜单限帧即可，这条用于其他设备或需要单独配置时。").On(Hosts.SteamLaunchOptions),
             Step.Change(
-                "Electron / Chromium 类软件沙箱跳过参数",
-                "%command% --no-sandbox --disable-gpu-sandbox",
-                "微云、战网或基于 Web 技术的应用在 Wine/Proton 容器下黑屏时的特效解药。"),
-            Step.Change(
-                "Unity 游戏关闭音频子系统（极速启动与节电）",
-                "%command% -nosound",
-                "让 Unity 底层 FMOD 完全不初始化，避免持续流式读取磁盘音频包。"),
+                "强制游戏使用 DirectX 11 渲染路径",
+                "%command% -dx11",
+                "常见于提供 D3D11/D3D12 双路径的游戏（如部分 Unreal 引擎游戏），在 D3D12 下不稳定时尝试；游戏不认识该参数时无效果。").On(Hosts.SteamLaunchOptions),
+            Step.Read(
+                "查看正在运行的游戏实际收到的环境变量",
+                "tr '\\0' '\\n' < /proc/$(pgrep -n -f '<游戏 exe 名>')/environ | grep -E 'PROTON|DXVK|LD_PRELOAD'",
+                "游戏运行时在桌面模式终端执行，用来验证启动选项是否真的生效。"),
         ],
 
         Verify =
         [
-            "当程序启动后，在终端中查出该进程的 PID，然后执行：",
-            "cat /proc/<PID>/environ | tr '\\0' '\\n' | grep '你的变量名'",
-            "即可在 Linux 内核层确认环境变量已经 100% 成功注入到目标进程！",
+            "1. 启动带 `mangohud` 的游戏后画面左上角出现浮层。",
+            "2. 最后一步能看到你设置的变量，例如 `DXVK_FRAME_RATE=40`。",
         ],
     };
 }
