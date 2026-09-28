@@ -28,6 +28,7 @@ public static class NetworkBasicsData
             "• 查询类命令只读；`ping` 按 `Ctrl+C` 停止。",
             "• `nmcli` 创建或修改的连接会永久保存（在 `/etc/NetworkManager/system-connections/`），和在系统设置里操作效果相同。",
             "• 断开并重连 Wi-Fi 会中断当前所有网络连接（下载、SSH 会话等）。",
+            "• 如果 shell 中设置了 `HTTP_PROXY` / `HTTPS_PROXY` 环境变量，`curl` 等命令行工具会经过代理访问网络，测试结果反映的是代理的状况。用 `env | grep -i proxy` 查看，临时绕过可加 `--noproxy '*'`。",
         ],
 
         Steps =
@@ -44,6 +45,10 @@ public static class NetworkBasicsData
                 "扫描附近的 Wi-Fi 及信号强度",
                 "nmcli dev wifi list",
                 "当前连接的网络前面有 `*`。"),
+            Step.Read(
+                "查看当前无线连接的信号强度与速率",
+                "iw dev wlan0 link",
+                "`signal` 以 dBm 表示：-50 以上很好，-60 左右正常，-70 以下容易卡顿断线。`freq` 2412~2484 为 2.4 GHz，5000 以上为 5 GHz。"),
             Step.Change(
                 "连接一个 Wi-Fi",
                 "nmcli --ask dev wifi connect '<网络名称>'",

@@ -28,30 +28,49 @@ public static class ContentRegistry
     public static IReadOnlyList<KnowledgeScope> Scopes { get; } =
     [
         new("basics", "🧭", "入门必修", "Linux 入门必修",
-            "任何 Linux 都通用的日常技能：终端、文件、权限、存储、网络、进程与排障。新手从这里开始。",
+            "任何 Linux 都通用的日常技能与系统自带命令：终端、文件、权限、存储、网络、设备、排障与自动化。新手从这里开始。",
         [
-            new("终端基础", "⌨️", "命令行的基本用法、文件操作与 Shell 配置",
+            new("终端基础", "⌨️", "命令行用法、文件操作、Shell 配置、编辑器与 tmux",
             [
                 TerminalBasicsData.Create(),
                 FilesAndTextData.Create(),
                 ShellConfigData.Create(),
+                EditorsData.Create(),
+                TmuxData.Create(),
             ]),
             new("用户与权限", "🔑", "sudo、密码与用户组",
             [
                 SudoAndUsersData.Create(),
             ]),
-            new("存储与备份", "💽", "外接存储、压缩包与 rsync 备份",
+            new("存储与备份", "💽", "外接存储、压缩包与 rsync 备份、硬盘健康与固件",
             [
                 RemovableDrivesData.Create(),
                 ArchivesBackupData.Create(),
+                DiskHealthFirmwareData.Create(),
             ]),
-            new("网络与远程", "📡", "Wi-Fi 排查与 SSH",
+            new("网络与远程", "📡", "Wi-Fi 排查、SSH 与防火墙",
             [
                 NetworkBasicsData.Create(),
                 SshRemoteData.Create(),
+                FirewallData.Create(),
             ]),
-            new("程序、排障与自动化", "🛠️", "管理进程、查日志找原因、定时执行任务",
+            new("设备与桌面控制", "🔌", "蓝牙、音频、电源休眠与 KDE 桌面的命令行控制",
             [
+                BluetoothData.Create(),
+                AudioControlData.Create(),
+                PowerSleepData.Create(),
+                KdeCliData.Create(),
+            ]),
+            new("命令行工具箱", "🧰", "文本处理、JSON、音视频、校验与加密",
+            [
+                TextProcessingData.Create(),
+                JqJsonData.Create(),
+                FfmpegData.Create(),
+                ChecksumCryptoData.Create(),
+            ]),
+            new("系统信息、排障与自动化", "🛠️", "硬件信息、进程管理、查日志找原因、定时执行任务",
+            [
+                SystemInfoData.Create(),
                 ProcessBasicsData.Create(),
                 TroubleshootingData.Create(),
                 ScheduledTasksData.Create(),
@@ -65,6 +84,11 @@ public static class ContentRegistry
             [
                 DesktopModeBasicsData.Create(),
                 SteamOsImmutabilityData.Create(),
+            ]),
+            new("SteamOS 专有命令", "🎛️", "steamosctl 与 steamos-* 系列命令：在终端里完成快捷菜单和设置里的操作",
+            [
+                SteamosctlData.Create(),
+                SteamosCommandsData.Create(),
             ]),
             new("安装软件的正确方式", "📦", "在只读系统上安装软件：便携应用与 Distrobox 容器；不使用 Flatpak",
             [
