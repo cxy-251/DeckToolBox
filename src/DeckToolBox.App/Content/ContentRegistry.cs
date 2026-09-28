@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DeckToolBox.App.Framework.Models;
+using DeckToolBox.App.Content.Modules.Essentials;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -26,11 +27,43 @@ public static class ContentRegistry
 {
     public static IReadOnlyList<KnowledgeScope> Scopes { get; } =
     [
+        new("basics", "🧭", "入门必修", "Linux 入门必修",
+            "任何 Linux 都通用的日常技能：终端、文件、权限、存储、网络、进程与排障。新手从这里开始。",
+        [
+            new("终端基础", "⌨️", "命令行的基本用法、文件操作与 Shell 配置",
+            [
+                TerminalBasicsData.Create(),
+                FilesAndTextData.Create(),
+                ShellConfigData.Create(),
+            ]),
+            new("用户与权限", "🔑", "sudo、密码与用户组",
+            [
+                SudoAndUsersData.Create(),
+            ]),
+            new("存储与备份", "💽", "外接存储、压缩包与 rsync 备份",
+            [
+                RemovableDrivesData.Create(),
+                ArchivesBackupData.Create(),
+            ]),
+            new("网络与远程", "📡", "Wi-Fi 排查与 SSH",
+            [
+                NetworkBasicsData.Create(),
+                SshRemoteData.Create(),
+            ]),
+            new("程序、排障与自动化", "🛠️", "管理进程、查日志找原因、定时执行任务",
+            [
+                ProcessBasicsData.Create(),
+                TroubleshootingData.Create(),
+                ScheduledTasksData.Create(),
+            ]),
+        ]),
+
         new("deck", "🎮", "Steam Deck 本机", "Steam Deck 本机 (SteamOS 3.x)",
             "只适用于 SteamOS / Steam Deck 的机制与操作：只读系统、装软件的正确方式、硬件与游戏兼容层。",
         [
-            new("系统与更新", "🔒", "SteamOS 只读根分区、A/B 更新与恢复手段",
+            new("上手与系统更新", "🔒", "桌面模式基础、SteamOS 只读根分区、A/B 更新与恢复手段",
             [
+                DesktopModeBasicsData.Create(),
                 SteamOsImmutabilityData.Create(),
             ]),
             new("安装软件的正确方式", "📦", "在只读系统上安装软件：Flatpak、便携应用与 Distrobox 容器",
