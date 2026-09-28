@@ -8,6 +8,7 @@ using DeckToolBox.App.Content.Modules.Manual.Archive;
 using DeckToolBox.App.Content.Modules.Manual.Process;
 using DeckToolBox.App.Content.Modules.Manual.Systemd;
 using DeckToolBox.App.Content.Modules.Manual.Disk;
+using DeckToolBox.App.Content.Modules.Manual.Network;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -159,6 +160,15 @@ public static class ContentRegistry
                 F3Data.Create(),
                 BtrfsCmdData.Create(),
                 GocryptfsData.Create(),
+            ]),
+            new("网络", "🌐", "网络连接进阶、下载与请求、局域网共享、手机互联、SSH 转发、VPN 与二维码",
+            [
+                NmcliData.Create(),
+                CurlWgetData.Create(),
+                LanShareData.Create(),
+                KdeConnectData.Create(),
+                SshAdvancedData.Create(),
+                VpnQrData.Create(),
             ]),
         ]),
 
