@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DeckToolBox.App.Framework.Models;
 using DeckToolBox.App.Content.Modules.Essentials;
 using DeckToolBox.App.Content.Modules.Manual.Files;
+using DeckToolBox.App.Content.Modules.Manual.Text;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -96,6 +97,17 @@ public static class ContentRegistry
                 ChmodChownData.Create(),
                 DiffCmpData.Create(),
                 PathRenameData.Create(),
+            ]),
+            new("查看与处理文本", "📄", "查看、搜索、替换、统计文本，处理编码与二进制",
+            [
+                ViewTextData.Create(),
+                GrepData.Create(),
+                RgData.Create(),
+                SedData.Create(),
+                AwkData.Create(),
+                TextToolsData.Create(),
+                HexStringsData.Create(),
+                EncodingData.Create(),
             ]),
         ]),
 
