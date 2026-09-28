@@ -44,13 +44,13 @@ public static class ProcessLifecycleSignalsData
                 "ps axo stat,pid,ppid,comm | grep -E \"^(D|Z)\" || echo \"恭喜：当前系统无僵尸与死锁进程\"",
                 "快速检测系统中是否有未被父进程回收的孤儿残留。"),
             Step.Read(
-                "查看当前系统支持的全部 64 种内核信号列表",
+                "列出所有信号的编号与名称",
                 "kill -l",
                 "打印出 SIGINT, SIGQUIT, SIGKILL, SIGSEGV, SIGTERM 等完整信号枚举。"),
             Step.Change(
-                "动态降低某个高能耗后台进程的 CPU 抢占权 (Nice 调谐)",
-                "renice -n 10 -p $$",
-                "将当前 Shell 调整为更谦让的优先级，把宝贵的 CPU 算力让给前台大作。"),
+                "以较低优先级启动一个子 shell",
+                "nice -n 10 bash",
+                "在这个子 shell 里运行的编译、压缩等任务都会让出 CPU 给前台程序；输入 `exit` 返回。普通用户只能调低优先级（增大 nice 值），调高需要 root。"),
         ],
 
         Verify =

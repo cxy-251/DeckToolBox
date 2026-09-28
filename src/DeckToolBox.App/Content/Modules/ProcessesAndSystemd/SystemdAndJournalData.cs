@@ -10,7 +10,7 @@ public static class SystemdAndJournalData
         Title = "systemd 服务与日志",
         Keywords = "systemctl · journalctl · --user",
         Level = ModuleLevel.Intermediate,
-        Overview = "掌握 Linux 统治级初始化系统 (systemd)，免 root 编写持久化用户级服务 (systemd --user)，使用 journald 毫秒排查系统故障。",
+        Overview = "systemd 负责启动和管理系统里的所有服务，journald 收集所有日志。学会查看服务状态、读日志，以及不用 root 编写自己的用户级服务。",
 
         Why =
         [

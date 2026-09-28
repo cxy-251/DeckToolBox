@@ -57,12 +57,12 @@ public static class PosixPermissionsAclData
                 "使用 find 的 -perm /6000 掩码，快速检索所有包含 SUID (4000) 或 SGID (2000) 特殊位的敏感二进制。"),
             Step.Read(
                 "使用 getfacl 深入查看文件的扩展 ACL 访问控制列表",
-                "getfacl ~/Applications 2>/dev/null || getfacl ~",
-                "当 ls -l 权限位末尾出现 '+' 号时，代表该文件附加了 POSIX ACL 规则，通过 getfacl 可完整读取用户及组的精细清单。"),
-            Step.Read(
-                "实战掌握细粒度 ACL 授权语法（语法演示与清理）",
-                "echo 'setfacl -m u:nobody:rx <目标> 可为指定用户单独放权；setfacl -b <目标> 可彻底清空 ACL 规则'",
-                "学习无需新建 Linux 用户组即可精准将读写权限安全授予特定系统账号的标准 POSIX ACL 手法。"),
+                "getfacl -p /dev/uinput",
+                "`/dev/uinput` 上的 `user:deck:rw-` 就是 udev 为当前登录用户动态添加的 ACL（见「手柄输入链与 Steam Input」）。"),
+            Step.Change(
+                "实验：为指定用户单独授权，再清除 ACL",
+                "mkdir -p /tmp/acl-demo && setfacl -m u:nobody:rx /tmp/acl-demo && ls -ld /tmp/acl-demo && getfacl -p /tmp/acl-demo && setfacl -b /tmp/acl-demo && rmdir /tmp/acl-demo",
+                "`-m u:nobody:rx` 只给 nobody 用户加读和进入权限；`ls -ld` 的权限末尾出现 `+` 表示带有 ACL；`-b` 删除全部扩展条目。"),
         ],
 
         Verify =

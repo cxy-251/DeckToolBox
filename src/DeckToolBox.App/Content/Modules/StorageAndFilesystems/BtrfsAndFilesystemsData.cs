@@ -18,9 +18,9 @@ public static class BtrfsAndFilesystemsData
             "• Inode 与 Data Block 分离：文件内容存放在 Data Block 块中，文件的元数据（权限、大小、修改时间、块指针）独立存放在 Inode 结构中。文件名则存放在父目录的数据项 (dentry) 中！",
             "• 罕见但致命的“假性写满”故障（Inode 耗尽）：如果系统生成了数百万个几字节的琐碎临时小文件，会把有限的 Inode 编号全部分配光。此时即便磁盘还有 100GB 空闲物理空间，也会直接报错 No space left on device！",
             "2. Btrfs (写时复制与掌机闪存的革命性设计)：",
-            "• 写时复制 (Copy-on-Write, CoW)：修改文件时从不就地覆盖原有数据块，而是将新数据写入全新空闲块，最后原子化更新 B-tree 根节点指针。即使突然拔电池关机，数据也绝不损坏！",
-            "• 秒级无损快照 (Snapshots)：创建快照只需拷贝元数据指针，用时不到 0.001 秒，且快照刚建立时占用 0 字节额外磁盘！",
-            "• ZSTD 透明压缩：数据进入内核写盘前由 CPU 实时以 Zstandard 算法压缩，对于 MicroSD 卡和 NVMe 固态硬盘，不仅节约 25%~35% 存储空间，更因物理写入字节变少而大幅提升读取带宽！",
+            "• 写时复制 (Copy-on-Write, CoW)：修改数据时不覆盖原来的块，而是写到新位置，最后原子地更新元数据指针。突然断电时，文件系统要么是旧状态要么是新状态，不会出现结构损坏（尚未写入的数据仍会丢失）。",
+            "• 快照 (Snapshot)：创建快照只需复制元数据，几乎瞬间完成，初始不额外占用空间；之后随着原数据被修改，快照保留的旧数据块才开始占用空间。",
+            "• 透明压缩：可选用 zstd 等算法在写入时压缩，读取时自动解压。对文本、日志等可压缩数据能显著节省空间，对已压缩的视频、游戏资源包几乎无效。",
         ],
 
         Consequences =
@@ -47,7 +47,7 @@ public static class BtrfsAndFilesystemsData
 
         Verify =
         [
-            "执行 lsblk -f，你会看到 SteamOS 主系统根分区通常为 ext4/btrfs，而 EFI 分区为 vfat，从而精准掌握各挂载点的底层存储技术。",
+            "执行 `lsblk -f`：SteamOS 的根分区 (rootfs) 是 btrfs，home 分区是 ext4，EFI 分区是 vfat；SD 卡由 Steam 格式化时为 ext4。",
         ],
     };
 }

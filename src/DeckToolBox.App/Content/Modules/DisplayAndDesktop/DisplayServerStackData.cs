@@ -17,7 +17,7 @@ public static class DisplayServerStackData
             "1. X11 (传统视窗系统协议)：采用经典客户端-服务端模型。应用向 X Server 发送绘图请求，由窗口管理器和合成器多次搬运缓冲。缺陷是架构臃肿、任意窗口可偷窥全局按键事件、多显示器混频易撕裂。",
             "2. Wayland (现代合成器协议)：彻底重构显示管线。合成器 (如 KWin-Wayland) 直接掌管一切。应用将画面渲染到专属显存缓冲中直接递交给合成器，合成器通过 Linux 内核 DRM/KMS 直接交送显卡点亮屏幕，实现 0 画面撕裂与极致低输入延迟。",
             "3. XWayland (无缝向下兼容层)：许多 Windows 游戏通过 Wine 运行时默认仍走 X11 API。Wayland 合成器会在后台悄然运行一个内置的 XWayland X Server，老软件绘制到 XWayland，XWayland 再无缝映射为 Wayland 表面，完全不影响用户体验。",
-            "4. Gamescope (Valve 掌机定制嵌套微合成器)：作为 Wayland 嵌套合成器，它位于游戏进程与主机显示驱动之间。专为掌机量身打造：模拟任意虚假分辨率、提供硬件级 FSR (AMD 超采样)、全局锁帧与低延迟颜色校准。",
+            "4. Gamescope（Valve 的合成器）：在 Deck 游戏模式中它是唯一的合成器，直接驱动屏幕；在桌面模式或其他电脑上，它也可以作为嵌套合成器在一个窗口里运行游戏。提供分辨率缩放 (FSR/NIS)、帧率限制等功能（见「Gamescope 合成器与缩放」）。",
         ],
 
         Consequences =

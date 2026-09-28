@@ -42,7 +42,7 @@ public static class ProcVirtualFsData
             Step.Read(
                 "查看 CPU 核心微架构与当前运行主频",
                 "cat /proc/cpuinfo | grep -E \"(model name|cpu MHz|cache size)\" | head -n 12",
-                "直接从内核获取 AMD Zen2 / Zen4 架构 CPU 核心的实时工作频率与缓存。"),
+                "Steam Deck 的 APU 为 AMD Zen 2 架构，4 核 8 线程。"),
             Step.Read(
                 "查看物理内存各细分段（可用、脏页、活跃缓存）全景",
                 "cat /proc/meminfo | head -n 16",

@@ -14,7 +14,7 @@ public static class UnixDomainSocketsData
 
         Why =
         [
-            "1. 绕过网络协议栈的纳秒级零拷贝：",
+            "1. 绕过网络协议栈：",
             "• 很多初学者误用 127.0.0.1 环回 TCP 进行本机通信。TCP 需要经过封包、解包、TCP 状态机、滑动窗口与校验和计算，多次在内核态与用户态间复制内存，延迟极高。",
             "• UNIX 域套接字 (AF_UNIX / AF_LOCAL) 完全抛弃网络协议栈，数据在内核内存缓冲区中直接直通对端进程，延迟直接压低一个数量级，吞吐量比 TCP 环回快数倍！",
             "2. 挂载于文件系统的原生权限安全：",
@@ -22,7 +22,7 @@ public static class UnixDomainSocketsData
             "• 只要利用 Linux 标准的 chmod/chown 权限，就能天然拦截未经授权的未受信任程序偷窥总线，天然免疫网络端口扫描风险。",
             "3. 杀手级内核特性：SCM_RIGHTS 传递文件描述符：",
             "• 普通 IPC 只能传数据，而 UNIX 域套接字允许一个进程将其打开的文件描述符 (FD) 直接原样“赠送”给另一个进程！",
-            "• 这是现代 Wayland 零拷贝图形渲染的核心秘密：游戏在自己的进程中向显卡驱动申请显存缓冲区 (DMA-BUF)，随后将该显存的句柄通过 UNIX 域套接字原样递给 KWin/Gamescope 合成器。两边共享同一块物理显存，渲染过程 0 内存拷贝！",
+            "• Wayland 图形与 PipeWire 音视频正是这样工作的：客户端把显存缓冲区 (DMA-BUF) 或共享内存 (memfd) 的文件描述符通过套接字传给合成器，双方直接访问同一块内存。**真正的「零拷贝」来自传递描述符**，而不是套接字本身：通过套接字发送的普通数据仍会在内核中复制一次。",
         ],
 
         Consequences =
@@ -43,11 +43,11 @@ public static class UnixDomainSocketsData
                 "定位 Wayland 显示服务、PipeWire 音频服务与 D-Bus 的物理 socket 节点。"),
             Step.Read(
                 "排查指定服务（如 Wayland）当前正在通信的全部客户端进程",
-                "ss -x -p | grep wayland | head -n 20",
+                "ss -x -p | grep -m 20 wayland",
                 "查看哪些应用窗口正连接在 Wayland 合成器通道上。"),
             Step.Read(
                 "查看套接字的内核缓冲区深度与收发队列积压",
-                "ss -x -i | grep -B 1 -A 2 -E \"(wayland-0|system_bus_socket)\" | head -n 25",
+                "ss -x -i | grep -B 1 -A 2 -E 'wayland-0|system_bus_socket' | sed -n '1,25p'",
                 "检查内核 socket 队列是否有堵塞，诊断进程卡死现象。"),
         ],
 

@@ -46,7 +46,7 @@ public static class ArchPacmanAurData
             Step.Read(
                 "校验某个包的文件是否完整（可在 Deck 上运行）",
                 "pacman -Qk coreutils",
-                "输出 `0 缺少的文件` 表示完整。`-Qkk` 进一步校验文件属性。"),
+                "输出 `0 缺少的文件` 表示完整。在 SteamOS 上会看到 `/usr/share/info` 等目录缺失的警告：系统镜像为节省空间删除了文档（所以也没有 man 手册），属正常现象。"),
             Step.Change(
                 "在 Deck 上创建一个 Arch 练习容器并进入",
                 "distrobox create --name arch -i docker.io/library/archlinux:latest && distrobox enter arch",

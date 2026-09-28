@@ -33,7 +33,7 @@ public static class PerformanceTracingData
         [
             "• 静态度量与 perf 采样完全安全：读取 `/proc/loadavg` 或使用 `perf stat` / `perf record` 采样基于硬件定时中断，系统开销极低（通常 < 2% CPU），对系统毫无破坏性。",
             "• 严禁对高频业务无节制使用 strace：由于 `ptrace` 机制每次系统调用都要引发 2 次上下文切换并暂停进程，`strace` 会导致被测程序运行速度衰减 10~50 倍！仅应在定位瞬时闪退报错、排查缺失文件时针对性使用，切勿挂在正常前台高刷游戏中。",
-            "• eBPF 探针的内核安全性：现代 Linux 内核对注入的 eBPF 字节码进行严格的 Verifier 验证器静态证明，从数学上保证绝对不会引发死循环、越界寻址或内核崩溃。",
+            "• eBPF 的安全性：内核的验证器 (verifier) 在加载前检查 eBPF 程序，拒绝可能死循环或越界访问的代码，因此它比传统内核模块安全得多；但加载 eBPF 程序仍需要 root 或相应权能。",
         ],
 
         Steps =
@@ -54,9 +54,9 @@ public static class PerformanceTracingData
                 "测量 CPU 硬件微架构性能指标与 IPC 指令吞吐率 (perf stat)",
                 "perf stat ls -la /usr/lib 2>&1 | tail -n 20",
                 "读取 PMU 硬件性能计数器：查看 task-clock, context-switches, cpu-migrations, page-faults, cycles, instructions 以及 IPC 数值。"),
-            Step.Read(
+            Step.Root(
                 "检索内核静态追踪打点分类总览 (Tracepoints)",
-                "ls /sys/kernel/tracing/events/ 2>/dev/null || ls /sys/kernel/debug/tracing/events/ 2>/dev/null | head -n 25",
+                "sudo ls /sys/kernel/tracing/events/ | head -n 25",
                 "查看内核内建的静态追踪子系统（如 sched 进程调度、syscalls 系统调用、block 磁盘块设备 IO、net 网络数据包打点）。"),
         ],
 

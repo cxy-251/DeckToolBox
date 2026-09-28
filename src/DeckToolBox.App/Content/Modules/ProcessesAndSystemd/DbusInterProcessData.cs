@@ -36,21 +36,21 @@ public static class DbusInterProcessData
         [
             Step.Read(
                 "查看当前用户会话总线上连接的所有软件与服务清单",
-                "busctl --user list | head -n 25",
+                "busctl --user list --no-pager | sed -n '1,25p'",
                 "查看有哪些桌面组件正在监听或发送消息。"),
             Step.Read(
                 "反射检查指定总线对象的所有公开接口与方法 (Introspect)",
                 "busctl --system introspect org.freedesktop.UPower /org/freedesktop/UPower",
                 "犹如查看一份实时的 API 接口说明书。"),
-            Step.Read(
-                "体验 D-Bus 原生 RPC 调用：向桌面弹射一条系统通知",
-                "busctl --user call org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications Notify susssasa{sv}i \"DeckToolBox\" 0 \"\" \"原生总线通知\" \"直接通过 D-Bus 调起系统弹窗！\" \"[]\" \"{}\" 5000",
-                "复制执行后，观察屏幕右上角是否立即弹出系统通知！"),
+            Step.Change(
+                "直接调用 D-Bus 方法：向桌面发一条通知",
+                "busctl --user call org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications Notify susssasa{sv}i DeckToolBox 0 '' 'D-Bus 测试' '这条通知是直接调用总线方法发出的' 0 0 5000",
+                "签名 `susssasa{sv}i` 依次对应：应用名、替换 ID、图标、标题、正文、动作数组（`0` 表示空数组）、提示字典（`0` 表示空）、超时毫秒。`notify-send` 命令做的就是同一次调用。"),
         ],
 
         Verify =
         [
-            "执行第三步指令后，系统右上角弹出横幅通知，终端回显 '(u 1)'（代表调用返回的新通知 ID），证明 D-Bus RPC 远程调用已完整走完内核 socket 握手流程！",
+            "执行最后一步后桌面弹出通知，终端输出形如 `u 17`：返回值类型为 u（无符号整数），数值是新通知的 ID。",
         ],
     };
 }

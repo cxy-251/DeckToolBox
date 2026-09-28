@@ -72,7 +72,7 @@ public static class DebianAptEcosystemData
                 "`--purge` 同时删除这些包的系统级配置文件。").On(Hosts.Debian),
             Step.Root(
                 "按现行规范添加第三方软件源（模板）",
-                "sudo install -d -m 0755 /etc/apt/keyrings\ncurl -fsSL <密钥 URL> | sudo gpg --dearmor -o /etc/apt/keyrings/<名称>.gpg\nprintf 'Types: deb\\nURIs: <仓库 URL>\\nSuites: <发行代号>\\nComponents: main\\nSigned-By: /etc/apt/keyrings/<名称>.gpg\\n' | sudo tee /etc/apt/sources.list.d/<名称>.sources\nsudo apt update",
+                "sudo install -d -m 0755 /etc/apt/keyrings\ncurl -fsSL <密钥URL> | sudo gpg --dearmor -o /etc/apt/keyrings/<名称>.gpg\nprintf 'Types: deb\\nURIs: <仓库URL>\\nSuites: <发行代号>\\nComponents: main\\nSigned-By: /etc/apt/keyrings/<名称>.gpg\\n' | sudo tee /etc/apt/sources.list.d/<名称>.sources\nsudo apt update",
                 "按软件厂商文档替换占位符。密钥只对这一个源生效。").On(Hosts.Debian),
         ],
 

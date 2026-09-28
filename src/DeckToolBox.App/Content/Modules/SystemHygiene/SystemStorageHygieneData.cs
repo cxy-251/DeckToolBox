@@ -42,7 +42,7 @@ public static class SystemStorageHygieneData
             Step.Read(
                 "找出家目录下最占空间的目录",
                 "du -h --max-depth=2 ~ 2>/dev/null | sort -h | tail -n 20",
-                "交互式浏览可以用系统自带的 `ncdu ~`（方向键进入目录，`q` 退出）。"),
+                "数据量大时要扫描十几秒到几分钟。交互式浏览可以用系统自带的 `ncdu ~`（方向键进入目录，`q` 退出）。"),
             Step.Read(
                 "着色器缓存按大小排行",
                 "du -sh ~/.local/share/Steam/steamapps/shadercache/* 2>/dev/null | sort -h | tail -n 15",

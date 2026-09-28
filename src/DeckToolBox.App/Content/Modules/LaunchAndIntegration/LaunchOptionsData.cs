@@ -50,7 +50,7 @@ public static class LaunchOptionsData
                 "常见于提供 D3D11/D3D12 双路径的游戏（如部分 Unreal 引擎游戏），在 D3D12 下不稳定时尝试；游戏不认识该参数时无效果。").On(Hosts.SteamLaunchOptions),
             Step.Read(
                 "查看正在运行的游戏实际收到的环境变量",
-                "tr '\\0' '\\n' < /proc/$(pgrep -n -f '<游戏 exe 名>')/environ | grep -E 'PROTON|DXVK|LD_PRELOAD'",
+                "tr '\\0' '\\n' < /proc/$(pgrep -n -f '<游戏exe名>')/environ | grep -E 'PROTON|DXVK|LD_PRELOAD'",
                 "游戏运行时在桌面模式终端执行，用来验证启动选项是否真的生效。"),
         ],
 

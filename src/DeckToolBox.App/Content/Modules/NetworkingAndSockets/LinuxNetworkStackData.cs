@@ -16,7 +16,7 @@ public static class LinuxNetworkStackData
         [
             "1. 淘汰 net-tools (ifconfig / netstat)，拥抱 iproute2 (ip / ss)：",
             "• 过去运维常用的 ifconfig 和 netstat 依赖读取 `/proc/net/dev` 与过时的 ioctl 系统调用，在网络连接数巨大或存在虚拟网卡时存在严重的解析性能瓶颈，且完全不支持 Policy Routing、VLAN、网络命名空间等现代 Linux 特性。",
-            "• 现代 Linux 统一通过内核 Netlink 套接字 (AF_NETLINK) 与内核空间通信。`ip` 命令与 `ss` (Socket Statistics) 能够以二进制结构体直接从内核拉取数据，响应速度快几个数量级，能够观测包括 TCP RTT、拥塞窗口 (cwnd)、重传队列在内的微观指标。",
+            "• 现代工具通过 Netlink 套接字 (AF_NETLINK) 直接与内核交换结构化数据，支持策略路由、网络命名空间、VLAN 等 net-tools 无法表达的特性；`ss` 还能显示 TCP 的往返时间 (rtt)、拥塞窗口 (cwnd) 等细节。",
             "2. Linux 内核网络数据流与核心数据结构 (sk_buff)：",
             "• 网卡 (NIC) 收到数据帧后通过 DMA 写入环形缓冲区 (Ring Buffer)，触发硬中断转软中断 (NAPI / NET_RX)，数据被封装为内核核心结构体 `sk_buff` (Socket Buffer)。",
             "• `sk_buff` 沿内核协议栈向上逐层解包（链路层 MAC -> 网络层 IP 路由查找 -> 传输层 TCP/UDP 校验），最终唤醒等待在 socket 读取队列上的用户进程（通过 epoll / read 系统调用）。",

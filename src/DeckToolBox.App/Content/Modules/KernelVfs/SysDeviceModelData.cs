@@ -32,21 +32,25 @@ public static class SysDeviceModelData
         Steps =
         [
             Step.Read(
-                "查看电池健康度、设计容量与实际可用容量 (Health Calculation)",
-                "awk 'BEGIN{getline f < \"/sys/class/power_supply/BAT1/charge_full\"; getline d < \"/sys/class/power_supply/BAT1/charge_full_design\"; printf \"电池当前健康度: %.2f%% (实际满电: %d mAh / 设计出厂: %d mAh)\\n\", (f/d)*100, f/1000, d/1000}' 2>/dev/null || cat /sys/class/power_supply/BAT1/capacity",
-                "直接通过内核底层数值精确计算出电池无损耗健康百分比。"),
+                "查看电池健康度（满电容量 / 设计容量）",
+                "cd /sys/class/power_supply/BAT1 && echo \"健康度 $((100 * $(cat charge_full) / $(cat charge_full_design)))%  循环次数 $(cat cycle_count)\"",
+                "Deck 的电池名为 `BAT1`，大多数笔记本是 `BAT0`，可先 `ls /sys/class/power_supply/` 确认。"),
             Step.Read(
-                "查看电池当前实时充放电功率与电压",
-                "paste <(echo -n \"当前功率(W): \") <(echo \"scale=2; $(cat /sys/class/power_supply/BAT1/power_now 2>/dev/null || cat /sys/class/power_supply/BAT1/current_now * $(cat /sys/class/power_supply/BAT1/voltage_now) / 1000000000000) / 1000000\" | bc -l) 2>/dev/null || cat /sys/class/power_supply/BAT1/status",
-                "实时获知掌机当前待机或高负荷运行下的真实放电瓦数。"),
+                "计算电池当前充放电功率",
+                "cd /sys/class/power_supply/BAT1 && awk 'NR==FNR{c=$1; next} {printf \"%.2f W\\n\", c*$1/1e12}' current_now voltage_now",
+                "Deck 的电池没有 `power_now`，用电流 (µA) × 电压 (µV) 计算。接着电源且不在充电时显示 0。"),
             Step.Read(
-                "查看 CPU 所有核心当前调速器与实时运行频率",
-                "paste <(cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq | awk '{printf \"Core %d: %.1f MHz | \", NR-1, $1/1000}') <(cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | awk '{print \"Governor: \" $1}')",
-                "实时监控每个 CPU 核心在 Linux 调度器下的频率跳变。"),
+                "查看每个 CPU 核心的当前频率",
+                "paste <(ls -d /sys/devices/system/cpu/cpu[0-9]* | grep -oE 'cpu[0-9]+') <(awk '{printf \"%.0f MHz\\n\", $1/1000}' /sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_cur_freq)",
+                "`scaling_cur_freq` 的单位是 kHz。"),
             Step.Read(
-                "查看内核 APU 核心各热区当前实时温度",
-                "paste <(cat /sys/class/thermal/thermal_zone*/type) <(cat /sys/class/thermal/thermal_zone*/temp | awk '{printf \"%.1f °C\\n\", $1/1000}')",
-                "读取毫摄氏度读数并折算为清晰的摄氏度温度榜。"),
+                "查看 CPU 调频策略",
+                "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
+                "Deck 使用 `amd-pstate-epp` 驱动，由硬件根据能耗偏好自动调频。"),
+            Step.Read(
+                "查看各温区温度",
+                "paste <(cat /sys/class/thermal/thermal_zone*/type) <(awk '{printf \"%.1f °C\\n\", $1/1000}' /sys/class/thermal/thermal_zone*/temp)",
+                "更完整的传感器读数见 `sensors` 命令（「硬件传感器、功耗与风扇」模块）。"),
         ],
 
         Verify =

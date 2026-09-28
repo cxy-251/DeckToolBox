@@ -8,52 +8,65 @@ public static class CgroupsResourceControlData
     {
         Id = "cgroups",
         Title = "cgroups v2 资源控制",
-        Keywords = "cgroup · systemd-run · slice",
+        Keywords = "cgroup · systemd-run · MemoryMax · CPUQuota",
         Level = ModuleLevel.Advanced,
-        Overview = "深入现代容器基石 cgroups v2，掌握 CPU/内存配额硬限制；告别粗暴的全局 root，掌握 Linux 细粒度权能分权安全体系。",
+        Overview = "cgroups 让内核按「进程组」分配和限制 CPU、内存、IO。systemd 把每个服务、每个应用都放进各自的 cgroup；你也可以用 systemd-run 给任意一条命令加上内存和 CPU 上限，让后台任务不拖慢前台游戏。",
 
         Why =
         [
-            "1. cgroups v2 (Control Groups 统一层次结构)：",
-            "• 现代容器与 systemd 的物理引擎：挂载于 /sys/fs/cgroup/。Linux 内核把资源限制做到了极致简单——在 /sys/fs/cgroup 下 mkdir 一个文件夹，内核就自动为你创建一个新的控制组！",
-            "• 核心资源控制器：",
-            "  - cpu.max：硬性锁定进程组能消耗的最大 CPU 百分比（如限制后台编译最多吃 2 核，绝不卡顿前台游戏）。",
-            "  - memory.max：内存硬上限。当该组内进程内存超标时，内核只在该组内定向触发局部 OOM，绝不牵连系统其他核心程序！",
-            "  - io.max / io.weight：限制磁盘最大读写 IOPS 与吞吐量，防止后台下载把磁盘 I/O 挤爆导致系统假死。",
-            "2. Linux Capabilities (告别危险的全局 root 时代)：",
-            "• 传统模式的巨大隐患：以前程序需要绑定 80/443 端口，必须赋予 root 权限；一旦程序有漏洞，黑客直接拿到全系统最高控制权。",
-            "• 权能细分革命：Linux 将 root 的无限神权拆分为几十个细粒度 Capability（如 CAP_NET_BIND_SERVICE 仅允许绑端口，CAP_SYS_PTRACE 仅允许调试跟踪）。应用程序只需单点赋权，从根本上锁死提权漏洞攻击面！",
+            "1. cgroup v2 是一棵统一的层级树，挂载在 `/sys/fs/cgroup`。每个目录是一个组，组里的进程共同受该组的资源限制约束。",
+            "2. 常用控制接口（每个组目录下的文件）：",
+            "- `memory.max`：内存硬上限。组内进程总内存超出时，内核只在这个组内回收或杀进程，不波及系统其他部分。",
+            "- `cpu.max`：CPU 配额，例如 `50000 100000` 表示每 100 ms 最多使用 50 ms，即半个核心。",
+            "- `io.max` / `io.weight`：磁盘读写的上限与权重。",
+            "- `pids.max`：组内进程数上限，可防止 fork 炸弹。",
+            "3. systemd 的组织方式：",
+            "- `system.slice`：系统服务。",
+            "- `user.slice/user-1000.slice/user@1000.service/`：你的用户会话，其下的 `app.slice` 放着从桌面启动的各个应用。",
+            "• 所以在 systemd 系统上，通常不直接写 `/sys/fs/cgroup`，而是通过 `systemctl set-property` 或 `systemd-run` 让 systemd 代为管理。",
+            "4. `systemd-run --user --scope -p MemoryMax=… -p CPUQuota=… <命令>`：为这条命令临时创建一个 scope 单元，命令结束后自动清理。",
         ],
 
         Consequences =
         [
-            "• 游戏与生产力的安全隔离：通过 cgroups，你可以让耗时数小时的后台编译、媒体转码或抓取任务在极低资源配额组中静默运行，前台 Steam 掌机游戏依然帧率如丝顺滑。",
-            "• 无需依赖繁琐的虚拟化：这是纯粹的 Linux 内核原生原生机制，调度损耗为 0。",
+            "• 查看 cgroup 信息只读无害。",
+            "• 用 `systemd-run --user` 施加的限制只作用于那一条命令，普通用户即可操作，结束后不留痕迹。",
+            "• 内存上限设得过低时，该命令会被内核 OOM 终止（退出码 137），系统其他进程不受影响。",
+            "• 修改系统服务的资源属性（`sudo systemctl set-property`）默认是永久的，会写入 `/etc/systemd/system.control/`；加 `--runtime` 则重启后失效。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前系统支持的全部 cgroups v2 控制器清单",
+                "查看内核启用的 cgroup 控制器",
                 "cat /sys/fs/cgroup/cgroup.controllers",
-                "确认内核已开启 cpu、memory、io、pids、cpuset 等全套资源控制能力。"),
+                "通常包含 `cpuset cpu io memory hugetlb pids`。"),
             Step.Read(
-                "查看当前 Shell 进程所归属的 cgroup 树状切片 (Slice)",
+                "查看当前 shell 所在的 cgroup",
                 "cat /proc/$$/cgroup",
-                "观察该进程是属于 systemd 的 user.slice 还是 app.slice。"),
+                "v2 下只有一行，形如 `0::/user.slice/.../app.slice/...`。"),
             Step.Read(
-                "查看系统中通过 Capabilities 特权细分赋权的安全二进制文件",
-                "getcap -r /usr/bin/ 2>/dev/null | head -n 15",
-                "查看如 ping (仅拥有 cap_net_raw) 这种无需全局 root 也能工作的典型范例。"),
+                "以树形查看你的会话中各应用的 cgroup",
+                "systemd-cgls --no-pager /user.slice/user-$(id -u).slice/user@$(id -u).service/app.slice | head -n 40",
+                "每个桌面应用、每个用户服务都有自己的节点。"),
             Step.Read(
-                "查看当前进程拥有的全部 Linux Capabilities 掩码集合",
-                "getpcaps $$",
-                "了解当前用户在内核权限模型中真正具备的能力边界。"),
+                "按资源占用实时排序各个 cgroup",
+                "systemd-cgtop",
+                "类似 top，但按 cgroup 统计。按 `m` 按内存排序，`q` 退出。"),
+            Step.Change(
+                "限制一条命令最多使用 1 GB 内存和半个 CPU 核心",
+                "systemd-run --user --scope -p MemoryMax=1G -p CPUQuota=50% <命令>",
+                "例如压缩大文件、编译代码时使用，前台游戏不会被抢占资源。"),
+            Step.Read(
+                "查看某个 scope 的实际限制值",
+                "systemctl --user show -p MemoryMax,CPUQuotaPerSecUSec $(systemctl --user list-units --type=scope --no-legend | awk '/run-/{print $1; exit}')",
+                "在上一步的命令运行期间，从另一个终端执行。"),
         ],
 
         Verify =
         [
-            "在终端执行 cat /sys/fs/cgroup/cgroup.controllers，如果返回 'cpuset cpu io memory hugetlb pids misc'，表明系统已经 100% 运行在最现代的 cgroups v2 统一层级架构下！",
+            "1. 执行 `systemd-run --user --scope -p MemoryMax=200M sh -c 'cat /proc/self/cgroup'`，输出路径以 `run-...scope` 结尾，说明命令运行在独立 cgroup 中。",
+            "2. 执行 `systemd-run --user --scope -p CPUQuota=25% sh -c 'while :; do :; done'`，在 `htop` 中能看到该进程的 CPU 占用稳定在 25% 左右（`Ctrl+C` 结束）。",
         ],
     };
 }

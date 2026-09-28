@@ -30,28 +30,41 @@ public static class XdgStandardsData
         Consequences =
         [
             "• 用户空间优先级最高：~/.local/share/applications/ 里的同名 .desktop 文件会自动覆盖系统级 /usr/share/applications/ 的设置，因此我们无需任何 root 权限就能自由定制菜单。",
-            "• 避免黑盒菜单编辑器：KDE 自带的 kmenuedit 会在 ~/.config/menus/ 生成复杂的 XML 过滤器，极易导致菜单配置混乱失效。手工编写单个 .desktop 文件是最干净可控的工业级做法。",
+            "• KDE 的菜单编辑器（右键开始菜单 → 编辑应用程序）同样通过写入 `~/.local/share/applications` 实现；手写 `.desktop` 文件的好处是改了什么一目了然、便于备份。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前用户已有的个性化菜单项",
+                "查看 XDG 目录变量（未设置时使用默认值）",
+                "echo \"CONFIG=${XDG_CONFIG_HOME:-~/.config}  DATA=${XDG_DATA_HOME:-~/.local/share}  CACHE=${XDG_CACHE_HOME:-~/.cache}\"",
+                "`${变量:-默认值}` 表示变量为空时使用默认值。"),
+            Step.Read(
+                "查看你自定义或覆盖过的菜单项",
                 "ls -la ~/.local/share/applications/",
-                "列出用户层的所有自定义 .desktop 快捷项。"),
+                "这里的文件优先于 `/usr/share/applications` 中的同名文件。"),
             Step.Change(
-                "为绿色应用编写一个标准规范的 .desktop 启动模版",
-                "cat <<'EOF' > ~/.local/share/applications/my-custom-app.desktop\n[Desktop Entry]\nVersion=1.0\nType=Application\nName=我的独立应用\nComment=自包含绿色软件示例\nExec=/home/deck/Applications/MyTool/start.sh %u\nIcon=applications-games\nTerminal=false\nCategories=Game;\nStartupNotify=true\nEOF",
-                "直接写入规范文本，不经过任何黑盒转换。"),
+                "为便携应用创建一个菜单项",
+                "cat > ~/.local/share/applications/<程序名>.desktop <<'EOF'\n[Desktop Entry]\nType=Application\nName=<显示名称>\nExec=/home/deck/Applications/<程序名>/<可执行文件> %U\nIcon=<图标名或图标文件绝对路径>\nTerminal=false\nCategories=Utility;\nEOF",
+                "`Exec` 必须写绝对路径（`~` 不会被展开）。`Categories` 决定出现在菜单的哪个分类，可选 `Game;`、`Utility;`、`Network;`、`AudioVideo;`、`Development;` 等。"),
+            Step.Read(
+                "检查 .desktop 文件的语法",
+                "desktop-file-validate ~/.local/share/applications/<程序名>.desktop",
+                "无输出表示格式正确。"),
             Step.Change(
-                "刷新系统桌面数据库（使改动即刻在开始菜单生效）",
-                "update-desktop-database ~/.local/share/applications/",
-                "通知 KDE Plasma 重新索引启动项。"),
+                "隐藏一个系统自带的菜单项（不删除程序）",
+                "cp /usr/share/applications/<名称>.desktop ~/.local/share/applications/ && echo 'NoDisplay=true' >> ~/.local/share/applications/<名称>.desktop",
+                "用户目录中的同名副本覆盖系统版本。恢复显示只需删除这个副本。先用 `ls /usr/share/applications` 找到文件名。"),
+            Step.Change(
+                "让 KDE 立即重新读取菜单",
+                "kbuildsycoca6",
+                "通常几秒内会自动刷新，菜单没有变化时手动执行一次。"),
         ],
 
         Verify =
         [
-            "执行 update-desktop-database 后，点击屏幕左下角的 Application Launcher (开始菜单)，即可看到新添加的软件已经整齐排列在指定分类下。",
+            "1. 打开左下角的应用启动器，在对应分类下能找到新建的菜单项，点击可以正常启动。",
+            "2. 被设置为 `NoDisplay=true` 的应用不再出现在菜单中；删除 `~/.local/share/applications` 里的副本后重新出现。",
         ],
     };
 }

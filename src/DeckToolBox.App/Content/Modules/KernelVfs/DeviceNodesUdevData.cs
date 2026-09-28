@@ -53,7 +53,7 @@ public static class DeviceNodesUdevData
 
         Verify =
         [
-            "在终端执行 cat /proc/bus/input/devices，你会看到 Steam Controller 或 Valve Neptune Controller 的设备声明，并在 Handlers 处绑定了对应的 event 编号。",
+            "执行 `grep -E '^(N|H):' /proc/bus/input/devices`，能看到 `Valve Software Steam Controller` 及其 `Handlers` 中的 `eventN`；插拔 USB 设备时 `udevadm monitor` 会实时打印事件。",
         ],
     };
 }

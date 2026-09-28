@@ -8,52 +8,72 @@ public static class MountsAndOverlayFsData
     {
         Id = "mounts-overlayfs",
         Title = "挂载与 OverlayFS",
-        Keywords = "findmnt · bind · overlay",
+        Keywords = "findmnt · bind mount · overlay · 命名空间",
         Level = ModuleLevel.Advanced,
-        Overview = "深入 Linux VFS 单一树状挂载架构，掌握只读保护机制、Bind Mount 目录穿透与 OverlayFS 四层联合堆叠原理。",
+        Overview = "Linux 只有一棵目录树，硬盘、SD 卡、内存盘都通过「挂载」接到树上的某个位置。bind mount 和 OverlayFS 是容器、Flatpak 和 SteamOS 的 /etc 能够工作的基础，而且普通用户就能亲手做一个 OverlayFS 实验。",
 
         Why =
         [
-            "1. Linux 虚拟文件系统 (VFS) 与单一根树：",
-            "• Linux 抛弃了 Windows 时代割裂的“C盘、D盘”盘符概念。整个系统只有唯一的一棵根目录树 (/)。所有物理 NVMe 固态硬盘、SD 卡、RAM 内存盘或网络共享，都通过挂载 (Mount) 融入这棵大树的枝干中。",
-            "2. 核心挂载属性 (Mount Flags)：",
-            "• ro (只读)：底层内核直接拦截写入，这是不可变操作系统抵御误操作、防病毒修改的底层安全防线。",
-            "• rw (可读写)：允许持久化修改。",
-            "• nodev / noexec：安全防护参数，禁止在该挂载点内执行二进制或创建设备节点。",
-            "3. Bind Mount (目录绑定挂载)：",
-            "• 允许把一个已经存在的目录直接无缝“映射穿透”到另一个路径。这是 Distrobox、Pressure-Vessel 和 Docker 实现容器共享宿主机文件的基石技术！",
-            "4. OverlayFS (联合文件系统核心模型)：",
-            "• lowerdir (只读底包)：基础镜像，永不被篡改。",
-            "• upperdir (读写层)：所有写入、新增的文件全部落在此层。",
-            "• merged (合并视图)：给用户和应用程序呈现的统一目录视角。",
-            "• 写时复制 (CoW) 与白斑文件 (Whiteout)：修改只读文件时自动拷贝到上层修改；删除只读文件时在上层打上特殊白斑标记伪装已删除，下层底包永远安全！",
+            "1. 单一目录树：没有 C 盘、D 盘，所有存储设备都挂载到 `/` 下的某个目录。SteamOS 上 `/` 是当前槽位的 rootfs，`/home` 是 home 分区，SD 卡在 `/run/media/deck/<卷标>`。",
+            "2. 常见挂载选项：",
+            "- `ro` / `rw`：只读 / 读写。",
+            "- `noexec`：禁止执行该挂载点里的程序；`nodev`：忽略设备文件；`nosuid`：忽略 SUID 位。",
+            "- 注意：SteamOS 根分区的只读由 btrfs 子卷属性实现，所以 `/` 的挂载选项显示为 `rw`。",
+            "3. bind mount：把一个已存在的目录再挂到另一个位置，两处看到的是同一份数据。SteamOS 把 `/var/log`、`/var/lib/flatpak` 等目录从 home 分区 bind 过来；Distrobox、Flatpak 也用它把宿主目录带进容器。",
+            "4. OverlayFS：把多个目录叠成一个视图：",
+            "- `lowerdir`：下层，只读，永远不会被修改。",
+            "- `upperdir`：上层，所有写入都落在这里。",
+            "- `workdir`：内核内部使用的临时目录，必须与 upper 在同一文件系统。",
+            "- `merged`：挂载点，看到的是上层覆盖下层后的结果。",
+            "• 修改下层文件时，内核先把它复制到上层再改（copy-up）；删除下层文件时，在上层放一个设备号为 0,0 的字符设备作为「白化 (whiteout)」标记，让它在合并视图里消失。",
+            "• SteamOS 的 `/etc` 就是这样实现的：系统镜像里的 `/etc` 是下层，你的修改在 `/var/lib/overlays/etc/upper`。",
+            "5. 挂载命名空间：每个进程可以拥有自己的挂载视图。`unshare -rm` 创建一个新的用户 + 挂载命名空间，里面的挂载只对这个进程可见，这正是下面的实验不需要 root 的原因。",
         ],
 
         Consequences =
         [
-            "• 明白只读模式的真相：开启 steamos-readonly 时，系统并未关死一切，而是将根 / 以 ro 挂载，而将 /home 以 rw 独立挂载，因此家目录永远具有完全读写权。",
-            "• 彻底看懂容器：容器不是虚拟机，容器本质上就是利用 Mount 命名空间结合 Bind Mount 和 OverlayFS 拼凑出的定制化文件系统视图。",
+            "• `findmnt`、`lsblk` 只读无害。",
+            "• 下面的 OverlayFS 实验全部在 `/tmp/ovl` 下进行，挂载只存在于 `unshare` 启动的那个 shell 中，退出即消失，不影响系统。",
+            "• 实验中的 `work` 目录会被内核设为无权限，清理时要先 `chmod`，否则 `rm` 会报「权限不够」。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看系统层级清晰的树状挂载拓扑 (findmnt 经典视图)",
+                "以树形查看所有真实文件系统的挂载",
                 "findmnt --real",
-                "清晰列出根 /、持久化 /home、EFI 分区与 SD 卡在整棵树上的挂载位置与挂载选项。"),
+                "能看到 `/`、`/home`、`/var`、`/esp`、`/efi`、SD 卡以及由 home 分区 bind 过去的各个 `/var` 子目录。"),
             Step.Read(
-                "查看系统核心根分区与家分区的只读/读写属性",
-                "mount | grep -E \" on / (type|home )\"",
-                "观察 / 上的 ro 只读标志与 /home 上的 rw 读写标志。"),
+                "查看 / 与 /home 的来源和挂载选项",
+                "for m in / /home; do findmnt -no TARGET,SOURCE,FSTYPE,OPTIONS $m; done",
+                "`/` 是 btrfs，`/home` 是 ext4。"),
+            Step.Read(
+                "查看 /etc 的 OverlayFS 参数",
+                "findmnt -no OPTIONS /etc | tr ',' '\\n'",
+                "能看到 `lowerdir=`、`upperdir=`、`workdir=` 三个关键参数。"),
             Step.Change(
-                "动手实验：在 /tmp 下零成本亲手搭建一个 OverlayFS 四层联合系统",
-                "mkdir -p /tmp/ovl/{lower,upper,work,merged}\necho \"我是只读底包文件\" > /tmp/ovl/lower/test.txt\n# 挂载联合层 (若有权限可测试，无权限可查看目录结构规范)\nls -la /tmp/ovl/",
-                "亲身理解 lowerdir, upperdir, workdir, merged 的标准目录拓扑。"),
+                "准备实验目录",
+                "mkdir -p /tmp/ovl/{lower,upper,work,merged} && echo '下层原文件' > /tmp/ovl/lower/a.txt",
+                "`/tmp` 是内存盘，重启后自动清空。"),
+            Step.Change(
+                "在私有命名空间里挂载 OverlayFS 并做修改",
+                "unshare -rm sh -c 'mount -t overlay overlay -o lowerdir=/tmp/ovl/lower,upperdir=/tmp/ovl/upper,workdir=/tmp/ovl/work /tmp/ovl/merged && rm /tmp/ovl/merged/a.txt && echo 新文件 > /tmp/ovl/merged/b.txt && ls -l /tmp/ovl/merged'",
+                "`-r` 映射为命名空间内的 root，`-m` 创建私有挂载命名空间。命令结束后挂载自动消失。"),
+            Step.Read(
+                "观察各层的变化",
+                "cat /tmp/ovl/lower/a.txt; ls -l /tmp/ovl/upper",
+                "下层的 a.txt 原封不动；上层出现新写入的 b.txt，以及一个权限为 `c---------`、设备号 `0, 0` 的 a.txt：这就是 whiteout。"),
+            Step.Change(
+                "清理实验目录",
+                "chmod -R u+rwx /tmp/ovl && rm -rf /tmp/ovl",
+                "先恢复 work 目录的权限再删除。"),
         ],
 
         Verify =
         [
-            "执行 findmnt，观察根路径 / 的 OPTIONS 列：你会清晰看到 (ro,relatime...)，而 /home 则是 (rw,relatime...)，这是现代不可变系统的最核心设计体现。",
+            "1. 实验结束后 `ls /tmp/ovl/lower/a.txt` 仍然存在且内容不变，证明 OverlayFS 从不修改下层。",
+            "2. `ls -l /tmp/ovl/upper/a.txt` 的第一个字符是 `c`（字符设备）且大小位置显示 `0, 0`，即 whiteout 标记。",
+            "3. 在另一个终端执行 `findmnt /tmp/ovl/merged`，没有任何输出：实验中的挂载只存在于 unshare 的命名空间内。",
         ],
     };
 }
