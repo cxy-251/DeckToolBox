@@ -6,6 +6,7 @@ using DeckToolBox.App.Content.Modules.Manual.Text;
 using DeckToolBox.App.Content.Modules.Manual.Shell;
 using DeckToolBox.App.Content.Modules.Manual.Archive;
 using DeckToolBox.App.Content.Modules.Manual.Process;
+using DeckToolBox.App.Content.Modules.Manual.Systemd;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -139,6 +140,14 @@ public static class ContentRegistry
                 LsofFuserData.Create(),
                 PerProcessIoData.Create(),
                 LoadLoginData.Create(),
+            ]),
+            new("systemd 工具", "⚙️", "服务管理、日志查询、开机分析、临时任务与会话",
+            [
+                SystemctlData.Create(),
+                JournalctlData.Create(),
+                SystemdAnalyzeData.Create(),
+                SystemdRunData.Create(),
+                LoginctlData.Create(),
             ]),
         ]),
 
