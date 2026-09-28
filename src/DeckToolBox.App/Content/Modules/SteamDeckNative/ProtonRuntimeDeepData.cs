@@ -8,7 +8,7 @@ public static class ProtonRuntimeDeepData
     {
         Id = "proton-prefix",
         Title = "Proton 前缀与运行库修复",
-        Keywords = "compatdata · 存档 · protontricks · DLL 覆盖",
+        Keywords = "compatdata · 存档 · 运行库 · DLL 覆盖",
         Level = ModuleLevel.Intermediate,
         Overview = "游戏闪退、缺运行库、Mod 不生效、存档在哪——这些问题都围绕同一个东西：游戏的 Proton 前缀。学会找到它、备份它、往里面装运行库，以及安全地重建它。",
 
@@ -17,7 +17,8 @@ public static class ProtonRuntimeDeepData
             "1. 前缀是每个游戏独立的：一个游戏的前缀被改坏，不会影响其他游戏（结构见「Wine 与 Proton 原理」）。",
             "2. 为什么有的游戏缺运行库：",
             "• 少数游戏依赖 Proton 未完整实现的微软组件（某些 VC++ 运行库、.NET Framework、Media Foundation 视频解码等），表现为启动即退或播放过场动画时崩溃。",
-            "• **protontricks** 可以把官方的可再发行组件安装进指定游戏的前缀。它不是系统自带的，需要从 Flathub 安装（`com.github.Matoking.protontricks`）。",
+            "• 最直接的做法：下载微软官方的安装程序（例如 `vc_redist.x64.exe`），用**游戏所用的那个 Proton** 在该游戏的前缀里运行它。Proton 目录下的 `proton` 脚本就是 Steam 启动游戏时调用的入口，只需设置两个环境变量告诉它前缀在哪、Steam 装在哪。",
+            "• 其他组件（`d3dcompiler_47`、`xact` 等）通常借助 winetricks 安装。它依赖 `cabextract`，SteamOS 没有自带，可以在 Arch 的 Distrobox 容器里 `pacman -S winetricks cabextract` 后使用。",
             "3. DLL 覆盖与 Mod 加载：",
             "• 许多 Mod 加载器（BepInEx、UE4SS、ASI Loader、ReShade 等）把一个同名 DLL（如 `version.dll`、`dinput8.dll`、`winhttp.dll`、`dxgi.dll`）放在游戏目录里。",
             "• Wine 默认优先使用自己的内置实现 (builtin)，必须用 `WINEDLLOVERRIDES` 告诉它优先加载游戏目录里的原生版本 (native)：`n,b` 表示先 native 后 builtin。",
@@ -45,14 +46,18 @@ public static class ProtonRuntimeDeepData
                 "备份整个前缀的用户目录",
                 "tar -czf ~/prefix-<AppID>-$(date +%F).tar.gz -C ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/drive_c/users steamuser",
                 "在做任何修改或删除前先备份。恢复时用 `tar -xzf` 解压回同一位置。"),
+            Step.Read(
+                "确认游戏使用的 Proton 版本",
+                "ls ~/.local/share/Steam/steamapps/common/ | grep -i proton; cat ~/.local/share/Steam/steamapps/compatdata/<AppID>/version",
+                "`version` 文件记录了创建该前缀的 Proton 版本，下一步要用同一个版本。"),
             Step.Change(
-                "从 Flathub 安装 protontricks",
-                "flatpak install flathub com.github.Matoking.protontricks",
-                "需要已配置 flathub 源（见「Flatpak 应用管理」）。"),
+                "下载微软官方 VC++ 运行库安装程序",
+                "curl -L -o ~/Downloads/vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe",
+                "`aka.ms` 是微软官方的短链接，指向最新的 VC++ 2015~2022 x64 运行库。32 位游戏再下载 `vc_redist.x86.exe`。"),
             Step.Change(
-                "为游戏安装 VC++ 运行库（示例）",
-                "flatpak run com.github.Matoking.protontricks <AppID> vcrun2022",
-                "其他常用组件：`d3dcompiler_47`、`dotnet48`、`xact`。装之前先在 ProtonDB 确认该游戏确实需要。"),
+                "用 Proton 在游戏前缀中运行安装程序",
+                "STEAM_COMPAT_DATA_PATH=~/.local/share/Steam/steamapps/compatdata/<AppID> STEAM_COMPAT_CLIENT_INSTALL_PATH=~/.local/share/Steam \"$HOME/.local/share/Steam/steamapps/common/<Proton目录名>/proton\" run ~/Downloads/vc_redist.x64.exe /install /quiet /norestart",
+                "`<Proton目录名>` 例如 `Proton - Experimental`、`Proton 10.0`（含空格，已用引号包住）。执行前先退出该游戏。`/quiet` 静默安装，不弹界面。"),
             Step.Change(
                 "让游戏优先加载目录里的 Mod DLL",
                 "WINEDLLOVERRIDES=\"winhttp,version,dinput8=n,b\" %command%",

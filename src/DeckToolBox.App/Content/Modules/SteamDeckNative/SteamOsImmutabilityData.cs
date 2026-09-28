@@ -22,7 +22,7 @@ public static class SteamOsImmutabilityData
             "• `/`（含 `/usr`）是 btrfs 子卷，靠 btrfs 的 `ro` 属性锁成只读，所以 `mount` 输出里看到的是 `rw`，要用 `btrfs property get / ro` 才能看到真实状态。",
             "• 用 `steamos-readonly disable` 解锁后可以用 `pacman` 装包，但**下次系统更新会换成全新的槽位镜像，装进 `/usr` 的东西全部消失**。",
             "3. 哪些改动会被保留：",
-            "- `/home`：独立分区，系统更新从不触碰。游戏、Flatpak 应用、`~/.local`、`~/Applications` 都在这里。",
+            "- `/home`：独立分区，系统更新从不触碰。游戏、`~/.local`、`~/Applications`、Distrobox 容器都在这里。",
             "- `/etc`：是一层 overlay，你的修改保存在 `/var/lib/overlays/etc/upper`，更新后会叠加回新系统。",
             "- `/var`：随槽位成对，但 `/var/log`、`/var/lib/flatpak`、`/var/cache/pacman` 等常用目录实际绑定挂载自 `/home` 分区，所以同样会保留。",
             "4. 更新通道：`rel`（稳定版）、`beta`、`preview`、`main`。切换通道只影响之后收到的更新。",
@@ -31,7 +31,7 @@ public static class SteamOsImmutabilityData
         Consequences =
         [
             "• 查看状态（`steamos-readonly status`、`rauc status`、`findmnt`）完全只读。",
-            "• 解锁只读是临时的：改动会在下次系统更新时被覆盖，甚至可能让更新出错。需要长期使用的软件应该用 Flatpak、便携应用或 Distrobox 容器。",
+            "• 解锁只读是临时的：改动会在下次系统更新时被覆盖，甚至可能让更新出错。需要长期使用的软件应该放在 `~/Applications`（便携应用）或 Distrobox 容器中。",
             "• 如果确实解锁过，操作完成后立即重新锁定，减少误操作的窗口期。",
             "• `sudo` 需要先给 deck 用户设置密码（桌面模式下在终端执行 `passwd`），SteamOS 出厂时没有密码。",
             "• 切换到 `beta` / `main` 通道可能遇到未完成的功能；切回 `rel` 后要等稳定版追上当前版本号才会收到「更新」。",

@@ -66,11 +66,11 @@ public static class ContentRegistry
                 DesktopModeBasicsData.Create(),
                 SteamOsImmutabilityData.Create(),
             ]),
-            new("安装软件的正确方式", "📦", "在只读系统上安装软件：Flatpak、便携应用与 Distrobox 容器",
+            new("安装软件的正确方式", "📦", "在只读系统上安装软件：便携应用与 Distrobox 容器；不使用 Flatpak",
             [
-                PackageManagementData.Create(),
                 PortableAppsData.Create(),
                 DistroboxContainerData.Create(),
+                PackageManagementData.Create(),
             ]),
             new("存储与清理", "🧹", "日志、缓存、着色器与回收站的空间治理",
             [

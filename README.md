@@ -18,7 +18,7 @@
 | 专区 | 面向 | 模块 |
 | --- | --- | --- |
 | 🧭 入门必修 | 任何 Linux 都通用的日常技能 | 终端、文件与管道、Shell 配置、sudo、外接存储、压缩与 rsync 备份、网络排查、SSH、进程、排障流程、systemd 定时器 |
-| 🎮 Steam Deck 本机 | 只适用于 SteamOS 的机制 | 桌面模式、只读系统与 A/B 更新、Flatpak、便携应用、Distrobox、存储清理、传感器与功耗、Gamescope、手柄输入链、Wine/Proton、Proton 前缀、启动选项、非 Steam 游戏、Steam Runtime |
+| 🎮 Steam Deck 本机 | 只适用于 SteamOS 的机制 | 桌面模式、只读系统与 A/B 更新、便携应用、Distrobox、不用 Flatpak 的清理与替代、存储清理、传感器与功耗、Gamescope、手柄输入链、Wine/Proton、Proton 前缀、启动选项、非 Steam 游戏、Steam Runtime |
 | 🐧 其他发行版 | 各发行版家族的包管理 | 命令对照表、Debian/Ubuntu、Fedora/RHEL、Arch、openSUSE、Alpine、Nix 与原子化发行版、Flatpak/Snap/AppImage 对比 |
 | 🧠 系统原理 | 所有发行版通用的底层机制 | 进程与信号、systemd、D-Bus、/proc、/sys、udev、挂载与 OverlayFS、文件系统、内存与 OOM、cgroups、网络栈、UNIX 套接字、权限与 ACL、Capabilities、显示栈、XDG、PipeWire、内核模块、性能追踪 |
 

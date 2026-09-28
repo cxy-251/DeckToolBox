@@ -29,7 +29,7 @@ public static class DesktopModeBasicsData
         [
             "• 在桌面模式装的软件、改的设置，切回游戏模式后依然保留。",
             "• 桌面模式的 Steam 与游戏模式是同一个客户端，在其中添加的非 Steam 游戏两边都能看到。",
-            "• 桌面模式中系统的只读保护依然生效，安装软件请用 Discover (Flatpak) 或其他不修改系统分区的方式。",
+            "• 桌面模式中系统的只读保护依然生效，安装软件请用便携应用（`~/Applications`）或 Distrobox 容器，见「不用 Flatpak：清理与替代」。",
         ],
 
         Steps =

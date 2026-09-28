@@ -10,7 +10,7 @@ public static class GameModeIntegrationData
         Title = "非 Steam 程序接入游戏模式",
         Keywords = "添加非 Steam 游戏 · shortcuts.vdf · 启动脚本",
         Level = ModuleLevel.Basic,
-        Overview = "游戏模式里只能启动 Steam 库中的条目。把便携应用、模拟器、Flatpak 程序或脚本「添加为非 Steam 游戏」，就能在游戏模式中用手柄启动，并使用 Steam Input 和快捷菜单。",
+        Overview = "游戏模式里只能启动 Steam 库中的条目。把便携应用、模拟器、Distrobox 导出的程序或脚本「添加为非 Steam 游戏」，就能在游戏模式中用手柄启动，并使用 Steam Input 和快捷菜单。",
 
         Why =
         [
@@ -27,7 +27,7 @@ public static class GameModeIntegrationData
         [
             "• 添加、删除快捷方式都在 Steam 界面完成，不影响程序本身。",
             "• 包装脚本清除 `LD_PRELOAD` 后，该程序中无法使用 Steam 覆盖层（`Steam` 键菜单仍可用）。",
-            "• Flatpak 程序添加后，Steam 会把启动命令设为 `flatpak run <AppID>`，通常无需脚本。",
+            "• 用 `distrobox-export --app` 导出到菜单的程序，也可以直接在「添加非 Steam 游戏」列表中勾选，Steam 会通过 `distrobox-enter` 启动它。",
         ],
 
         Steps =

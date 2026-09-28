@@ -10,7 +10,7 @@ public static class UniversalPackageFormatsData
         Title = "Flatpak、Snap 与 AppImage 对比",
         Keywords = "flatpak · snap · appimage · 选型",
         Level = ModuleLevel.Basic,
-        Overview = "三种「一次打包、到处运行」的格式各有取舍。了解它们的实现方式，就知道在 SteamOS 上该选哪种、在 Ubuntu 上为什么到处是 snap。",
+        Overview = "三种「一次打包、到处运行」的格式各有取舍。了解它们的实现方式，就能理解其他发行版为什么推荐它们、Ubuntu 上为什么到处是 snap，以及本应用在 SteamOS 上为什么只用 AppImage 与便携包。",
 
         Why =
         [
@@ -31,17 +31,13 @@ public static class UniversalPackageFormatsData
 
         Consequences =
         [
-            "• 在 SteamOS 上的建议：图形应用优先 Flatpak（系统更新不影响、有沙箱）；只有 AppImage 版本的软件放进 `~/Applications`；命令行开发工具用 Distrobox 容器。",
+            "• 本应用在 SteamOS 上的做法：不使用 Flatpak（原因与清理方法见「不用 Flatpak：清理与替代」）；图形应用用 AppImage 或官方便携包放进 `~/Applications`，其余软件用 Distrobox 容器。",
             "• 在 Ubuntu 上：部分软件（如 Firefox）官方只提供 snap，`apt install` 装到的其实是一个安装 snap 的过渡包。",
             "• 任何格式都不能替你判断软件来源是否可信：Flathub 上有「已验证」标记，AppImage 只能自己确认下载来源。",
         ],
 
         Steps =
         [
-            Step.Read(
-                "查看已安装的 Flatpak 应用及其运行时",
-                "flatpak list --columns=application,runtime,size",
-                "`runtime` 列显示每个应用依赖哪个运行时。"),
             Step.Read(
                 "查看系统中的 loop 设备",
                 "lsblk -o NAME,TYPE,SIZE,MOUNTPOINTS | grep -E '^NAME|loop'",
@@ -54,17 +50,17 @@ public static class UniversalPackageFormatsData
                 "查看 AppImage 内部的文件结构",
                 "./<程序名>.AppImage --appimage-extract && ls squashfs-root",
                 "解出到当前目录的 `squashfs-root/`，可以看到 `AppRun` 和自带的 `usr/lib`。"),
-            Step.Change(
-                "让 Flatpak 应用访问 ~/Games 目录",
-                "flatpak override --user --filesystem=~/Games <AppID>",
-                "只放行需要的目录；撤销用 `flatpak override --user --reset <AppID>`。"),
+            Step.Read(
+                "查看 AppImage 自带了哪些运行库",
+                "ls squashfs-root/usr/lib | head -n 30",
+                "在上一步解包后执行。能看到它打包的 Qt、GTK 等库，这就是 AppImage 不依赖系统库、但体积较大的原因。"),
         ],
 
         Verify =
         [
             "1. 隔离程度：Flatpak（命名空间沙箱 + Portal）≈ Snap（严格模式 + AppArmor）> AppImage（无沙箱）。",
             "2. 可移植性：AppImage（单文件拷走即用）> Flatpak（需要 flatpak 与仓库）> Snap（需要 snapd 与 Snap Store）。",
-            "3. `flatpak info --show-permissions <AppID>` 与 `snap connections <snap名>` 分别查看两者的权限。",
+            "3. 在使用它们的发行版上，`flatpak info --show-permissions <AppID>` 与 `snap connections <snap名>` 分别查看两者的权限。",
         ],
     };
 }
