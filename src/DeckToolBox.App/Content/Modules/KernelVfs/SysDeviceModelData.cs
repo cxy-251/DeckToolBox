@@ -10,23 +10,25 @@ public static class SysDeviceModelData
         Title = "/sys 设备模型",
         Keywords = "/sys · power_supply · cpufreq",
         Level = ModuleLevel.Advanced,
-        Overview = "掌握 Linux 内核统一设备模型 (sysfs)，通过标准文本接口，深度观测与调控电池、温控、GPU 显卡与 CPU 调速策略。",
+        Overview = "/sys 以目录树的形式展示内核管理的所有设备和驱动，每个属性是一个小文本文件：读取它就是查询硬件状态，root 写入它就是调整设置。电池、CPU 频率、温度、背光等信息都能在这里直接读到。",
 
         Why =
         [
-            "1. 统一设备模型 (kobject 架构)：Linux 将 PCI/PCIe 总线、USB 控制器、I2C 传感器与物理芯片映射为清晰的树状拓扑。所有硬件属性都是一个普通文件，读文件就是查传感器，写文件就是调控参数！",
-            "2. 掌机玩机工具的底层真相：所有第三方功耗调优插件（如 PowerTools、TDP 调节器、风扇曲线控制器），本质上没有高深魔法，全都是在读写 /sys 下的标准属性文件！",
-            "3. 核心硬件类接口全景：",
-            "• /sys/class/power_supply/BAT*：电池健康度、当前充电功率、设计容量与充放电循环次数。",
-            "• /sys/devices/system/cpu/cpu*/cpufreq/：每个 CPU 核心的当前工作频率、可用调速器 (scaling_governor: schedutil / performance / powersave)。",
-            "• /sys/class/thermal/thermal_zone*：主板各关键区域（APU 核心、供电、闪存）温度传感器毫度读数。",
-            "• /sys/class/drm/card*：GPU 图形接口、显存时钟状态与连接器点亮状态。",
+            "1. 设备模型：内核把总线（PCI、USB、I2C）、设备和驱动组织成一棵树，`/sys/devices/` 是真实的层次结构，`/sys/class/` 按设备类型分组提供了便捷的入口。",
+            "2. 很多图形工具（包括快捷菜单里的性能设置、第三方调优插件）最终都是在读写 `/sys` 下的这些文件。",
+            "3. 常用入口：",
+            "- `/sys/class/power_supply/BAT1/`：电池电量、状态、满电容量、设计容量。",
+            "- `/sys/devices/system/cpu/cpu*/cpufreq/`：各核心当前频率、调频驱动和策略。",
+            "- `/sys/class/thermal/thermal_zone*/`：温区温度。",
+            "- `/sys/class/hwmon/`：各类硬件传感器（见「硬件传感器、功耗与风扇」）。",
+            "- `/sys/class/drm/`：显示接口与连接状态。",
+            "4. 数值单位通常是整数形式的最小单位：温度为毫摄氏度，频率为 kHz，电流为微安，电压为微伏。",
         ],
 
         Consequences =
         [
-            "• 只读查询完全无害：查询电池容量、温度、主频纯属内核数据镜像，不会引起硬件状态任何改变。",
-            "• 调速器修改即时生效：如果向 scaling_governor 写入 performance，内核会立即锁定最高主频运行，提升响应速度但会加速耗电与发热。",
+            "• 读取 `/sys` 不会改变硬件状态。",
+            "• 写入需要 root，并且立即生效。在 SteamOS 上，很多值由 steamos-manager 和 Steam 管理，手动写入的值可能随时被覆盖；需要调整时优先使用 `steamosctl` 或快捷菜单。",
         ],
 
         Steps =
@@ -55,7 +57,8 @@ public static class SysDeviceModelData
 
         Verify =
         [
-            "观察输出结果：你会看到清晰的 CPU 当前核心主频（通常在 1600MHz~3500MHz 间弹性浮动），电池健康度通常在 95%~100% 之间，证实物理设备已被 Linux 内核精准接管。",
+            "1. 运行一个高负载程序时再读取 CPU 频率，数值会明显上升。",
+            "2. 拔掉电源后读取电池状态，`status` 变为 `Discharging`。",
         ],
     };
 }

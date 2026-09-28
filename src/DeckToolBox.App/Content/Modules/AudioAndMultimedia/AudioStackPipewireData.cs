@@ -14,54 +14,53 @@ public static class AudioStackPipewireData
 
         Why =
         [
-            "1. Linux 音频演进的历史阵痛与割裂：",
-            "• **ALSA (Advanced Linux Sound Architecture)**：内核级声音子系统，直接与音频芯片/声卡驱动通信，暴露 `/dev/snd/pcm*` 字符设备。缺点是默认独占声卡设备，多个应用无法原生并发混音。",
-            "• **PulseAudio (2004~2020)**：在用户空间实现了桌面多通道混音与网络推流，但设计时未考虑专业低延时，音频缓冲区过大，且无法处理视频流。",
-            "• **JACK (专业音频)**：支持亚毫秒级超低延时与灵活音频跳线，但配置极度复杂，与日常桌面应用格格不入。",
-            "2. 终极一统：PipeWire 图处理引擎 (Graph Engine)：",
+            "1. Linux 音频的几层：",
+            "- **ALSA**：内核中的声卡驱动，提供 `/dev/snd/` 设备。单独使用时，一个声卡通常同时只能被一个程序打开。",
+            "- **PulseAudio**：曾经的桌面音频服务，负责多程序混音、设备切换、网络音频，但延迟较高，不适合专业音频。",
+            "- **JACK**：面向音乐制作的低延迟音频服务，配置复杂，与日常桌面程序配合不佳。",
+            "2. PipeWire：",
             "• 由 Red Hat 的 Wim Taymans 发起，现已成为 Fedora、Ubuntu、Arch 和 SteamOS 等主流发行版的默认音频服务。",
-            "• **核心原理**：采用类似 GStreamer 的多媒体处理图 (Processing Graph)。每个音频产生者（游戏、播放器）和消费者（扬声器、蓝牙耳机）都是图上的一个节点 (Node)。",
+            "• 把所有音频（以及视频、屏幕共享）的来源和去处都看作「节点」，节点之间用「连接」组成处理图，由 PipeWire 统一调度。",
             "• **共享内存传输**：节点之间通过 `memfd` 共享内存交换音频数据，不必在进程之间反复复制；延迟可调到与 JACK 相当的低水平，满足音乐制作的需要。",
-            "• **万能兼容层**：PipeWire 启动时会创建模拟 PulseAudio 的 `/run/user/1000/pulse/native` 套接字，并提供 ALSA 插件劫持库与 JACK 仿真库，历史上的所有旧游戏与新应用无需任何代码修改即可完美并发发声。",
-            "3. 会话管理器 (Session Manager)：WirePlumber：",
-            "• PipeWire 本身只负责音频数据流的高效图计算，而“插拔耳机时自动切换输出设备”、“调节音量”、“蓝牙编解码器协商 (LDAC/AAC/SBC)”等业务策略决策全部由用户空间的 **WirePlumber** 守护进程统一编排。",
+            "• 同时提供 PulseAudio 与 JACK 的兼容接口，原来为它们编写的程序无需修改即可使用。",
+            "3. WirePlumber：PipeWire 的会话管理器，负责策略：插上耳机时切换输出、记住每个设备的音量、为蓝牙耳机选择编码格式等。",
         ],
 
         Consequences =
         [
-            "• 只读拓扑观测绝对安全：使用 `wpctl status`、`pw-top` 或 `pactl info` 仅实时拉取当前音频拓扑图与声卡硬件采样率，不影响任何正在播放的声音流。",
-            "• 音频服务无损平滑热重启：若因蓝牙耳机异常断开导致音频无声，执行 `systemctl --user restart pipewire pipewire-pulse wireplumber` 会在 100 毫秒内重构音频图，不会影响前台游戏或桌面进程的正常运行。",
+            "• `wpctl status`、`pw-top`、`pactl info` 只读。",
+            "• 重启音频服务 (`systemctl --user restart pipewire pipewire-pulse wireplumber`) 会让声音中断约一秒，正在播放的程序通常会自动重连。",
             "• 绕过 PipeWire 直接用 `aplay -D hw:0,0` 打开硬件设备时，如果 PipeWire 正占用该设备，会报「设备忙」；即使成功，也会抢走其他程序的声音。日常播放请始终经过 PipeWire。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看当前系统全量音频拓扑树与活动音频设备 (WirePlumber)",
+                "查看音频设备与正在发声的程序",
                 "wpctl status",
                 "Sink 是输出（扬声器、耳机），Source 是输入（麦克风）。").Then("按 Audio / Video 分组的树：`Devices` 声卡、`Sinks` 输出（带 `*` 的是默认）、`Sources` 输入、`Streams` 正在播放或录音的程序，每项有数字 ID 和 `[vol: 0.12]` 这样的音量。"),
             Step.Read(
-                "实时观测 PipeWire 音频图处理性能与缓冲量子 (pw-top)",
+                "查看音频处理的缓冲与错误计数",
                 "pw-top -b -n 1",
                 "`-b` 批处理模式输出纯文本，`-n 1` 只输出一次。`ERR` 持续增长说明有爆音或掉帧。").Then("输出一次快照表格：每行一个节点，`QUANT` 缓冲帧数、`RATE` 采样率、`WAIT`/`BUSY` 耗时、`ERR` 错误数，最后一列是节点名。"),
             Step.Read(
-                "查看内核层物理声卡与 ALSA PCM 设备节点清单",
+                "查看内核识别的声卡",
                 "cat /proc/asound/cards && ls -l /dev/snd/",
                 "Steam Deck 使用 AMD 音频协处理器 (ACP) 配合 SOF 固件，扬声器与耳机由 NAU8821 编解码器和 MAX98388 功放驱动。").Then("先列出声卡编号与名称（HDMI 声卡和板载 `acp` 声卡），再列出 `/dev/snd/` 下的 `controlC0`、`pcmC0D0p` 等设备节点。"),
             Step.Read(
-                "排查 PulseAudio 仿真套接字健康状况与服务器版本",
+                "确认 PulseAudio 兼容层由 PipeWire 提供",
                 "pactl info",
                 "`pactl` 是 PulseAudio 的命令行工具，PipeWire 兼容它。").Then("输出十几行信息，其中 `Server Name: PulseAudio (on PipeWire 1.x.x)` 说明旧的 PulseAudio 程序实际由 PipeWire 服务；还有默认输出、输入设备名。"),
             Step.Change(
-                "无损重置用户空间音频图调度服务链（故障自愈指令）",
+                "重启音频服务",
                 "systemctl --user restart pipewire pipewire-pulse wireplumber",
                 "HDMI 或蓝牙连接后没有声音时先试这一步，不必重启整机。").Then("没有输出。声音中断约一秒，三个音频服务重新启动；正在播放的程序通常会自动重连，个别程序需要重新播放。"),
         ],
 
         Verify =
         [
-            "1. 服务健康度核验：执行 `systemctl --user is-active pipewire wireplumber`，两行均应明确返回 `active`。",
-            "2. 节点路由验证：在执行 `wpctl status` 时，带有 `*` 标识的 Sink 节点即为当前系统的默认音频主输出设备（如板载扬声器 Speaker 或外置 DAC 耳机），音量值在 0.00~1.00 之间为正常区间。",
+            "1. `systemctl --user is-active pipewire wireplumber` 输出两行 `active`。",
+            "2. `wpctl status` 中 `Sinks` 下带 `*` 的是当前默认输出设备，音量值在 0.00~1.00 之间。",
         ],
     };
 }

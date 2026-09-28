@@ -10,7 +10,7 @@ public static class ProcessBasicsData
         Title = "查看与结束程序",
         Keywords = "htop · btop · pgrep · kill · 强制关闭窗口",
         Level = ModuleLevel.Basic,
-        Overview = "程序卡死、风扇狂转、电量掉得快——先找出是哪个进程，再决定是正常关闭还是强制结束。图形界面和命令行各有一套方法。",
+        Overview = "程序卡死、风扇转速一直很高、电量下降很快——先找出是哪个进程，再决定是正常关闭还是强制结束。图形界面和命令行各有一套方法。",
 
         Why =
         [

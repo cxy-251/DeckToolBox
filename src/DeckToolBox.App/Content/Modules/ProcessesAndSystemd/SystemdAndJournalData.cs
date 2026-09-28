@@ -14,46 +14,48 @@ public static class SystemdAndJournalData
 
         Why =
         [
-            "1. 为什么 Systemd 能统治现代 Linux？",
-            "• 强大的 cgroups 进程控制组：传统 init 脚本无法跟踪通过 double-fork 脱壳逃逸的守护进程。Systemd 将每个服务置入独立的 cgroup，服务停止时能瞬间精确收割整个进程树，绝无孤儿残留。",
-            "• 并行启动与 Socket 激活：根据服务依赖图有向无环图 (DAG) 全力并行拉起，极大压缩掌机开机耗时。",
-            "2. 核心单元类型 (Unit Types)：",
-            "• .service：后台服务（控制启动、重启策略 Restart=on-failure）。",
-            "• .timer：高精度定时器（彻底淘汰过时的 crontab，支持唤醒睡眠硬件、定时错峰执行）。",
-            "• .target：逻辑同步聚合点（如 graphical.target 代表图形界面已就绪）。",
-            "3. 极其重要的用户级服务体系 (systemd --user)：",
-            "• 任何用户无需 root 提权，即可在 ~/.config/systemd/user/ 编写专属服务，实现自定义后端脚本开机自启、崩溃自动重启、生命周期随桌面会话绑定！",
+            "1. systemd 的职责：作为 1 号进程启动整个系统，按依赖关系并行启动各项服务，监控它们，在服务退出时按策略重启。每个服务运行在独立的 cgroup 中，停止服务时它派生的所有子进程都会被一并结束。",
+            "2. 单元 (unit) 类型：",
+            "- `.service`：服务，定义怎样启动一个程序、失败时是否重启。",
+            "- `.timer`：定时器，按时间触发某个 service（见「定时任务：systemd timer」）。",
+            "- `.target`：一组单元的同步点，例如 `graphical.target` 表示图形界面所需的服务都已就绪。",
+            "- `.mount`、`.socket`、`.path` 等：挂载点、套接字激活、路径监视。",
+            "3. 系统实例与用户实例：`systemctl` 管理系统服务（需要 root 才能修改）；`systemctl --user` 管理你自己的用户服务，单元文件放在 `~/.config/systemd/user/`，无需 root，随你登录启动、注销停止。",
+            "4. journald：收集内核、服务和用户程序的输出，以带索引的二进制格式保存在 `/var/log/journal`，用 `journalctl` 按时间、服务、级别过滤查询。",
         ],
 
         Consequences =
         [
-            "• 用户服务隔离安全：systemd --user 严格继承普通用户权限，绝无破坏系统只读根分区的风险。",
-            "• 单元文件编写规范：每次在 ~/.config/systemd/user/ 新增或修改 .service 文件后，必须执行 systemctl --user daemon-reload 重新加载内存索引，否则修改不会生效。",
+            "• `systemctl status`、`list-units`、`journalctl` 都是只读的。",
+            "• 用户服务以你的身份运行，不能修改系统文件，也不会影响只读根分区。",
+            "• 新增或修改单元文件后必须执行 `systemctl --user daemon-reload`（系统服务用 `sudo systemctl daemon-reload`），否则 systemd 仍使用旧配置。",
+            "• `enable` 让服务开机（或登录时）自动启动，`start` 只启动这一次；`enable --now` 两者都做。",
         ],
 
         Steps =
         [
             Step.Read(
-                "查看系统当前启动失败的所有故障单元",
+                "列出启动失败的系统单元",
                 "systemctl --failed",
                 "列出所有处于 failed 状态的系统单元。").Then("正常时显示 `0 loaded units listed.`；有失败时每行列出单元名与 `failed` 状态。"),
             Step.Read(
-                "查看当前用户专属运行的 systemd 用户服务清单",
+                "列出正在运行的用户服务",
                 "systemctl --user list-units --type=service --state=running",
                 "`--user` 查看用户级服务，`--state=running` 只显示运行中的。").Then("表格列出正在运行的用户服务，如 `pipewire.service`、`wireplumber.service`、`xdg-desktop-portal.service`，末尾统计总数。"),
             Step.Change(
-                "编写一个标准的用户级开机自启服务模板 (~/.config/systemd/user/)",
+                "编写一个用户级服务",
                 "mkdir -p ~/.config/systemd/user\ncat <<'EOF' > ~/.config/systemd/user/my-bg-tool.service\n[Unit]\nDescription=我的自定义后台工具\nAfter=network.target\n\n[Service]\nType=simple\nExecStart=/home/deck/Applications/MyTool/start.sh\nRestart=on-failure\nRestartSec=5s\n\n[Install]\nWantedBy=default.target\nEOF\nsystemctl --user daemon-reload",
                 "`Restart=on-failure` 让程序崩溃后 5 秒自动重启。把 `ExecStart` 换成你自己程序的绝对路径。").Then("没有输出。生成 `~/.config/systemd/user/my-bg-tool.service` 并让 systemd 重新加载配置，但服务尚未启动；执行 `systemctl --user enable --now my-bg-tool` 后才会启动并开机自启。"),
             Step.Read(
-                "使用 journalctl 查看当前开机周期内所有的错误级别日志",
+                "查看本次开机的错误日志",
                 "journalctl -p err -b 0 | head -n 30",
                 "`-p err` 只看错误及更严重的级别，`-b 0` 表示本次开机。").Then("每行一条错误日志：时间、主机名、来源进程[PID]、消息内容，显示前 30 条。"),
         ],
 
         Verify =
         [
-            "执行 systemctl --user status my-bg-tool.service，即可看到清晰的状态绿灯 (active running)，以及由 journald 实时收集的最近几行控制台输出。",
+            "1. 启用示例服务后，`systemctl --user status my-bg-tool.service` 显示 `active (running)`，下方有它最近的输出日志。",
+            "2. `journalctl --user -u my-bg-tool.service -f` 能实时看到该服务的输出。",
         ],
     };
 }

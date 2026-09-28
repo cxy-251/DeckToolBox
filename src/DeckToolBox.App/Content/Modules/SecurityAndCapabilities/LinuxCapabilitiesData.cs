@@ -10,27 +10,24 @@ public static class LinuxCapabilitiesData
         Title = "Linux Capabilities",
         Keywords = "getcap · capsh · setcap",
         Level = ModuleLevel.Advanced,
-        Overview = "彻底打破传统 UNIX 粗暴的 root/非 root 二元权限模型，深入解析 Linux POSIX Capabilities 权能分割机制、线程五大权能集与生产环境无 SUID 提权实践。",
+        Overview = "传统 Unix 只区分「root」和「普通用户」。Linux 把 root 的特权拆成几十种权能 (capability)，程序只需获得它确实需要的那一项。SteamOS 上的 Gamescope、Podman 等程序正是这样在不使用 root 的前提下获得必要权限的。",
 
         Why =
         [
-            "1. 传统 UNIX 模型的重大安全隐患 (All-or-Nothing)：",
-            "• 在传统 UNIX/Linux 体系中，权限判断仅由有效用户 ID (EUID == 0) 决定。一个程序要么是普通用户（权限处处受限），要么是 root（拥有修改内核、格式化硬盘、窥探任意进程内存的绝对无上特权）。",
+            "1. 传统模型的问题：",
+            "• 权限检查只看有效用户 ID 是否为 0。程序要么什么都不能做，要么什么都能做。",
             "• 过去普通程序需要执行特权操作时（例如 `ping` 需要原始套接字、Web 服务器需要绑定 80 端口），只能把程序设为 SUID-root (`chmod u+s`)。程序一旦有漏洞，攻击者就能直接获得 root 权限。",
-            "2. Linux Capabilities 的细粒度权能解耦：",
-            "• 从 Linux 2.2 开始，内核把 root 的特权拆分成 40 多种独立的权能 (Capabilities)：",
-            "  - `CAP_NET_BIND_SERVICE`：仅允许绑定 < 1024 特权网络端口，剥夺其他任何破坏能力。",
-            "  - `CAP_NET_RAW`：仅允许构造 RAW / PACKET 原始套接字（抓包工具需要；现代发行版的 `ping` 改用无需特权的 ICMP 数据报套接字，已经连这个权能都不需要了）。",
-            "  - `CAP_SYS_NICE`：仅允许调整进程 nice 优先级与实时调度策略 (SCHED_FIFO / SCHED_RR)。SteamOS 上的 `gamescope` 和 `kwin_wayland` 通过文件权能获得它，用来提升自己的调度优先级，减少画面卡顿，而无需以 root 身份运行。",
-            "  - `CAP_SYS_PTRACE`：允许通过 ptrace 系统调用调试或追踪其他进程（gdb / strace 核心权能）。",
-            "  - `CAP_SYS_ADMIN`：被称为“新一代 root”，涵盖挂载文件系统、配置网络命名空间等广泛底层操作，容器运行时重点防护对象。",
-            "3. 进程的五大权能集合 (Capability Sets)：",
-            "• 内核在 `task_struct` 中为每个线程维护了 5 组 64-bit 位图：",
-            "  - **Permitted (P)**：该进程能使用的最大权能超集。",
-            "  - **Effective (E)**：内核在做权限检查时实际判定的权能生效位。",
-            "  - **Inheritable (I)**：通过 execve 系统调用执行新程序时可以继承的权能位。",
-            "  - **Bounding (B)**：权能边界集，限制进程及其子进程能获得的权能上限（只能收紧，不可扩张）。",
-            "  - **Ambient (A)**：Linux 4.3 引入，允许非 root 用户启动的子进程无缝继承已授予的特权，是现代非特权容器的关键支撑。",
+            "2. 权能：从 Linux 2.2 开始，内核把 root 的特权拆分成 40 多种独立的权能 (Capabilities)，常见的有：",
+            "- `CAP_NET_BIND_SERVICE`：绑定 1024 以下的端口。",
+            "- `CAP_NET_RAW`：使用原始套接字（抓包工具需要；现代发行版的 `ping` 改用无需特权的 ICMP 数据报套接字，已经不需要它）。",
+            "- `CAP_SYS_NICE`：提高进程优先级、使用实时调度。SteamOS 上的 `gamescope` 和 `kwin_wayland` 通过文件权能获得它，用来提升自己的调度优先级，减少画面卡顿，而无需以 root 身份运行。",
+            "- `CAP_SYS_PTRACE`：调试、追踪其他进程。",
+            "- `CAP_SYS_ADMIN`：挂载文件系统等大量管理操作，范围很广，接近完整的 root。",
+            "3. 进程的五组权能：",
+            "- `Permitted`：进程可以使用的上限；`Effective`：当前实际生效的。",
+            "- `Inheritable`、`Ambient`：执行新程序时如何传递给子进程。",
+            "- `Bounding`：整个进程树能获得的权能上限，只能缩小，不能扩大。",
+            "4. 文件权能：用 `setcap` 把权能附加到程序文件上（存在扩展属性 `security.capability` 中），任何人运行该程序时自动获得这些权能。",
         ],
 
         Consequences =
@@ -67,7 +64,7 @@ public static class LinuxCapabilitiesData
         Verify =
         [
             "1. 普通用户执行 `grep CapEff /proc/$$/status`，结果为 `0000000000000000`：你的 shell 没有任何生效的特权。",
-            "2. `getcap /usr/bin/gamescope` 输出 `cap_sys_nice=eip`，印证 Gamescope 以普通用户运行、只额外拥有调整调度优先级的能力。",
+            "2. `getcap /usr/bin/gamescope` 输出 `cap_sys_nice=eip`：Gamescope 以普通用户运行，只额外拥有调整调度优先级的能力。",
         ],
     };
 }
