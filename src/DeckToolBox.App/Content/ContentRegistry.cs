@@ -3,6 +3,7 @@ using DeckToolBox.App.Framework.Models;
 using DeckToolBox.App.Content.Modules.Essentials;
 using DeckToolBox.App.Content.Modules.Manual.Files;
 using DeckToolBox.App.Content.Modules.Manual.Text;
+using DeckToolBox.App.Content.Modules.Manual.Shell;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -108,6 +109,18 @@ public static class ContentRegistry
                 TextToolsData.Create(),
                 HexStringsData.Create(),
                 EncodingData.Create(),
+            ]),
+            new("Shell 与脚本", "🐚", "重定向与管道、变量与引号、脚本、后台任务、快捷键与其他 shell",
+            [
+                RedirectPipeData.Create(),
+                BashVariablesData.Create(),
+                BashScriptData.Create(),
+                XargsParallelData.Create(),
+                JobControlData.Create(),
+                WatchTimeoutData.Create(),
+                DateCalcData.Create(),
+                KeysHistoryData.Create(),
+                FishZshData.Create(),
             ]),
         ]),
 
