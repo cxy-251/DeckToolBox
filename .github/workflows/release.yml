@@ -1,0 +1,163 @@
+# 推送 v* 标签（如 v0.1.0）时，在各平台原生 runner 上构建安装包并创建 GitHub Release。
+# 也可以在 Actions 页面手动运行（只构建、上传构件，不创建 Release）。
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PROJECT: src/DeckToolBox.App/DeckToolBox.App.csproj
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Read version
+        id: version
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$PROJECT")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::标签 $GITHUB_REF_NAME 与项目版本 $version 不一致"
+            exit 1
+          fi
+      - name: Content check
+        run: dotnet run --project "$PROJECT" -c Release -- --check
+
+  linux:
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish
+        run: |
+          for rid in linux-x64 linux-arm64; do
+            dir="out/DeckToolBox-$VERSION-$rid"
+            dotnet publish "$PROJECT" -c Release -r $rid --self-contained -o "$dir" \
+              -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+              -p:EnableCompressionInSingleFile=true -p:DebugType=none
+            cp packaging/install.sh "$dir/"
+            cp src/DeckToolBox.App/Assets/icon.png "$dir/decktoolbox.png"
+            mkdir -p dist
+            tar -C out -czf "dist/DeckToolBox-$VERSION-$rid.tar.gz" "DeckToolBox-$VERSION-$rid"
+          done
+      - name: AppImage (x86_64)
+        run: |
+          curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          app=out/DeckToolBox.AppDir
+          mkdir -p "$app/usr/bin"
+          cp "out/DeckToolBox-$VERSION-linux-x64/DeckToolBox" "$app/usr/bin/"
+          cp packaging/AppRun packaging/decktoolbox.desktop "$app/"
+          cp src/DeckToolBox.App/Assets/icon.png "$app/decktoolbox.png"
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run --no-appstream "$app" "dist/DeckToolBox-$VERSION-linux-x86_64.AppImage"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+
+  windows:
+    needs: check
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish
+        run: |
+          mkdir -p dist
+          for rid in win-x64 win-arm64; do
+            dotnet publish "$PROJECT" -c Release -r $rid --self-contained -o "out/$rid" \
+              -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+              -p:EnableCompressionInSingleFile=true -p:DebugType=none
+            7z a -tzip -mx=9 "dist/DeckToolBox-$VERSION-$rid-portable.zip" "./out/$rid/DeckToolBox.exe"
+          done
+      - name: Installer (x64)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DAppVersion=$env:VERSION" "/DSourceDir=$PWD\out\win-x64" "/DOutputDir=$PWD\dist" packaging\DeckToolBox.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+
+  macos:
+    needs: check
+    runs-on: macos-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build app bundles and DMG
+        run: |
+          mkdir -p dist
+          for rid in osx-arm64 osx-x64; do
+            bundle="out/$rid/DeckToolBox.app"
+            dotnet publish "$PROJECT" -c Release -r $rid --self-contained -o "$bundle/Contents/MacOS" -p:DebugType=none
+            mkdir -p "$bundle/Contents/Resources"
+            sed "s/@VERSION@/$VERSION/g" packaging/Info.plist > "$bundle/Contents/Info.plist"
+            cp packaging/DeckToolBox.icns "$bundle/Contents/Resources/"
+            # 未经 Apple 公证，只做临时签名（ad-hoc），Apple Silicon 要求可执行文件至少有临时签名
+            codesign --force --deep --sign - "$bundle"
+            ln -s /Applications "out/$rid/Applications"
+            hdiutil create -volname DeckToolBox -srcfolder "out/$rid" -ov -format UDZO "dist/DeckToolBox-$VERSION-$rid.dmg"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*
+
+  release:
+    needs: [check, linux, windows, macos]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: cd dist && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "DeckToolBox $GITHUB_REF_NAME" \
+            --notes-file packaging/release-notes.txt \
+            --generate-notes

@@ -34,13 +34,31 @@
 - 🟣 **执行位置**：不在本机终端执行的指令（Distrobox 容器内、Steam 启动选项、其他发行版等）
 - **含 &lt;占位符&gt;**：复制后需要先把 `<AppID>` 之类替换成实际值
 
-## 运行
+## 下载
+
+在 [Releases](https://github.com/cxy-251/DeckToolBox/releases) 页面下载对应系统的安装包，均自带 .NET 运行时：
+
+- **Steam Deck / Linux x86_64**：`.AppImage`，`chmod +x` 后直接运行；或下载 `.tar.gz`，解压后执行 `./install.sh` 加入应用菜单。
+- **Windows**：`-setup.exe` 安装程序（不需要管理员权限），或 `-portable.zip` 解压即用。
+- **macOS**：`.dmg`（Apple Silicon 选 `osx-arm64`，Intel 选 `osx-x64`）。未经 Apple 公证，首次打开需在「系统设置 → 隐私与安全性」中允许。
+
+`Ctrl+F` 可跨全部专区搜索模块和命令。
+
+## 从源码运行
 
 ```bash
 ./run.sh
 ```
 
-需要 .NET 10 SDK（脚本会把 `~/Applications/dotnet` 加入 PATH）。`Ctrl+F` 可跨全部专区搜索模块和命令。
+需要 .NET 10 SDK（脚本会把 `~/Applications/dotnet` 加入 PATH）。
+
+## 发布新版本
+
+1. 修改 `src/DeckToolBox.App/DeckToolBox.App.csproj` 中的 `<Version>`。
+2. 提交后打标签并推送：`git tag v<版本号> && git push origin main --tags`。
+3. GitHub Actions（`.github/workflows/release.yml`）先运行内容检查，再在 Linux、Windows、macOS 的 runner 上分别构建安装包，最后创建 Release。标签必须与 `<Version>` 一致，否则构建会停止。
+
+打包用到的模板文件（安装脚本、AppImage 入口、macOS Info.plist、Windows 安装脚本、Release 说明）在 `packaging/`。
 
 ## 维护
 

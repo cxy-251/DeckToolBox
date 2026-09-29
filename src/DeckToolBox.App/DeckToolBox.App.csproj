@@ -5,7 +5,21 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>DeckToolBox</AssemblyName>
+    <RootNamespace>DeckToolBox.App</RootNamespace>
+    <Version>0.1.0</Version>
+    <Product>DeckToolBox</Product>
+    <Authors>cxy251</Authors>
+    <Description>Linux 使用手册：Steam Deck 与主流发行版的命令、原理与操作</Description>
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- 界面不依赖区域格式，关闭 ICU 依赖，精简的发行版上也能直接运行 -->
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/icon.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.22" />

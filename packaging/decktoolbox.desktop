@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=DeckToolBox
+Comment=Linux 使用手册：命令、原理与操作
+Exec=DeckToolBox
+Icon=decktoolbox
+Terminal=false
+Categories=Utility;Documentation;

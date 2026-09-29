@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect x="8" y="8" width="240" height="240" rx="48" fill="#238636"/>
+  <!-- 工具箱提手 -->
+  <path d="M96 92 V72 a12 12 0 0 1 12-12 h40 a12 12 0 0 1 12 12 V92" fill="none" stroke="#ffffff" stroke-width="14" stroke-linejoin="round"/>
+  <!-- 箱体 -->
+  <rect x="44" y="92" width="168" height="112" rx="16" fill="#ffffff"/>
+  <!-- 终端提示符 -->
+  <path d="M78 128 l26 20 l-26 20" fill="none" stroke="#238636" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="116" y="162" width="56" height="13" rx="6.5" fill="#238636"/>
+</svg>

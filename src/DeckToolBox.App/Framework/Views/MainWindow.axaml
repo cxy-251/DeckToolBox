@@ -8,6 +8,7 @@
         Width="1280" Height="800"
         MinWidth="960" MinHeight="600"
         WindowStartupLocation="CenterScreen"
+        Icon="avares://DeckToolBox/Assets/icon.png"
         Background="{StaticResource Bg0}">
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -46,7 +47,8 @@
                 </Border>
 
                 <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource TextMuted}"
-                           Text="{Binding ModuleCount, StringFormat='{}{0} 个模块'}" />
+                           Text="{Binding ModuleCount, StringFormat='{}{0} 个模块'}"
+                           ToolTip.Tip="{Binding AppVersion, StringFormat='DeckToolBox {0}'}" />
             </Grid>
         </Border>
 

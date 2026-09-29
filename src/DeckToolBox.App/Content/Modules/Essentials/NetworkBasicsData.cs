@@ -40,7 +40,7 @@ public static class NetworkBasicsData
             Step.Read(
                 "查看当前生效的连接",
                 "nmcli -f NAME,TYPE,DEVICE connection show --active",
-                "同时列出已保存的所有连接：`nmcli connection show`。").Then("表格：`NAME TYPE DEVICE`，如 `CXY  802-11-wireless  wlan0`。"),
+                "同时列出已保存的所有连接：`nmcli connection show`。").Then("表格：`NAME TYPE DEVICE`，如 `MyWiFi  802-11-wireless  wlan0`。"),
             Step.Read(
                 "扫描附近的 Wi-Fi 及信号强度",
                 "nmcli dev wifi list",
@@ -48,7 +48,7 @@ public static class NetworkBasicsData
             Step.Read(
                 "查看当前无线连接的信号强度与速率",
                 "iw dev wlan0 link",
-                "`signal` 越接近 0 越好：-50 以上很好，-60 左右正常，-70 以下容易卡顿断线。`freq` 2412~2484 为 2.4 GHz，5000 以上为 5 GHz。").Then("输出 `SSID: CXY`、`freq: 2462.0`、`signal: -59 dBm`、`rx bitrate: 81.0 MBit/s` 等行；未连接时显示 `Not connected.`。"),
+                "`signal` 越接近 0 越好：-50 以上很好，-60 左右正常，-70 以下容易卡顿断线。`freq` 2412~2484 为 2.4 GHz，5000 以上为 5 GHz。").Then("输出 `SSID: MyWiFi`、`freq: 2462.0`、`signal: -59 dBm`、`rx bitrate: 81.0 MBit/s` 等行；未连接时显示 `Not connected.`。"),
             Step.Change(
                 "连接一个 Wi-Fi",
                 "nmcli --ask dev wifi connect '<网络名称>'",

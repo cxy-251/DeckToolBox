@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using DeckToolBox.App.Framework.Models;
 
@@ -41,6 +42,9 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public IReadOnlyList<ScopeTabViewModel> ScopeTabs { get; }
     public int ModuleCount { get; }
+
+    public string AppVersion { get; } = typeof(MainWindowViewModel).Assembly
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "dev";
 
     public KnowledgeScope ActiveScope => _activeTab.Scope;
 

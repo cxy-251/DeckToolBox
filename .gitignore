@@ -1,26 +1,16 @@
-# .NET
+# .NET 构建输出
 bin/
 obj/
-*.user
-*.userosscache
-*.suo
+
+# 发布产物（packaging/build-release.sh）
+dist/
+
+# 编辑器与系统文件
 .vs/
-
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-.uv/
-
-# Node
-node_modules/
-.pnpm-store/
-
-# Linux / OS
-.DS_Store
+.idea/
+.vscode/
+*.user
+*.DotSettings.user
 *.swp
 *~
-
-# IDE
-.idea/
-*.DotSettings.user
+.DS_Store
