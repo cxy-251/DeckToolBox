@@ -9,6 +9,7 @@ using DeckToolBox.App.Content.Modules.Manual.Process;
 using DeckToolBox.App.Content.Modules.Manual.Systemd;
 using DeckToolBox.App.Content.Modules.Manual.Disk;
 using DeckToolBox.App.Content.Modules.Manual.Network;
+using DeckToolBox.App.Content.Modules.Manual.Media;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -169,6 +170,14 @@ public static class ContentRegistry
                 KdeConnectData.Create(),
                 SshAdvancedData.Create(),
                 VpnQrData.Create(),
+            ]),
+            new("多媒体与文档", "🎬", "声卡与混音器、语音合成、照片元数据、PDF 处理、音频编码",
+            [
+                AlsaToolsData.Create(),
+                EspeakData.Create(),
+                Exiv2Data.Create(),
+                PdfToolsData.Create(),
+                AudioCodecData.Create(),
             ]),
         ]),
 
