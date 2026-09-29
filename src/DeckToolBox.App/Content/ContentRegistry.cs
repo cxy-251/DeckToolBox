@@ -10,6 +10,7 @@ using DeckToolBox.App.Content.Modules.Manual.Systemd;
 using DeckToolBox.App.Content.Modules.Manual.Disk;
 using DeckToolBox.App.Content.Modules.Manual.Network;
 using DeckToolBox.App.Content.Modules.Manual.Media;
+using DeckToolBox.App.Content.Modules.Manual.Graphics;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -178,6 +179,13 @@ public static class ContentRegistry
                 Exiv2Data.Create(),
                 PdfToolsData.Create(),
                 AudioCodecData.Create(),
+            ]),
+            new("图形与游戏诊断", "🎮", "显卡驱动信息、性能浮层与测试、输入设备测试、外接显示器控制",
+            [
+                GpuInfoData.Create(),
+                MangoHudData.Create(),
+                EvtestData.Create(),
+                DdcutilData.Create(),
             ]),
         ]),
 
