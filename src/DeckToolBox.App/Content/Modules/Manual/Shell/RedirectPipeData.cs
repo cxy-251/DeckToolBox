@@ -55,8 +55,8 @@ public static class RedirectPipeData
                 "`2>&1` 必须写在 `> 文件` 之后。").Then("文件开头是错误提示，随后是 `/:` 和目录列表：两路输出都进了同一个文件。"),
             Step.Read(
                 "丢弃错误信息",
-                "find / -maxdepth 2 -name 'Steam*' 2>/dev/null",
-                "无权访问的目录产生的「权限不够」提示被丢弃。").Then("只输出找到的路径，没有权限错误的干扰行。"),
+                "find / -maxdepth 3 -name 'steam*' 2>/dev/null",
+                "去掉 `2>/dev/null` 再执行一次对比：会多出几十行「权限不够」。").Then("只输出找到的路径，如 `/etc/steamos-release`、`/usr/bin/steam`，没有权限错误的干扰行。"),
             Step.Change(
                 "同时显示并保存：tee",
                 "ls /usr/bin | wc -l | tee count.txt; cat count.txt",

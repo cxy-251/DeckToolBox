@@ -12,6 +12,7 @@ using DeckToolBox.App.Content.Modules.Manual.Network;
 using DeckToolBox.App.Content.Modules.Manual.Media;
 using DeckToolBox.App.Content.Modules.Manual.Graphics;
 using DeckToolBox.App.Content.Modules.Manual.Desktop;
+using DeckToolBox.App.Content.Modules.Manual.Data;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -194,6 +195,12 @@ public static class ContentRegistry
                 KioclientData.Create(),
                 DialogsData.Create(),
                 QdbusDesktopData.Create(),
+            ]),
+            new("版本管理、数据与容器", "🧮", "git 版本管理、SQLite 数据库、podman 容器与镜像空间",
+            [
+                GitData.Create(),
+                Sqlite3Data.Create(),
+                PodmanData.Create(),
             ]),
         ]),
 

@@ -8,7 +8,7 @@
 | --- | --- |
 | 📌 原理 | 为什么是这样，底层机制是什么 |
 | ⚠️ 后果与边界 | 操作会改变什么、能否撤销、有哪些坑 |
-| 💻 操作步骤 | 可复制的真实命令，标注风险等级与执行位置 |
+| 💻 操作步骤 | 可复制的真实命令，标注风险等级与执行位置；每条都写明「▶ 执行后」会看到什么、改变了什么 |
 | 🔍 验证 | 如何确认操作生效 |
 
 应用**从不替你执行命令**：点击「复制」，粘贴到 Konsole，看清楚再回车。
@@ -18,6 +18,7 @@
 | 专区 | 面向 | 模块 |
 | --- | --- | --- |
 | 🧭 入门必修 | 任何 Linux 都通用的日常技能与系统自带命令 | 终端、文件与管道、Shell 配置、nano/vim、tmux、sudo、外接存储、压缩与 rsync 备份、硬盘健康与固件、网络排查、SSH、防火墙、蓝牙、音频、电源休眠、KDE 命令行、文本处理、jq、ffmpeg、校验与加密、系统信息、进程、排障流程、systemd 定时器 |
+| 📖 命令手册 | SteamOS 自带命令逐个讲解，照着就能用 | 文件与目录、文本处理、Shell 与脚本、压缩归档、进程监控、systemd、磁盘与文件系统、网络、多媒体与文档、图形与游戏诊断、桌面集成、git/sqlite3/podman（共 74 个模块） |
 | 🎮 Steam Deck 本机 | 只适用于 SteamOS 的机制与命令 | 桌面模式、只读系统与 A/B 更新、steamosctl（终端里的快捷菜单）、steamos-* 命令集、便携应用、Distrobox、不用 Flatpak 的清理与替代、存储清理、传感器与功耗、Gamescope、手柄输入链、Wine/Proton、Proton 前缀、启动选项、非 Steam 游戏、Steam Runtime |
 | 🐧 其他发行版 | 各发行版家族的包管理 | 命令对照表、Debian/Ubuntu、Fedora/RHEL、Arch、openSUSE、Alpine、Nix 与原子化发行版、Flatpak/Snap/AppImage 对比 |
 | 🧠 系统原理 | 所有发行版通用的底层机制 | 进程与信号、systemd、D-Bus、/proc、/sys、udev、挂载与 OverlayFS、文件系统、内存与 OOM、cgroups、网络栈、UNIX 套接字、权限与 ACL、Capabilities、显示栈、XDG、PipeWire、内核模块、性能追踪 |
