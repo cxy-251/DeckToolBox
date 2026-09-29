@@ -11,6 +11,7 @@ using DeckToolBox.App.Content.Modules.Manual.Disk;
 using DeckToolBox.App.Content.Modules.Manual.Network;
 using DeckToolBox.App.Content.Modules.Manual.Media;
 using DeckToolBox.App.Content.Modules.Manual.Graphics;
+using DeckToolBox.App.Content.Modules.Manual.Desktop;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -186,6 +187,13 @@ public static class ContentRegistry
                 MangoHudData.Create(),
                 EvtestData.Create(),
                 DdcutilData.Create(),
+            ]),
+            new("桌面集成", "🖥️", "默认程序、KDE 文件操作、脚本对话框、剪贴板与桌面控制",
+            [
+                XdgMimeData.Create(),
+                KioclientData.Create(),
+                DialogsData.Create(),
+                QdbusDesktopData.Create(),
             ]),
         ]),
 
