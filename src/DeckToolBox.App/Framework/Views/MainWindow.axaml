@@ -66,7 +66,7 @@
                     </StackPanel>
 
                     <!-- 目录 -->
-                    <ScrollViewer Grid.Row="1" IsVisible="{Binding !IsSearching}">
+                    <ScrollViewer x:Name="NavScroll" Grid.Row="1" IsVisible="{Binding !IsSearching}">
                         <ItemsControl ItemsSource="{Binding NavCategories}" Margin="8,0,10,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:NavCategoryViewModel">
@@ -102,7 +102,7 @@
                     </ScrollViewer>
 
                     <!-- 搜索结果（跨全部专区） -->
-                    <ScrollViewer Grid.Row="1" IsVisible="{Binding IsSearching}">
+                    <ScrollViewer x:Name="SearchScroll" Grid.Row="1" IsVisible="{Binding IsSearching}">
                         <ItemsControl ItemsSource="{Binding SearchResults}" Margin="8,0,10,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:NavModuleViewModel">
