@@ -48,23 +48,23 @@ public static class NmcliData
             Step.Read(
                 "显示当前 Wi-Fi 的密码和二维码",
                 "nmcli device wifi show-password",
-                "密码会以明文显示。").Then("输出 `SSID:`、`安全性:`、`密码:` 三行，下面是一个由字符方块组成的二维码，手机相机扫描后可以直接加入这个 Wi-Fi。"),
+                "通过 NetworkManager D-Bus 读取当前热点的 PSK 预共享密钥，在终端渲染 ASCII 二维码供扫码配网。").Then("输出 `SSID:`、`安全性:`、`密码:` 三行，下面是一个由字符方块组成的二维码，手机相机扫描后可以直接加入这个 Wi-Fi。"),
             Step.Change(
                 "改为静态 IP（示例）",
                 "nmcli connection modify \"<连接名>\" ipv4.method manual ipv4.addresses <IP>/24 ipv4.gateway <网关IP> ipv4.dns \"223.5.5.5 1.1.1.1\" && nmcli connection up \"<连接名>\"",
-                "IP 需与路由器在同一网段，且不与其他设备冲突。").Then("网络断开几秒后重新连上，提示 `连接已成功激活`；`ip -br addr` 显示你设定的地址，以后每次连接都使用它。"),
+                "`<连接名>` 可由首步输出获得；`<IP>` 与 `<网关IP>` 需处于路由器同一子网网段且避免 IP 冲突。").Then("网络断开几秒后重新连上，提示 `连接已成功激活`；`ip -br addr` 显示你设定的地址，以后每次连接都使用它。"),
             Step.Change(
                 "改回自动获取",
                 "nmcli connection modify \"<连接名>\" ipv4.method auto ipv4.addresses '' ipv4.gateway '' ipv4.dns '' && nmcli connection up \"<连接名>\"",
-                "清空手动设置的各项。").Then("重新连接后由路由器分配地址与 DNS。"),
+                "`<连接名>` 由 `nmcli connection show` 查得。清空手动设置恢复 DHCP 自动获取。").Then("重新连接后由路由器分配地址与 DNS。"),
             Step.Change(
                 "设置多个网络的连接优先级",
                 "nmcli connection modify \"<连接名>\" connection.autoconnect-priority 10",
-                "默认优先级为 0，数值越大越优先。").Then("没有输出；多个已保存的网络同时可用时，优先连接这一个。"),
+                "`<连接名>` 由 `nmcli connection show` 查得。默认优先级为 0，数值越大越优先。").Then("没有输出；多个已保存的网络同时可用时，优先连接这一个。"),
             Step.Change(
                 "开启 Wi-Fi 热点（示例）",
                 "nmcli device wifi hotspot ifname wlan0 ssid DeckAP password '<至少8位密码>'",
-                "会断开当前 Wi-Fi。关闭：`nmcli connection down Hotspot`。使用 iwd 后端时若提示不支持，可在「设置 → 网络」中尝试。").Then("提示 `成功用 'Hotspot' 激活了设备 'wlan0'`；其他设备可以搜索到名为 DeckAP 的网络。"),
+                "`<至少8位密码>` 为自定义 WPA2 密钥（8 到 63 位字符）。执行会断开当前 Wi-Fi；关闭使用 `nmcli connection down Hotspot`。").Then("提示 `成功用 'Hotspot' 激活了设备 'wlan0'`；其他设备可以搜索到名为 DeckAP 的网络。"),
         ],
 
         Verify =

@@ -43,11 +43,11 @@ public static class KdeCliData
             Step.Change(
                 "设置外接显示器的分辨率与刷新率",
                 "kscreen-doctor output.<输出名>.mode.<宽>x<高>@<刷新率>",
-                "例如 `kscreen-doctor output.DP-1.mode.1920x1080@60`。可用模式见上一步的 `Modes` 列表。").Then("屏幕闪一下，外接显示器切换到指定模式。不会弹出「保留更改」确认，也不会自动还原。"),
+                "`<输出名>`（如 `DP-1`）、`<宽>`（如 `1920`）、`<高>`（如 `1080`）与刷新率，均由上一步 `Modes` 列表查得。").Then("屏幕闪一下，外接显示器切换到指定模式。不会弹出「保留更改」确认，也不会自动还原。"),
             Step.Change(
                 "设置缩放比例",
                 "kscreen-doctor output.<输出名>.scale.<比例>",
-                "例如 `output.eDP-1.scale.1.25`。").Then("该屏幕上的界面立即按新比例放大或缩小。"),
+                "`<输出名>` 由首步查得；`<比例>` 为浮点数（如 `1.25`）。").Then("该屏幕上的界面立即按新比例放大或缩小。"),
             Step.Change(
                 "关闭屏幕（挂机下载时省电），按任意键或触摸唤醒",
                 "sleep 2; kscreen-doctor --dpms off",
@@ -63,7 +63,7 @@ public static class KdeCliData
             Step.Change(
                 "切换配色方案",
                 "plasma-apply-colorscheme --list-schemes; plasma-apply-colorscheme <方案名>",
-                "换回默认：`plasma-apply-colorscheme Vapor`。").Then("第一条列出所有方案名（当前的有标注）；第二条应用后，窗口、面板颜色立即改变，并提示已成功应用。"),
+                "`<方案名>`（如 `Vapor`、`BreezeDark`）由前一条命令查得。").Then("第一条列出所有方案名（当前的有标注）；第二条应用后，窗口、面板颜色立即改变，并提示已成功应用。"),
             Step.Change(
                 "脚本结束时发送桌面通知",
                 "<命令>; notify-send '任务完成' \"退出码 $?\"",

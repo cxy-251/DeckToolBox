@@ -19,6 +19,11 @@ public static class PowerSleepData
             "• 锁有两种模式：`block` 阻止操作；`delay` 只是推迟一小会儿，让程序完成收尾工作（例如 NetworkManager 在休眠前断开网络）。",
             "3. UPower：汇总电池、电源适配器和蓝牙外设电量；`upower -i` 显示当前耗电功率和预计剩余时间。",
             "4. 定时操作：`systemd-run --on-active=<时长>` 可以在一段时间后执行任意命令，例如 1 小时后关机，不需要 cron 或 at（SteamOS 两者都没有）。",
+            "5. Steam Deck 上谁处理电源键：",
+            "• `/etc/systemd/logind.conf.d/suspendbutton.conf` 设置 `HandlePowerKey=ignore`，logind 不直接响应电源键。",
+            "• udev 规则 `70-steamos-power-button.rules` 给电源键的输入设备加上 `uaccess`，让登录用户的程序可以读取它。",
+            "• 游戏模式中由用户服务 `steamos-powerbuttond` 读取按键，短按发送 `steam://shortpowerpress`、长按发送 `steam://longpowerpress` 给 Steam，由 Steam 决定休眠还是弹出电源菜单；桌面模式中这个服务不运行，由 KDE 的电源管理 (PowerDevil) 按自己的设置处理。",
+            "6. 休眠到内存与休眠到硬盘：`/sys/power/mem_sleep` 中带方括号的是当前的挂起方式，Deck 上为 `[deep]`（S3）。休眠到硬盘 (hibernate) 的准备工作都在：`hibernate-prepare.service` 会在休眠前用 `hibernate-swap-helper.sh` 在 `/home` 建临时交换文件，并把它的位置写入 `/sys/power/resume` 与 `resume_offset`，唤醒后再删除。但 `/usr/lib/systemd/sleep.conf.d/steamos-suspend-then-hibernate.conf` 默认设置了 `AllowHibernation=no`，所以默认不会休眠到硬盘。",
         ],
 
         Consequences =
@@ -31,6 +36,10 @@ public static class PowerSleepData
 
         Steps =
         [
+            Step.Read(
+                "查看电源键接管与休眠配置",
+                "cat /etc/systemd/logind.conf.d/suspendbutton.conf; cat /usr/lib/udev/rules.d/70-steamos-power-button.rules",
+                "两个文件都很短。").Then("先输出 `[Login]` 与 `HandlePowerKey=ignore`；再输出一行 udev 规则：匹配 `ENV{STEAMOS_POWER_BUTTON}==\"1\"` 的输入设备，`MODE=\"0660\"`、`TAG+=\"uaccess\"`。"),
             Step.Read(
                 "查看当前有哪些程序在阻止或推迟休眠",
                 "systemd-inhibit --list --no-pager",
@@ -55,6 +64,10 @@ public static class PowerSleepData
                 "重启 / 关机",
                 "systemctl reboot",
                 "关机用 `systemctl poweroff`。").Then("所有程序被关闭，系统立即重启。"),
+            Step.Read(
+                "查看挂起方式与休眠到硬盘的设置",
+                "cat /sys/power/mem_sleep /sys/power/resume /sys/power/resume_offset; grep -v '^#' /usr/lib/systemd/sleep.conf.d/*.conf",
+                "`resume` 与 `resume_offset` 只在休眠到硬盘的过程中才会被临时写入。").Then("依次输出 `s2idle [deep]`（当前用 deep）、`0:0`、`0`（现在没有准备休眠文件），最后是 `[Sleep]`、`AllowHibernation=no`、`AllowSuspendThenHibernate=no` 等几行。"),
         ],
 
         Verify =

@@ -22,7 +22,10 @@ public static class DeckHardwareEcData
             "• `N` 的编号每次开机可能变化，脚本里要按 `name` 查找，不要写死 `hwmon6`。",
             "2. 数值单位：温度是毫摄氏度（`65000` = 65 °C），功耗是微瓦（`15000000` = 15 W），电压是毫伏。",
             "3. TDP 滑块的本质：快捷菜单（`…` 键）→ 性能 → TDP 限制，由 SteamOS 写入 `amdgpu` 的 `power1_cap`。APU 的实际功耗不会长时间超过这个上限，因此降低 TDP 能换来更长续航和更低温度。",
-            "4. 风扇控制：`jupiter-fan-control` 是一个系统服务，根据 APU 与电池温度计算目标转速，比固件默认曲线更平缓、更安静。",
+            "4. 风扇控制：`jupiter-fan-control` 服务（Python 脚本 `/usr/share/jupiter-fan-control/fancontrol.py`）按机型读取 `jupiter-config.yaml`、`galileo-config.yaml` 等配置：",
+            "- CPU、GPU 温度各用一条二次曲线算出转速，并按功耗加一个前馈量；SSD 温度用另一条二次曲线；取几者的最大值，写入 `steamdeck_hwmon` 的 `fan1_target`。",
+            "- 服务停止时把控制权交还 EC（嵌入式控制器）固件：新 BIOS 上的做法是向 `fan1_target` 写 `0`，由 EC 按固件内置曲线自行调速。",
+            "5. 充电上限与插电不充：设置了充电上限（见「steamosctl」模块的 `set-max-charge-level`）后，值保存在 `steamdeck_hwmon` 的 `max_battery_charge_level`。电量达到上限时，电池状态变为 `Not charging`、电流约为 0，整机由电源适配器直接供电，电池不再被反复充满。",
         ],
 
         Consequences =
@@ -55,9 +58,21 @@ public static class DeckHardwareEcData
                 "cd /sys/class/power_supply/BAT1 && echo \"状态 $(cat status)  电量 $(cat capacity)%  健康度 $((100 * $(cat charge_full) / $(cat charge_full_design)))%\"",
                 "健康度 = 当前满电容量 / 设计容量，新电池可能略高于 100%。").Then("输出一行，例如 `状态 Not charging  电量 79%  健康度 103%`。状态可能是 Charging（充电中）、Discharging（放电中）、Full、Not charging（插电但未充电，常因达到充电上限）。"),
             Step.Read(
+                "查看电源适配器在线与电池供电状态",
+                "cat /sys/class/power_supply/ACAD/uevent; echo ---; grep -E 'STATUS|CAPACITY|CURRENT_NOW|VOLTAGE_NOW' /sys/class/power_supply/BAT1/uevent",
+                "`ACAD` 是电源适配器，`BAT1` 是电池；`uevent` 文件把各项属性汇总成「键=值」。电流单位微安，电压单位微伏。").Then("第一段中 `POWER_SUPPLY_ONLINE=1` 表示插着电源；第二段如 `POWER_SUPPLY_STATUS=Not charging`、`POWER_SUPPLY_VOLTAGE_NOW=8536000`（8.5 V）、`POWER_SUPPLY_CURRENT_NOW=0`、`POWER_SUPPLY_CAPACITY=80`：插着电源、达到充电上限、电池不充也不放。"),
+            Step.Read(
                 "查看风扇控制服务状态",
                 "systemctl status jupiter-fan-control --no-pager",
                 "`--no-pager` 直接输出，不进入分页界面。").Then("显示服务的几行状态，其中 `Active: active (running)` 表示正常运行，下方还有最近几行日志。"),
+            Step.Read(
+                "查看 GPU 核心与显存当前运行频率及 DPM 档位",
+                "cat /sys/class/drm/card0/device/pp_dpm_sclk; echo ---; cat /sys/class/drm/card0/device/pp_dpm_mclk",
+                "`sclk` 是 GPU 核心频率，`mclk` 是内存频率（APU 与 CPU 共用 LPDDR5 内存）。带 `*` 的是当前档位；GPU 核心实际频率可以落在档位之间。").Then("第一段三行：`0: 200Mhz *`、`1: 1100Mhz`、`2: 1600Mhz`（空闲时停在 200）；第二段四行，如 `0: 400Mhz` 到 `3: 800Mhz *`。玩游戏时再执行，带 `*` 的档位会升高。"),
+            Step.Read(
+                "查看风扇实际转速与软件目标转速",
+                "d=$(grep -l '^steamdeck_hwmon$' /sys/class/hwmon/hwmon*/name | xargs dirname); echo \"实际: $(cat $d/fan1_input) RPM / 目标: $(cat $d/fan1_target) RPM\"",
+                "先按 `name` 找到 `steamdeck_hwmon` 所在目录，再读实际转速 `fan1_input` 与 jupiter-fan-control 写入的目标转速 `fan1_target`。").Then("输出一行，如 `实际: 2113 RPM / 目标: 2044 RPM`，两者应接近。目标为 `0` 说明风扇由 EC 固件控制（风扇服务未运行或已交还控制权）。"),
         ],
 
         Verify =

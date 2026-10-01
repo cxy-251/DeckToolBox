@@ -49,19 +49,19 @@ public static class DebianAptEcosystemData
             Step.Read(
                 "搜索并查看软件包信息",
                 "apt search <关键词>; apt show <包名>",
-                "`<关键词>` 如 `htop`。").On(Hosts.Debian).Then("`apt search` 列出名称或描述匹配的包（绿色包名 + 版本 + 一行描述）；`apt show` 显示单个包的版本、大小、依赖和完整说明。"),
+                "`<关键词>` 为待检索词；`<包名>` 为搜索结果中的准确包名（如 `htop`）。").On(Hosts.Debian).Then("`apt search` 列出名称或描述匹配的包（绿色包名 + 版本 + 一行描述）；`apt show` 显示单个包的版本、大小、依赖和完整说明。"),
             Step.Root(
                 "安装软件包",
                 "sudo apt install <包名>",
-                "会自动安装所需依赖。").On(Hosts.Debian).Then("列出「将会同时安装下列软件」和需要的磁盘空间，询问 `您希望继续执行吗？ [Y/n]`，回车后下载并配置，最后出现 `正在设置 <包名>`。"),
+                "`<包名>` 由 `apt search` 查得。会自动解析并安装所需依赖。").On(Hosts.Debian).Then("列出「将会同时安装下列软件」和需要的磁盘空间，询问 `您希望继续执行吗？ [Y/n]`，回车后下载并配置，最后出现 `正在设置 <包名>`。"),
             Step.Read(
                 "查询：包里有哪些文件 / 某个文件属于哪个包",
                 "dpkg -L <包名>; dpkg -S $(command -v <命令名>)",
-                "排查「这个命令从哪来」时非常有用。").On(Hosts.Debian).Then("`dpkg -L` 逐行列出该包安装的所有文件路径；`dpkg -S` 输出 `<包名>: /usr/bin/<命令名>`。"),
+                "`<包名>` 为已安装包名；`<命令名>` 为目标命令名。用于排查命令归属与文件清单。").On(Hosts.Debian).Then("`dpkg -L` 逐行列出该包安装的所有文件路径；`dpkg -S` 输出 `<包名>: /usr/bin/<命令名>`。"),
             Step.Read(
                 "查看候选版本与来自哪个源",
                 "apt policy <包名>",
-                "`候选` 是 `apt install` 会安装的版本。").On(Hosts.Debian).Then("显示 `已安装：`、`候选：` 两个版本号，以及版本表中每个版本来自哪个源和优先级（如 `500`）。"),
+                "`<包名>` 为待查软件包名称。`候选` 为 apt 将安装的版本。").On(Hosts.Debian).Then("显示 `已安装：`、`候选：` 两个版本号，以及版本表中每个版本来自哪个源和优先级（如 `500`）。"),
             Step.Root(
                 "升级整个系统",
                 "sudo apt update && sudo apt full-upgrade",
@@ -73,7 +73,7 @@ public static class DebianAptEcosystemData
             Step.Root(
                 "按现行规范添加第三方软件源（模板）",
                 "sudo install -d -m 0755 /etc/apt/keyrings\ncurl -fsSL <密钥URL> | sudo gpg --dearmor -o /etc/apt/keyrings/<名称>.gpg\nprintf 'Types: deb\\nURIs: <仓库URL>\\nSuites: <发行代号>\\nComponents: main\\nSigned-By: /etc/apt/keyrings/<名称>.gpg\\n' | sudo tee /etc/apt/sources.list.d/<名称>.sources\nsudo apt update",
-                "按软件厂商文档替换占位符。密钥只对这一个源生效。").On(Hosts.Debian).Then("创建密钥目录、写入转换后的密钥文件、在 `sources.list.d` 生成 `.sources` 文件（`tee` 会把内容回显出来），最后 `apt update` 的输出中出现这个新源。"),
+                "`<密钥URL>`、`<仓库URL>`、`<发行代号>`（如 `bookworm`）、`<名称>`（标识名）由软件文档提供。deb822 限制密钥作用域。").On(Hosts.Debian).Then("创建密钥目录、写入转换后的密钥文件、在 `sources.list.d` 生成 `.sources` 文件（`tee` 会把内容回显出来），最后 `apt update` 的输出中出现这个新源。"),
         ],
 
         Verify =

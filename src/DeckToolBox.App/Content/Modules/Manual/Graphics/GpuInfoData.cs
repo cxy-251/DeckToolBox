@@ -37,7 +37,7 @@ public static class GpuInfoData
             Step.Read(
                 "Vulkan 驱动摘要",
                 "vulkaninfo --summary 2>/dev/null | sed -n '/Devices:/,$p'",
-                "只显示设备部分。").Then("列出 `GPU0`：`apiVersion = 1.4.x`、`deviceName = AMD Custom GPU 0932 (RADV VANGOGH)`、`driverName = radv`、`driverInfo = Mesa ...`，以及一个 `llvmpipe` 软件渲染设备（如果存在）。"),
+                "查询 Vulkan ICD 加载的物理 GPU 拓扑；用 sed 提取 GPU0 的设备名称、Mesa RADV 驱动与 Vulkan API 版本。").Then("列出 `GPU0`：`apiVersion = 1.4.x`、`deviceName = AMD Custom GPU 0932 (RADV VANGOGH)`、`driverName = radv`、`driverInfo = Mesa ...`，以及一个 `llvmpipe` 软件渲染设备（如果存在）。"),
             Step.Read(
                 "检查是否支持某个 Vulkan 扩展",
                 "vulkaninfo 2>/dev/null | grep -m 3 -E 'VK_KHR_ray_tracing_pipeline|VK_EXT_mesh_shader'",
@@ -53,7 +53,7 @@ public static class GpuInfoData
             Step.Read(
                 "合成器支持的 Wayland 协议",
                 "wayland-info 2>/dev/null | grep interface | head -n 20",
-                "在桌面模式中运行。").Then("每行一个协议，如 `wl_compositor version: 6`、`wp_fractional_scale_manager_v1`（分数缩放）、`wp_viewporter` 等。"),
+                "向 KWin 或 Gamescope 运行时套接字发送查询，枚举合成器暴露的核心协议与扩展协议接口列表。").Then("每行一个协议，如 `wl_compositor version: 6`、`wp_fractional_scale_manager_v1`（分数缩放）、`wp_viewporter` 等。"),
         ],
 
         Verify =

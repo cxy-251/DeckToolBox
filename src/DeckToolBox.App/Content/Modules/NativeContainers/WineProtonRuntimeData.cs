@@ -15,7 +15,7 @@ public static class WineProtonRuntimeData
         Why =
         [
             "1. Wine 不是模拟器：",
-            "• 游戏的 x86 指令直接在 CPU 上原生执行，没有指令模拟开销。",
+            "• 游戏的 x86 指令直接在 CPU 上原生执行，没有 CPU 指令模拟开销。",
             "• Wine 重新实现了 Windows 的 DLL 与系统接口：游戏调用 `CreateFileW` 时，Wine 把它转换成 Linux 的 `open`；窗口、输入、音频同理。",
             "2. 前缀 (WINEPREFIX)：每个游戏一套独立的「Windows 环境」，位于 `steamapps/compatdata/<AppID>/pfx/`：",
             "- `drive_c/`：虚拟 C 盘，存档常在 `drive_c/users/steamuser/` 下的 `AppData` 或 `Documents` 里。",
@@ -25,14 +25,18 @@ public static class WineProtonRuntimeData
             "- **DXVK**：把 Direct3D 9/10/11 翻译为 Vulkan。",
             "- **VKD3D-Proton**：把 Direct3D 12 翻译为 Vulkan。",
             "- **同步原语加速**：Windows 游戏大量使用互斥锁、事件等同步对象。早期用 esync/fsync 模拟，新内核提供 `ntsync` 驱动（`/dev/ntsync`），语义更贴近 Windows，新版 Proton 可以直接使用。",
-            "4. 版本并存：Steam 可同时安装多个 Proton（Experimental、10.0、9.0…），每个游戏可在「属性 → 兼容性」里单独指定。",
+            "4. 版本并存：Steam 可同时安装多个 Proton（Experimental、11.0、10.0…），每个游戏可在「属性 → 兼容性」里单独指定（详见「Proton 版本与 GE-Proton」）。",
+            "5. 常见的无法解决或需要特殊处理的问题：",
+            "- **反作弊**：工作在 Windows 内核里的反作弊驱动（如 Vanguard）无法在 Linux 上运行。EAC 与 BattlEye 提供了 Proton 支持，但需要游戏开发者主动启用；没启用的游戏会无法联机或无法启动。",
+            "- **过场视频**：部分游戏用 Windows Media Foundation 播放 WMV 等格式的视频，Proton 无法随附这些专利解码器，可能出现黑屏或测试彩条。Valve 的做法是把这类视频预先转码后随着色器缓存一起下发（存放在 `shadercache/<AppID>/fozmediav1/`）；GE-Proton 等社区版本则自行加入了更多解码支持。",
+            "- **文件名大小写**：Windows 不区分大小写，Linux 区分。Wine 会做大小写不敏感的查找，但手动放进去的 Mod 或补丁文件若与游戏期望的大小写不一致，偶尔仍会找不到。",
         ],
 
         Consequences =
         [
             "• 查看前缀目录、Proton 版本都是只读操作。",
             "• 为某个游戏更换 Proton 版本可能让已有前缀不兼容，出现问题时可退回原版本。",
-            "• 性能通常接近 Windows，个别游戏更快或更慢；反作弊、部分 DRM 仍可能导致无法运行，这不是配置能解决的问题，可在 ProtonDB 查看其他玩家的报告。",
+            "• 性能通常接近 Windows，个别游戏更快或更慢；反作弊、部分 DRM 导致的无法运行不是配置能解决的问题，可在 ProtonDB 查看其他玩家的报告。",
         ],
 
         Steps =

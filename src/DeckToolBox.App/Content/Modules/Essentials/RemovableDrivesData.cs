@@ -46,7 +46,7 @@ public static class RemovableDrivesData
             Step.Change(
                 "挂载一个分区",
                 "udisksctl mount -b /dev/<分区名>",
-                "例如 `/dev/sda1`。无需 sudo。").Then("输出 `Mounted /dev/sda1 at /run/media/deck/<卷标>`，Dolphin 侧栏中出现这个设备。"),
+                "`<分区名>`（如 `sda1`）由首步 `lsblk` 查得。无需 sudo。").Then("输出 `Mounted /dev/sda1 at /run/media/deck/<卷标>`，Dolphin 侧栏中出现这个设备。"),
             Step.Change(
                 "卸载并断电，然后可以安全拔出",
                 "udisksctl unmount -b /dev/<分区名> && udisksctl power-off -b /dev/<磁盘名>",
@@ -58,7 +58,7 @@ public static class RemovableDrivesData
             Step.Danger(
                 "把 U 盘格式化为 exFAT",
                 "udisksctl unmount -b /dev/<分区名>; sudo mkfs.exfat -L <卷标> /dev/<分区名>",
-                "**清除该分区上的全部数据**。先用第一步确认 `<分区名>` 是 U 盘（`sdX1`），绝不能是 `nvme0n1p*`。").Then("先卸载，再显示 mkfs.exfat 的版本与创建过程，最后 `Format success.`。分区上原有的全部文件消失，变成一个空的 exFAT 分区。"),
+                "`<分区名>`（如 `sda1`）由首步 `lsblk` 确认（绝非 `nvme0n1`）；`<卷标>` 为自定义名称（如 `USB_DATA`）。**清除全部数据**。").Then("先卸载，再显示 mkfs.exfat 的版本与创建过程，最后 `Format success.`。分区上原有的全部文件消失，变成一个空的 exFAT 分区。"),
         ],
 
         Verify =

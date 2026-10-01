@@ -55,7 +55,7 @@ public static class EncodingData
             Step.Read(
                 "简体转繁体",
                 "echo '软件开发需要内存和鼠标' | opencc -c s2t",
-                "只做字形转换。").Then("输出 `軟件開發需要內存和鼠標`：字形变为繁体，但用词仍是大陆习惯。"),
+                "调用 OpenCC 字符映射表；`-c s2t` 仅做简繁单字字形转换，保留原始专业术语用词。").Then("输出 `軟件開發需要內存和鼠標`：字形变为繁体，但用词仍是大陆习惯。"),
             Step.Read(
                 "简体转台湾正体并转换用词",
                 "echo '软件开发需要内存和鼠标' | opencc -c s2twp",

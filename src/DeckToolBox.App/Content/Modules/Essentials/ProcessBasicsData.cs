@@ -46,7 +46,7 @@ public static class ProcessBasicsData
             Step.Read(
                 "按名称查找进程",
                 "pgrep -a <程序名关键词>",
-                "`-a` 同时显示完整命令行，便于确认是不是你要找的那个。").Then("每行「PID 完整命令行」，如 `550696 /home/deck/Applications/chrome/chrome --user-data-dir=...`；没有匹配时没有输出。"),
+                "`<程序名关键词>` 填入进程名或命令行的关键字（如 `chrome` 或 `steam`）。`-a` 列出 PID 与完整命令行。").Then("每行「PID 完整命令行」，如 `550696 /home/deck/Applications/chrome/chrome --user-data-dir=...`；没有匹配时没有输出。"),
             Step.Change(
                 "请求程序正常退出",
                 "kill <PID>",
@@ -54,11 +54,11 @@ public static class ProcessBasicsData
             Step.Danger(
                 "强制结束不响应的程序",
                 "kill -9 <PID>",
-                "发送 SIGKILL，程序无法拒绝。只在正常退出无效时使用。").Then("没有输出，进程立即消失，窗口关闭，未保存的内容丢失。"),
+                "`<PID>` 为进程纯数字 ID。发送 SIGKILL 强制终止，程序无法拒绝与拦截。仅在正常退出无效时使用。").Then("没有输出，进程立即消失，窗口关闭，未保存的内容丢失。"),
             Step.Change(
                 "按名称结束所有匹配的进程",
                 "pkill -f <程序名关键词>",
-                "`-f` 匹配完整命令行。先用 `pgrep -a <关键词>` 确认匹配结果，避免误杀。").Then("没有输出，所有命令行中包含该关键词的进程都收到退出请求。"),
+                "`<程序名关键词>` 为进程特征词。`-f` 匹配完整命令行。先用 `pgrep -a <程序名关键词>` 确认匹配结果，避免误杀。").Then("没有输出，所有命令行中包含该关键词的进程都收到退出请求。"),
         ],
 
         Verify =

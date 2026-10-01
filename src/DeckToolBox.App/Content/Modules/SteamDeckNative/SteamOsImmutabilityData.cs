@@ -24,8 +24,9 @@ public static class SteamOsImmutabilityData
             "3. 哪些改动会被保留：",
             "- `/home`：独立分区，系统更新从不触碰。游戏、`~/.local`、`~/Applications`、Distrobox 容器都在这里。",
             "- `/etc`：是一层 overlay，你的修改保存在 `/var/lib/overlays/etc/upper`，更新后会叠加回新系统。",
-            "- `/var`：随槽位成对，但 `/var/log`、`/var/lib/flatpak`、`/var/cache/pacman` 等常用目录实际绑定挂载自 `/home` 分区，所以同样会保留。",
+            "- `/var`：每个槽位各有一个只有约 230 MB 的 `/var` 分区。容易变大或需要跨更新保留的目录由 `steamos-offload.target` 下的一组 `.mount` 单元从 `/home/.steamos/offload/` 绑定挂载过来，包括 `/var/log`、`/var/cache/pacman`、`/var/lib/systemd/coredump`、`/var/lib/docker`、`/var/lib/flatpak`、`/var/tmp`、`/opt`、`/root`、`/srv`、`/nix`，所以它们实际占用的是 `/home` 分区的空间，系统更新后仍然保留。",
             "4. 更新通道：`rel`（稳定版）、`beta`、`preview`、`main`。切换通道只影响之后收到的更新。",
+            "5. 家目录加密（新版本加入）：系统带有 `dirlock`（基于内核 fscrypt 的目录加密工具）、PAM 模块 `pam_dirlock.so` 与脚本 `/usr/lib/steamos/steamos-encrypt-home`，可以加密 `/home/deck`，并在登录时用密码解锁；解锁密钥还可以交给 APU 内置的 TPM 2.0（`/dev/tpm0`）保护。这个脚本要求以 root 身份通过 SSH 登录后执行，目前面向有经验的用户，日常不需要操作。",
         ],
 
         Consequences =
@@ -60,6 +61,10 @@ public static class SteamOsImmutabilityData
                 "findmnt /etc",
                 "`findmnt` 显示某个挂载点的来源和参数。").Then("输出一行：`TARGET /etc`、`FSTYPE overlay`，以及很长的 `OPTIONS`，其中 `lowerdir=` 是系统镜像里的原始 `/etc`，`upperdir=` 是保存你所做修改的目录。"),
             Step.Read(
+                "查看系统 offload 分流挂载列表",
+                "systemctl list-dependencies steamos-offload.target --no-pager --plain; findmnt /var/log",
+                "`--plain` 不画树形线。单元名中的 `-` 对应路径中的 `/`，例如 `var-log.mount` 就是 `/var/log`。").Then("先列出 `steamos-offload.target` 及其下的十来个单元：`nix.mount`、`opt.mount`、`root.mount`、`var-cache-pacman.mount`、`var-lib-flatpak.mount`、`var-log.mount`、`var-tmp.mount` 等；再显示 `/var/log` 的来源是 `/dev/nvme0n1p8[/.steamos/offload/var/log]`，即 `/home` 分区里的目录。"),
+            Step.Read(
                 "查看系统版本与当前更新通道",
                 "grep -E '^(VERSION_ID|BUILD_ID)=' /etc/os-release; steamos-select-branch -c",
                 "`steamos-select-branch -c` 只查看当前通道，不做修改。").Then("前两行是版本号与构建日期（如 `VERSION_ID=3.7.x`），最后一行是通道名：`rel` 稳定版、`beta` 测试版、`main` 开发版。"),
@@ -72,9 +77,17 @@ public static class SteamOsImmutabilityData
                 "sudo steamos-readonly disable",
                 "解锁后装进 `/usr` 的任何东西都会在下次系统更新时丢失。只在你清楚要改什么时使用。").Then("要求输入 sudo 密码，然后根分区变为可写，不会有额外提示。此后 `steamos-readonly status` 显示 `disabled`，`/usr` 下的文件可以被修改，直到你重新锁定或下次系统更新。"),
             Step.Root(
+                "初始化 pacman 密钥环（解锁只读后必做）",
+                "sudo pacman-key --init && sudo pacman-key --populate archlinux holo",
+                "刷新后的系统里 pacman 的密钥环没有初始化，直接 `pacman -S` 会因无法校验签名而失败。`--init` 生成本机密钥，`--populate` 导入 Arch 与 Valve（holo 仓库）的打包者公钥。再次提醒：装进 `/usr` 的软件会在下次系统更新时消失。").Then("`--init` 输出几行 `gpg:` 信息（可能需要几十秒收集随机数）；`--populate` 逐个列出导入并签署的公钥，最后出现 `==> Updating trust database...`。之后 `pacman -S` 能正常校验软件包签名。"),
+            Step.Root(
                 "重新开启只读保护",
                 "sudo steamos-readonly enable",
-                "改完立刻锁回。").Then("根分区恢复只读，`steamos-readonly status` 重新显示 `enabled`。"),
+                "改完立刻锁回。底层将 Btrfs 根子卷重设为 `ro=true`，保证 A/B 槽位系统镜像的不可变性。").Then("根分区恢复只读，`steamos-readonly status` 重新显示 `enabled`。"),
+            Step.Read(
+                "查看目录加密的状态",
+                "dirlock status",
+                "只读查询；未启用家目录加密时，保护器 (Protector) 与策略 (Policy) 两张表都是空的。").Then("先是空的 `Protector  Type  Name` 与 `Policy  Protectors` 两张表，然后是 `TPM information`：`TCTI: device:/dev/tpm0`、`Manufacturer: AMD`、`Locked: no (failed auth attempts: 0 / 3)`，说明 TPM 可用、没有因多次输错而锁定。"),
         ],
 
         Verify =

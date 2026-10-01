@@ -23,6 +23,7 @@ public static class BluetoothData
             "- 能配对但连不上：先 `remove` 删除该设备，再重新配对。换过电脑配对的设备尤其常见。",
             "- 耳机音质差：蓝牙耳机在通话模式 (HSP/HFP) 下音质很差，确认音频设备选择的是 A2DP 配置（见「音量与音频设备」）。",
             "- 手柄延迟或断线：远离 2.4 GHz 干扰源（USB 3 设备、路由器），或改用 5 GHz Wi-Fi。",
+            "4. 蓝牙音频编码：连接耳机时，PipeWire 与耳机协商一种双方都支持的编码。SteamOS 的 PipeWire 带有 SBC（含 SBC-XQ）、AAC、aptX / aptX HD、LDAC、FastStream、Opus 与 LE Audio 的 LC3 编码插件（`/usr/lib/spa-0.2/bluez5/`）。音质高的编码（如 LDAC）缓冲也更大，游戏中觉得声音明显滞后时，可在桌面模式「系统设置 → 音频」里给耳机选一个延迟更低的配置。",
         ],
 
         Consequences =
@@ -45,7 +46,11 @@ public static class BluetoothData
             Step.Read(
                 "查看某个设备的详细信息与电量",
                 "bluetoothctl info <MAC地址>",
-                "括号里的是十进制电量百分比。").Then("列出该设备的名称、类型图标、`Paired`、`Trusted`、`Connected`、支持的服务 UUID，支持时还有 `Battery Percentage: 0x50 (80)`。"),
+                "`<MAC地址>` 可由第 2 步列表查得；输出括号内是十进制电量百分比。").Then("列出该设备的名称、类型图标、`Paired`、`Trusted`、`Connected`、支持的服务 UUID，支持时还有 `Battery Percentage: 0x50 (80)`。"),
+            Step.Read(
+                "查看蓝牙耳机实时音频编码",
+                "pactl list sinks | grep -E 'Name: bluez|api.bluez5.(codec|profile)'",
+                "需要先连上一副蓝牙耳机。只挑出蓝牙输出设备的名称、编码和配置。").Then("连着蓝牙耳机时输出几行，如 `Name: bluez_output.XX_XX_XX_XX_XX_XX.1`、`api.bluez5.codec = \"ldac\"`、`api.bluez5.profile = \"a2dp-sink\"`；没有蓝牙耳机时没有输出。"),
             Step.Change(
                 "扫描附近的设备",
                 "bluetoothctl --timeout 15 scan on",
@@ -53,11 +58,11 @@ public static class BluetoothData
             Step.Change(
                 "配对、信任并连接一个新设备",
                 "bluetoothctl pair <MAC地址> && bluetoothctl trust <MAC地址> && bluetoothctl connect <MAC地址>",
-                "键盘配对时可能要求在键盘上输入屏幕显示的数字并回车。").Then("依次提示 `Pairing successful`、`Changing ... trust succeeded`、`Connection successful`。设备的指示灯变为常亮或熄灭，随即可以使用。"),
+                "`<MAC地址>` 可由上步扫描结果取得；键盘配对时可能要求在键盘上盲打数字并回车。").Then("依次提示 `Pairing successful`、`Changing ... trust succeeded`、`Connection successful`。设备的指示灯变为常亮或熄灭，随即可以使用。"),
             Step.Change(
                 "删除一个设备的配对",
                 "bluetoothctl remove <MAC地址>",
-                "用于解决「配对了却连不上」的问题，之后需要让设备重新进入配对模式再配对。").Then("提示 `Device has been removed`，设备断开并从已配对列表中消失。"),
+                "`<MAC地址>` 可由 `bluetoothctl devices Paired` 查得；用于解决配对异常，删后需设备重新进配对模式。").Then("提示 `Device has been removed`，设备断开并从已配对列表中消失。"),
             Step.Change(
                 "重启蓝牙适配器",
                 "bluetoothctl power off && bluetoothctl power on",

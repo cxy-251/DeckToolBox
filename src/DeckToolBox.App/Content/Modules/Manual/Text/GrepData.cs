@@ -41,11 +41,11 @@ public static class GrepData
             Step.Change(
                 "准备练习文件",
                 "mkdir -p /tmp/grep-demo && cd /tmp/grep-demo && printf 'Line one\\nline two error\\nERROR three\\nfour\\n' > log.txt",
-                "一个四行的小文件。").Then("没有输出，当前目录变为 `/tmp/grep-demo`。"),
+                "在 `/tmp` 中建一个四行的练习文件，之后的步骤都在这个目录里执行。").Then("没有输出，当前目录变为 `/tmp/grep-demo`。"),
             Step.Read(
                 "查找并显示行号",
                 "grep -n error log.txt",
-                "默认区分大小写。").Then("只输出 `2:line two error`，`ERROR three` 因大小写不同未被匹配。"),
+                "默认区分大小写；`-n` 在每个匹配行前显示行号（从 1 开始）。").Then("只输出 `2:line two error`，`ERROR three` 因大小写不同未被匹配。"),
             Step.Read(
                 "忽略大小写",
                 "grep -in error log.txt",

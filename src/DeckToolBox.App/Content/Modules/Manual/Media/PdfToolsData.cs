@@ -71,7 +71,7 @@ public static class PdfToolsData
             Step.Change(
                 "压缩一个图片较多的 PDF（示例）",
                 "gs -q -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -o <输出>.pdf <输入>.pdf && ls -lh <输入>.pdf <输出>.pdf",
-                "`/ebook` 在体积与清晰度间折中。").Then("生成压缩后的 PDF，`ls` 对比前后大小；扫描件、图片多的文档通常能缩小到原来的几分之一。"),
+                "`<输入>.pdf` 为源文件；`<输出>.pdf` 为目标文件。`-dPDFSETTINGS=/ebook` 重采样图片至 150 DPI。").Then("生成压缩后的 PDF，`ls` 对比前后大小；扫描件、图片多的文档通常能缩小到原来的几分之一。"),
         ],
 
         Verify =

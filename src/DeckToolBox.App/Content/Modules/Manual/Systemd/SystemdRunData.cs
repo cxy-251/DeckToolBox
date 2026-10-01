@@ -39,7 +39,7 @@ public static class SystemdRunData
             Step.Change(
                 "把一条命令作为后台服务运行",
                 "systemd-run --user --unit=demo-task sh -c 'echo 来自临时服务; sleep 20'",
-                "终端立即返回。").Then("输出 `Running as unit: demo-task.service; invocation ID: ...`，命令在后台运行。"),
+                "创建临时（transient）服务单元后终端立即脱离；任务交由 systemd 用户实例托管，终端退出不中断。").Then("输出 `Running as unit: demo-task.service; invocation ID: ...`，命令在后台运行。"),
             Step.Read(
                 "查看它的状态与输出",
                 "systemctl --user status demo-task --no-pager | head -n 5; journalctl --user -u demo-task --no-pager | tail -n 2",
@@ -51,7 +51,7 @@ public static class SystemdRunData
             Step.Change(
                 "10 分钟后执行一次",
                 "systemd-run --user --on-active=10min --unit=reminder notify-send '休息一下' '已经过了 10 分钟'",
-                "代替 at 命令。").Then("输出 `Running timer as unit: reminder.timer`；10 分钟后桌面弹出通知。`systemctl --user list-timers` 中可以看到剩余时间。"),
+                "`--on-active=10min` 注册一次性单触发临时定时器单元，到期自动激活服务并销毁单元，代替传统 `at` 指令。").Then("输出 `Running timer as unit: reminder.timer`；10 分钟后桌面弹出通知。`systemctl --user list-timers` 中可以看到剩余时间。"),
             Step.Change(
                 "每 15 分钟执行一次（直到重启）",
                 "systemd-run --user --on-calendar='*:0/15' --unit=demo-timer sh -c 'date >> /tmp/every15.log'",

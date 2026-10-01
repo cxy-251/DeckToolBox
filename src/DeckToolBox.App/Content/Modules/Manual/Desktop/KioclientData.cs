@@ -54,11 +54,11 @@ public static class KioclientData
             Step.Read(
                 "列出 SMB 共享中的文件（示例）",
                 "kioclient ls 'smb://<主机名或IP>/<共享名>'",
-                "首次访问会弹出登录对话框。").Then("列出共享根目录中的文件与文件夹，与在 Dolphin 中打开该地址看到的一致。"),
+                "`<主机名或IP>` 为局域网服务器地址；`<共享名>` 可通过 `smbclient -L <主机名或IP> -N` 查得。首次访问弹出认证框。").Then("列出共享根目录中的文件与文件夹，与在 Dolphin 中打开该地址看到的一致。"),
             Step.Change(
                 "从 SFTP 复制文件到本机（示例）",
                 "kioclient copy 'sftp://<用户>@<主机>/home/<用户>/<文件>' ~/Downloads/",
-                "对方需要开启 SSH。").Then("文件被复制到 `~/Downloads`；需要密码时弹出对话框。"),
+                "`<用户>` 与 `<主机>` 为远端 SSH 用户名及 IP；`<文件>` 为远端对应路径下的文件。对方需开启 sshd。").Then("文件被复制到 `~/Downloads`；需要密码时弹出对话框。"),
         ],
 
         Verify =

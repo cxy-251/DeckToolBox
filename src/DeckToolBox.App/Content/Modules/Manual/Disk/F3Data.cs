@@ -40,19 +40,19 @@ public static class F3Data
             Step.Change(
                 "先快速抽查：只写 2 GB",
                 "mkdir -p /run/media/deck/<卷标>/f3test && f3write --end-at=2 /run/media/deck/<卷标>/f3test",
-                "放在单独的子目录中，便于之后删除。").Then("显示 `Free space: ...`、`Creating file 1.h2w ... OK!`、`Creating file 2.h2w ... OK!`，最后是平均写入速度。"),
+                "`<卷标>` 由第 1 步 `df -h` 查得。测试文件写在单独子目录中。").Then("显示 `Free space: ...`、`Creating file 1.h2w ... OK!`、`Creating file 2.h2w ... OK!`，最后是平均写入速度。"),
             Step.Read(
                 "读回校验",
                 "f3read /run/media/deck/<卷标>/f3test",
-                "逐个读取并校验测试文件。").Then("每个文件一行校验结果，最后汇总 `Data OK: 2.00 GB`、`Data LOST: 0.00 Byte`，以及平均读取速度。`Data LOST` 不为 0 说明卡有问题。"),
+                "`<卷标>` 由第 1 步查得。逐个读取并校验测试文件。").Then("每个文件一行校验结果，最后汇总 `Data OK: 2.00 GB`、`Data LOST: 0.00 Byte`，以及平均读取速度。`Data LOST` 不为 0 说明卡有问题。"),
             Step.Change(
                 "完整测试：写满整张卡（耗时较长）",
                 "systemd-inhibit --what=sleep:idle --why='f3 测试' f3write /run/media/deck/<卷标>/f3test && f3read /run/media/deck/<卷标>/f3test",
-                "`systemd-inhibit` 防止测试期间休眠。").Then("先把剩余空间写满（终端持续显示进度与剩余时间），再全部读回校验，最终的 `Data OK` 应接近卡的可用容量，`Data LOST` 为 0。"),
+                "`<卷标>` 由第 1 步查得。`systemd-inhibit` 防止测试期间系统休眠。").Then("先把剩余空间写满（终端持续显示进度与剩余时间），再全部读回校验，最终的 `Data OK` 应接近卡的可用容量，`Data LOST` 为 0。"),
             Step.Change(
                 "删除测试文件，恢复空间",
                 "rm -r /run/media/deck/<卷标>/f3test && df -h /run/media/deck/<卷标>",
-                "测试文件只是普通文件。").Then("可用空间恢复到测试前的数值。"),
+                "`<卷标>` 由第 1 步查得。删除测试文件恢复存储空间。").Then("可用空间恢复到测试前的数值。"),
             Step.Danger(
                 "快速探测真实容量（会清除卡上数据）",
                 "sudo f3probe --destructive --time-ops /dev/<磁盘名>",

@@ -43,7 +43,7 @@ public static class SedData
             Step.Read(
                 "替换（只输出结果，不改文件）",
                 "sed 's/deck/steamdeck/' app.conf",
-                "`s/旧/新/`。").Then("输出全部五行，其中 `name=deck` 变为 `name=steamdeck`；`cat app.conf` 可以确认原文件没有变化。"),
+                "`s/旧/新/` 执行单次正则替换，不加 `g` 标志时每行仅替换首处匹配，直接流式输出至终端而不改动源文件。").Then("输出全部五行，其中 `name=deck` 变为 `name=steamdeck`；`cat app.conf` 可以确认原文件没有变化。"),
             Step.Read(
                 "只打印指定行",
                 "sed -n '2,3p' app.conf",

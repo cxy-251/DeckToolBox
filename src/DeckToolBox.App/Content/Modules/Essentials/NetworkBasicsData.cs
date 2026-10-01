@@ -21,6 +21,7 @@ public static class NetworkBasicsData
             "- 能否到达外网：`ping 223.5.5.5` 或 `ping 1.1.1.1`，用 IP 地址测试，排除 DNS 影响。",
             "- 域名能否解析：`resolvectl query <域名>`。IP 能通而域名不行，就是 DNS 的问题。",
             "3. 信号与频段：`nmcli dev wifi` 的 `SIGNAL` 为信号强度（0~100），`CHAN` 为信道。1~13 为 2.4 GHz（穿墙好、速度低），36 以上为 5 GHz（速度快、穿墙差）。",
+            "4. 无线网卡省电 (Power Management)：开启时网卡在空闲间隙短暂休眠，省电，但可能让联机游戏的延迟周期性跳高。NetworkManager 在 SteamOS 上的默认值是开启（`wifi.powersave=3`），Steam 的开发者选项和下面的 SteamOS 辅助程序可以把它关掉；重启或重连后可能恢复为开启。",
         ],
 
         Consequences =
@@ -52,7 +53,7 @@ public static class NetworkBasicsData
             Step.Change(
                 "连接一个 Wi-Fi",
                 "nmcli --ask dev wifi connect '<网络名称>'",
-                "`--ask` 让 nmcli 交互式询问密码，密码不会留在命令历史里。").Then("提示输入密码（输入时不显示），成功后输出 `成功用 'xxx' 激活了设备 'wlan0'`。连接配置会保存下来，以后自动连接。"),
+                "`<网络名称>` 填入上一步 `nmcli dev wifi list` 中的 SSID 名。`--ask` 交互式询问密码，密码不留在命令历史。").Then("提示输入密码（输入时不显示），成功后输出 `成功用 'xxx' 激活了设备 'wlan0'`。连接配置会保存下来，以后自动连接。"),
             Step.Read(
                 "测试到网关和外网的连通性",
                 "ping -c 3 $(ip route | awk '/default/{print $3; exit}'); ping -c 3 223.5.5.5",
@@ -69,6 +70,14 @@ public static class NetworkBasicsData
                 "重新连接无线网络",
                 "nmcli dev disconnect wlan0 && nmcli dev connect wlan0",
                 "很多「连着 Wi-Fi 却上不了网」的问题重连后即可恢复。").Then("先提示设备已断开，再提示成功激活；网络中断几秒后恢复。"),
+            Step.Read(
+                "查看无线网卡节能管理状态",
+                "iwconfig wlan0 | grep -E 'Bit Rate|Power Management|Link Quality'",
+                "`Bit Rate` 是当前协商的速率，`Link Quality` 是信号质量（分母 70）。").Then("三行：`Bit Rate=27 Mb/s   Tx-Power=16 dBm`、`Power Management:off`（或 `on`）、`Link Quality=50/70  Signal level=-60 dBm`。"),
+            Step.Change(
+                "关闭无线网卡节能降低延迟",
+                "/usr/bin/steamos-polkit-helpers/steamos-disable-wireless-power-management && iwconfig wlan0 | grep 'Power Management'",
+                "这个辅助程序不在 PATH 中，需写完整路径。它通过 pkexec 以 root 身份执行 `iwconfig wlan0 power off`；polkit 规则允许当前登录用户免密码执行。").Then("没有密码提示，随后输出 `Power Management:off`。网卡不再在空闲时休眠，耗电略有增加；重新连接 Wi-Fi 或重启后可能恢复默认。"),
         ],
 
         Verify =

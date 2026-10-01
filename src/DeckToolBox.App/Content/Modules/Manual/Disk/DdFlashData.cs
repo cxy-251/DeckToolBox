@@ -46,15 +46,15 @@ public static class DdFlashData
             Step.Danger(
                 "把 .img 镜像写入 U 盘",
                 "udisksctl unmount -b /dev/<磁盘名>1 2>/dev/null; sudo dd if=<镜像文件>.img of=/dev/<磁盘名> bs=4M status=progress conv=fsync",
-                "**会覆盖整个 U 盘。**`of=` 是整个磁盘（如 `/dev/sda`），不是分区。").Then("显示实时写入进度（已写字节数、耗时、速度），结束后输出总计；U 盘上随即出现镜像中的分区。"),
+                "**会清除该磁盘全部数据**。`<磁盘名>` 依上步 `lsblk` 确认（如 `sda`，严禁填 `nvme0n1`）；`<镜像文件>` 为镜像名；`of=` 指向整盘；`conv=fsync` 确保落盘。").Then("显示实时写入进度（已写字节数、耗时、速度），结束后输出总计；U 盘上随即出现镜像中的分区。"),
             Step.Danger(
                 "边解压边写入 SteamOS 恢复镜像",
                 "bzcat ~/Downloads/steamdeck-repair-*.img.bz2 | sudo dd of=/dev/<磁盘名> bs=4M status=progress conv=fsync",
-                "省去先解压出几 GB 临时文件的步骤。").Then("与上一步相同的进度输出，完成后这个 U 盘就是可启动的恢复盘。"),
+                "`<磁盘名>` 填入上步确认的 U 盘盘符（如 `sda`）。`bzcat` 流式解压直接管道写入，省去解压中转文件。").Then("与上一步相同的进度输出，完成后这个 U 盘就是可启动的恢复盘。"),
             Step.Read(
                 "确认数据已全部写入",
                 "sync && lsblk -o NAME,SIZE,FSTYPE,LABEL /dev/<磁盘名>",
-                "`sync` 等待所有缓存写入完成。").Then("`sync` 返回后列出 U 盘上新的分区结构，此时可以安全拔出。"),
+                "`<磁盘名>` 填入对应设备；`sync` 强制刷出内核脏页，命令返回后方可安全拔出 U 盘。").Then("`sync` 返回后列出 U 盘上新的分区结构，此时可以安全拔出。"),
         ],
 
         Verify =

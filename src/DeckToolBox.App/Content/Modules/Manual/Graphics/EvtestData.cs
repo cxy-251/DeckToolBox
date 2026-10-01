@@ -46,7 +46,7 @@ public static class EvtestData
             Step.Read(
                 "检查摇杆是否漂移",
                 "evtest /dev/input/<事件节点> | grep --line-buffered -E 'ABS_(X|Y|RX|RY)'",
-                "测试开始后不要碰摇杆，观察输出。").Then("松手静止时若仍持续滚动大幅变化的 `ABS_X`/`ABS_Y` 数值，说明摇杆有漂移；只在死区内轻微跳动或完全不输出则正常。"),
+                "`<事件节点>` 取自第 1 步列表。测试开始后不触碰摇杆，观察是否有输出。").Then("松手静止时若仍持续滚动大幅变化的 `ABS_X`/`ABS_Y` 数值，说明摇杆有漂移；只在死区内轻微跳动或完全不输出则正常。"),
             Step.Root(
                 "测试键盘等需要 root 的设备",
                 "sudo evtest",

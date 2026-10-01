@@ -42,19 +42,19 @@ public static class PortableAppsData
             Step.Change(
                 "给下载的 AppImage 加上执行权限",
                 "chmod +x ~/Applications/<程序名>.AppImage",
-                "`+x` 表示加上可执行权限。").Then("没有输出。`ls -l` 中该文件的权限从 `-rw-r--r--` 变为 `-rwxr-xr-x`，之后双击或在终端输入路径就能运行它。"),
+                "`<程序名>` 为存放在 `~/Applications` 下的应用文件名（可用 `ls ~/Applications` 确认）。`+x` 赋予可执行权限。").Then("没有输出。`ls -l` 中该文件的权限从 `-rw-r--r--` 变为 `-rwxr-xr-x`，之后双击或在终端输入路径就能运行它。"),
             Step.Read(
                 "查看 AppImage 自带的运行参数",
                 "~/Applications/<程序名>.AppImage --appimage-help",
-                "所有 type 2 AppImage 都支持 `--appimage-*` 系列参数。").Then("打印 `--appimage-extract`、`--appimage-mount`、`--appimage-version` 等参数的说明，不会启动程序本身。"),
+                "`<程序名>` 为目标应用文件名。type 2 AppImage 支持 `--appimage-*` 诊断参数。").Then("打印 `--appimage-extract`、`--appimage-mount`、`--appimage-version` 等参数的说明，不会启动程序本身。"),
             Step.Change(
                 "解包 AppImage（FUSE 不可用或想查看内容时）",
                 "cd ~/Applications && ./<程序名>.AppImage --appimage-extract",
-                "解出到当前目录的 `squashfs-root/`。").Then("终端逐行打印解出的文件路径，完成后当前目录下出现 `squashfs-root/`，其中的 `AppRun` 就是启动入口。原 AppImage 文件不变。"),
+                "`<程序名>` 为目标应用名。解出至 `squashfs-root/`，可绕过 FUSE 直接运行 `AppRun`。").Then("终端逐行打印解出的文件路径，完成后当前目录下出现 `squashfs-root/`，其中的 `AppRun` 就是启动入口。原 AppImage 文件不变。"),
             Step.Change(
                 "安装单文件命令行工具",
                 "install -m 755 <下载的文件> ~/.local/bin/<命令名>",
-                "`install` 一步完成复制和设置权限。").Then("没有输出。文件被复制到 `~/.local/bin/<命令名>` 并设为可执行，之后在任何目录输入命令名即可运行。原文件不变。"),
+                "`<下载的文件>` 为已下载的文件路径；`<命令名>` 为期望调用的命令名称。`install` 复制并设为 755 权限。").Then("没有输出。文件被复制到 `~/.local/bin/<命令名>` 并设为可执行，之后在任何目录输入命令名即可运行。原文件不变。"),
             Step.Read(
                 "列出已有的便携应用及其占用",
                 "du -sh ~/Applications/* ~/.local/bin/* 2>/dev/null | sort -h",

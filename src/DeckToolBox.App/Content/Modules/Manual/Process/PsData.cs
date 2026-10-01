@@ -37,7 +37,7 @@ public static class PsData
             Step.Read(
                 "列出所有进程（BSD 风格）",
                 "ps aux | head -n 5",
-                "只看前 5 行。").Then("第一行是表头 `USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND`，下面第一个进程是 PID 1 的 `/usr/lib/systemd/systemd`。"),
+                "BSD 风格参数不加 `-` 连字符；`a` 显示所有终端进程，`u` 包含属主与资源信息，`x` 包含脱离终端的守护进程。").Then("第一行是表头 `USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND`，下面第一个进程是 PID 1 的 `/usr/lib/systemd/systemd`。"),
             Step.Read(
                 "按 CPU 占用排序，自定义列",
                 "ps -eo pid,user,%cpu,%mem,etime,comm --sort=-%cpu | head -n 8",

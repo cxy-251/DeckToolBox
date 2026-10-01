@@ -42,7 +42,7 @@ public static class TmuxData
             Step.Change(
                 "在会话中运行一个耗时任务，然后脱离",
                 "rsync -avh --info=progress2 ~/Documents/ /run/media/deck/<卷标>/backup/",
-                "在 tmux 会话中执行。").On("tmux 会话内").Then("rsync 开始显示进度；按 `Ctrl+B` 再按 `d` 后回到原来的终端，并提示 `[detached (from session work)]`，任务在后台继续运行。"),
+                "`<卷标>` 为已挂载的外置存储名（由 `lsblk` 查得）。在 tmux 会话中执行。").On("tmux 会话内").Then("rsync 开始显示进度；按 `Ctrl+B` 再按 `d` 后回到原来的终端，并提示 `[detached (from session work)]`，任务在后台继续运行。"),
             Step.Read(
                 "列出所有会话",
                 "tmux ls",

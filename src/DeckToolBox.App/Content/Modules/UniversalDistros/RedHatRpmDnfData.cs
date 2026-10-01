@@ -40,11 +40,11 @@ public static class RedHatRpmDnfData
             Step.Read(
                 "搜索与查看软件包",
                 "dnf search <关键词>; dnf info <包名>",
-                "`<关键词>` 如 `htop`。").On(Hosts.Fedora).Then("`dnf search` 先下载仓库元数据（首次较慢），然后列出匹配的包名与摘要；`dnf info` 显示单个包的版本、仓库、大小与描述。"),
+                "`<关键词>` 为搜索词；`<包名>` 为搜索结果中的准确软件包名（如 `htop`）。").On(Hosts.Fedora).Then("`dnf search` 先下载仓库元数据（首次较慢），然后列出匹配的包名与摘要；`dnf info` 显示单个包的版本、仓库、大小与描述。"),
             Step.Root(
                 "安装软件包",
                 "sudo dnf install <包名>",
-                "默认答案是 N，必须明确输入 y。").On(Hosts.Fedora).Then("列出事务摘要（安装/升级哪些包、下载大小），询问 `Is this ok [y/N]`，输入 `y` 后下载、导入仓库密钥（首次）并安装，最后显示 `Complete!`。"),
+                "`<包名>` 由 `dnf search` 查得。默认交互提示为 N，需明确输入 y 确认。").On(Hosts.Fedora).Then("列出事务摘要（安装/升级哪些包、下载大小），询问 `Is this ok [y/N]`，输入 `y` 后下载、导入仓库密钥（首次）并安装，最后显示 `Complete!`。"),
             Step.Read(
                 "查看事务历史",
                 "dnf history list | head -n 15",
@@ -52,11 +52,11 @@ public static class RedHatRpmDnfData
             Step.Danger(
                 "撤销某次事务",
                 "sudo dnf history undo <事务ID>",
-                "执行前先用 `history info` 看清内容；被降级的旧版本包必须还能从源里下载到。").On(Hosts.Fedora).Then("列出将要执行的反向操作（删除哪些包、降级哪些包），确认后执行，并在历史中新增一条事务。"),
+                "`<事务ID>` 由上一步 `dnf history list` 首列数字查得。操作前先用 `info` 核对。").On(Hosts.Fedora).Then("列出将要执行的反向操作（删除哪些包、降级哪些包），确认后执行，并在历史中新增一条事务。"),
             Step.Read(
                 "查询：某个文件属于哪个包 / 包里有哪些文件",
                 "rpm -qf $(command -v <命令名>); rpm -ql <包名>",
-                "`dnf provides <路径或命令>` 还能查询尚未安装的包。").On(Hosts.Fedora).Then("`rpm -qf` 输出完整包名如 `coreutils-9.5-1.fc41.x86_64`；`rpm -ql` 逐行列出该包的所有文件。"),
+                "`<命令名>` 为已安装命令；`<包名>` 为由 `rpm -qf` 查出的包名（如 `coreutils`）。").On(Hosts.Fedora).Then("`rpm -qf` 输出完整包名如 `coreutils-9.5-1.fc41.x86_64`；`rpm -ql` 逐行列出该包的所有文件。"),
             Step.Read(
                 "校验包的文件是否被改动",
                 "rpm -V coreutils",

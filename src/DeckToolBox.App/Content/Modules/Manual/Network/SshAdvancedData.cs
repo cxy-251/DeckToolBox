@@ -38,7 +38,7 @@ public static class SshAdvancedData
             Step.Change(
                 "为常用主机写一个配置段",
                 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/config <<'EOF'\n\nHost pc\n    HostName <IP或主机名>\n    User <用户名>\n    Port 22\nEOF\nchmod 600 ~/.ssh/config",
-                "`>>` 追加，不覆盖已有配置。").Then("没有输出；之后 `ssh pc` 等同于 `ssh <用户名>@<IP或主机名>`。"),
+                "`<IP或主机名>` 由远程机 `ip addr` 查得；`<用户名>` 为远程机登录账号（`whoami`）。`>>` 追加写入不覆盖旧配置。").Then("没有输出；之后 `ssh pc` 等同于 `ssh <用户名>@<IP或主机名>`。"),
             Step.Read(
                 "查看 ssh 对某个别名解析出的完整设置",
                 "ssh -G pc | grep -E '^(hostname|user|port|identityfile) '",
@@ -46,7 +46,7 @@ public static class SshAdvancedData
             Step.Change(
                 "本地端口转发：访问远端才能打开的网页（示例）",
                 "ssh -N -L 8080:127.0.0.1:<远端服务端口> pc",
-                "保持运行期间，在 Deck 浏览器打开 `http://127.0.0.1:8080`；`Ctrl+C` 结束。").Then("命令不输出任何内容并保持运行；浏览器中看到的是远端机器上那个只在本机开放的服务页面。"),
+                "`<远端服务端口>` 为远端监听端口（如 `8080` 或 `3000`，可在远端用 `ss -tulpn` 确认）。保持运行期间在 Deck 打开 `http://127.0.0.1:8080`；`Ctrl+C` 结束。").Then("命令不输出任何内容并保持运行；浏览器中看到的是远端机器上那个只在本机开放的服务页面。"),
             Step.Change(
                 "动态转发：开一个经由远端的 SOCKS5 代理（示例）",
                 "ssh -N -D 1080 pc",

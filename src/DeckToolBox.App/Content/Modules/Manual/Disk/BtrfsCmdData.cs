@@ -34,7 +34,7 @@ public static class BtrfsCmdData
             Step.Read(
                 "查看根分区各类空间的分配与使用",
                 "btrfs filesystem df /",
-                "普通用户即可运行。").Then("四行：`Data, single: total=4.02GiB, used=3.23GiB`、`System, DUP`、`Metadata, DUP: total=493.50MiB, used=143.91MiB`、`GlobalReserve`。"),
+                "普通用户即可运行。Btrfs 将空间按 Chunk 划分为数据（Data）、元数据（Metadata）与系统（System）；默认采用 DUP 双份元数据备份保证 B-Tree 冗余。").Then("四行：`Data, single: total=4.02GiB, used=3.23GiB`、`System, DUP`、`Metadata, DUP: total=493.50MiB, used=143.91MiB`、`GlobalReserve`。"),
             Step.Read(
                 "查看完整的空间统计",
                 "btrfs filesystem usage / 2>/dev/null | head -n 12",
@@ -42,7 +42,7 @@ public static class BtrfsCmdData
             Step.Read(
                 "查看根子卷的只读属性",
                 "btrfs property get -ts / ro",
-                "`-ts` 表示对子卷查询。").Then("输出 `ro=true`（SteamOS 只读保护开启时）。"),
+                "`-ts` 指定目标对象为子卷（subvolume）。Btrfs 在元数据层标定只读属性，即使挂载选项带有 rw，向其写入依然被内核拒绝。").Then("输出 `ro=true`（SteamOS 只读保护开启时）。"),
             Step.Read(
                 "查看当前子卷的信息",
                 "btrfs subvolume show / 2>&1 | head -n 8",

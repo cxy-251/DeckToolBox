@@ -40,7 +40,7 @@ public static class MkdirTouchData
             Step.Change(
                 "用花括号一次创建多个目录",
                 "mkdir -p /tmp/mk-demo/project/{docs,tests,assets/{images,sounds}} && tree /tmp/mk-demo",
-                "花括号可以嵌套。").Then("`tree` 显示 project 下有 `assets`（含 images、sounds）、`docs`、`src`、`tests` 等目录。"),
+                "花括号展开由 bash 完成：`{a,b}` 展开成两个路径，花括号可以嵌套，`-p` 自动创建中间目录。").Then("`tree` 显示 project 下有 `assets`（含 images、sounds）、`docs`、`src`、`tests` 等目录。"),
             Step.Change(
                 "创建多个空文件",
                 "touch /tmp/mk-demo/project/docs/{readme,notes}.txt && ls -l /tmp/mk-demo/project/docs",

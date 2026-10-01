@@ -37,19 +37,19 @@ public static class ProtonRuntimeDeepData
             Step.Read(
                 "按名称查找游戏的 AppID",
                 "grep -l -i '\"name\".*<游戏名关键词>' ~/.local/share/Steam/steamapps/appmanifest_*.acf",
-                "`-i` 忽略大小写，`-l` 只输出文件名。").Then("输出匹配的清单文件路径，如 `.../appmanifest_105600.acf`，文件名中的数字 105600 就是 AppID；没有匹配时没有输出。"),
+                "`<游戏名关键词>` 替换为游戏英文或本地化关键字（如 `hades`）。`-i` 忽略大小写，`-l` 只输出匹配文件路径。").Then("输出匹配的清单文件路径，如 `.../appmanifest_105600.acf`，文件名中的数字 105600 就是 AppID；没有匹配时没有输出。"),
             Step.Read(
                 "查看前缀里的用户目录（存档常在这里）",
                 "ls ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/drive_c/users/steamuser/",
-                "存档多在 `AppData/Local`、`AppData/LocalLow`、`AppData/Roaming`、`Documents` 下以游戏或公司名命名的目录中。").Then("列出 `AppData`、`Documents`（或 `My Documents`）、`Saved Games` 等目录。"),
+                "`<AppID>` 由上一步 manifest 文件名中的纯数字填入。存档多在 `AppData/Local`、`Documents` 等子目录。").Then("列出 `AppData`、`Documents`（或 `My Documents`）、`Saved Games` 等目录。"),
             Step.Change(
                 "备份整个前缀的用户目录",
                 "tar -czf ~/prefix-<AppID>-$(date +%F).tar.gz -C ~/.local/share/Steam/steamapps/compatdata/<AppID>/pfx/drive_c/users steamuser",
-                "`-c` 创建、`-z` gzip 压缩、`-f` 指定文件名、`-C` 先切换到该目录再打包。恢复时用 `tar -xzf` 解压回同一位置。").Then("没有输出，家目录下出现 `prefix-<AppID>-<日期>.tar.gz`。原目录不变。"),
+                "`<AppID>` 由第 1 步查得。`-c` 创建打包、`-z` gzip 压缩、`-C` 切换工作目录。解压恢复使用 `tar -xzf`。").Then("没有输出，家目录下出现 `prefix-<AppID>-<日期>.tar.gz`。原目录不变。"),
             Step.Read(
                 "确认游戏使用的 Proton 版本",
                 "ls ~/.local/share/Steam/steamapps/common/ | grep -i proton; cat ~/.local/share/Steam/steamapps/compatdata/<AppID>/version",
-                "下一步要用同一个版本。").Then("先列出已安装的 Proton 目录名，最后一行是该前缀的版本，如 `11.0-100`，对应 `Proton 11.0`。"),
+                "`<AppID>` 为游戏纯数字 ID。前一行列出已装 Proton 目录供下一步填入 `<Proton目录名>`，后一行输出当前前缀实际绑定的构建版本。").Then("先列出已安装的 Proton 目录名，最后一行是该前缀的版本，如 `11.0-100`，对应 `Proton 11.0`。"),
             Step.Change(
                 "下载微软官方 VC++ 运行库安装程序",
                 "curl -L -o ~/Downloads/vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe",
@@ -57,7 +57,7 @@ public static class ProtonRuntimeDeepData
             Step.Change(
                 "用 Proton 在游戏前缀中运行安装程序",
                 "STEAM_COMPAT_DATA_PATH=~/.local/share/Steam/steamapps/compatdata/<AppID> STEAM_COMPAT_CLIENT_INSTALL_PATH=~/.local/share/Steam \"$HOME/.local/share/Steam/steamapps/common/<Proton目录名>/proton\" run ~/Downloads/vc_redist.x64.exe /install /quiet /norestart",
-                "`<Proton目录名>` 例如 `Proton - Experimental`、`Proton 10.0`（含空格，已用引号包住）。执行前先退出该游戏。`/quiet` 静默安装。").Then("终端输出若干 Wine 日志行，约半分钟后返回，不弹出安装界面。之后该前缀的 `system32` 中出现 `vcruntime140.dll` 等文件，游戏启动时就能找到这些运行库。"),
+                "`<AppID>` 由第 1 步查得；`<Proton目录名>`（如 `Proton - Experimental`）由上一步 `ls` 查得。执行前先退出游戏。`/quiet` 静默安装。").Then("终端输出若干 Wine 日志行，约半分钟后返回，不弹出安装界面。之后该前缀的 `system32` 中出现 `vcruntime140.dll` 等文件，游戏启动时就能找到这些运行库。"),
             Step.Change(
                 "让游戏优先加载目录里的 Mod DLL",
                 "WINEDLLOVERRIDES=\"winhttp,version,dinput8=n,b\" %command%",
@@ -65,7 +65,7 @@ public static class ProtonRuntimeDeepData
             Step.Danger(
                 "删除前缀以彻底重建",
                 "rm -rf ~/.local/share/Steam/steamapps/compatdata/<AppID>",
-                "**会删除本地存档**，先完成上面的备份。").Then("没有输出，前缀目录被永久删除。下次启动游戏时 Steam 显示「正在准备启动」，Proton 花十几秒建立一个全新的前缀。"),
+                "`<AppID>` 由第 1 步查得。**会连带删除本地未同步云端的存档**，操作前务必先执行备份步骤。").Then("没有输出，前缀目录被永久删除。下次启动游戏时 Steam 显示「正在准备启动」，Proton 花十几秒建立一个全新的前缀。"),
         ],
 
         Verify =

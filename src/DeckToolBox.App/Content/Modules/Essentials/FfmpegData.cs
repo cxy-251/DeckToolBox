@@ -38,31 +38,31 @@ public static class FfmpegData
             Step.Read(
                 "查看媒体文件信息",
                 "ffprobe -v error -show_entries format=duration,size,bit_rate:stream=codec_type,codec_name,width,height -of compact <文件>",
-                "`-v error` 隐藏版本信息，`-of compact` 每个流一行。").Then("每个流一行，如 `stream|codec_name=h264|codec_type=video|width=1280|height=800`、`stream|codec_name=aac|codec_type=audio`，最后一行 `format|duration=...|size=...|bit_rate=...`。"),
+                "`<文件>` 替换为音视频绝对路径；`-v error` 抑制冗余输出，`-of compact` 每个流输出一行紧凑键值。").Then("每个流一行，如 `stream|codec_name=h264|codec_type=video|width=1280|height=800`、`stream|codec_name=aac|codec_type=audio`，最后一行 `format|duration=...|size=...|bit_rate=...`。"),
             Step.Change(
                 "无损截取一段",
                 "ffmpeg -ss <开始时间> -i <输入> -t <时长> -c copy <输出>.mp4",
-                "例如 `-ss 00:01:30 -t 20` 截取 1 分 30 秒起的 20 秒；`-c copy` 不重新编码。").Then("几乎瞬间完成，输出文件大小大致与片段长度成正比。开头可能比指定时间早一点（从最近的关键帧开始）。"),
+                "`<开始时间>` 支持 `00:01:30` 或纯秒数 `90`；`<时长>` 为秒数；`<输入>`/`<输出>` 带空格需引号；`-c copy` 流拷贝不重编码。").Then("几乎瞬间完成，输出文件大小大致与片段长度成正比。开头可能比指定时间早一点（从最近的关键帧开始）。"),
             Step.Change(
                 "压缩为 720p 便于分享",
                 "ffmpeg -i <输入> -vf scale=-2:720 -c:v libx264 -crf 26 -preset medium -c:a aac -b:a 128k <输出>.mp4",
-                "体积不够小就把 `-crf` 调大；`-preset` 越慢压缩率越高。").Then("终端持续刷新一行进度：`frame=  speed=`，`speed` 表示相对实时的倍速。完成后得到体积小得多的 720p 文件。"),
+                "`<输入>` 与 `<输出>` 填入对应路径；`-crf 26` 控制质量（数值越大体积越小）；`-preset medium` 平衡压制速度与体积。").Then("终端持续刷新一行进度：`frame=  speed=`，`speed` 表示相对实时的倍速。完成后得到体积小得多的 720p 文件。"),
             Step.Change(
                 "用 GPU 硬件编码为 HEVC",
                 "ffmpeg -vaapi_device /dev/dri/renderD128 -i <输入> -vf 'format=nv12,hwupload' -c:v hevc_vaapi -qp 26 -c:a copy <输出>.mp4",
-                "`-qp` 越大文件越小。把 `hevc_vaapi` 换成 `h264_vaapi` 可获得更好的兼容性。").Then("进度行的 `speed` 通常明显高于软件编码，CPU 占用较低；输出 HEVC 编码的 mp4。"),
+                "`<输入>`、`<输出>` 填文件路径。编码由 APU 中的 VCN 视频单元完成，CPU 占用低。`-qp` 越大文件越小；把 `hevc_vaapi` 换成 `h264_vaapi` 兼容性更好。").Then("进度行的 `speed` 通常明显高于软件编码，CPU 占用较低；输出 HEVC 编码的 mp4。"),
             Step.Change(
                 "提取音频",
                 "ffmpeg -i <输入> -vn -c:a libopus -b:a 128k <输出>.opus",
-                "`-vn` 去掉视频。需要 mp3 时改为 `-c:a libmp3lame -q:a 2 <输出>.mp3`。").Then("很快完成，得到只含音频的 `.opus` 文件。"),
+                "`<输入>`、`<输出>` 填文件路径；`-vn` 去掉视频，`-c:a libopus` 编码为 Opus。需要 mp3 时改为 `-c:a libmp3lame -q:a 2 <输出>.mp3`。").Then("很快完成，得到只含音频的 `.opus` 文件。"),
             Step.Change(
                 "截取某一帧为图片",
                 "ffmpeg -ss <时间> -i <输入> -frames:v 1 <输出>.png",
-                "`-frames:v 1` 只输出一帧；`-ss` 放在 `-i` 之前定位更快。").Then("瞬间完成，得到一张与视频分辨率相同的 png 图片。"),
+                "`<时间>` 填入目标时间点（如 `00:00:15`）；`<输入>` 与 `<输出>` 填入对应路径；`-frames:v 1` 仅解码导出单一视频帧。").Then("瞬间完成，得到一张与视频分辨率相同的 png 图片。"),
             Step.Change(
                 "把一段视频做成 GIF",
                 "ffmpeg -ss <开始时间> -t 3 -i <输入> -vf 'fps=12,scale=480:-1:flags=lanczos' <输出>.gif",
-                "GIF 体积增长很快，控制时长、帧率和宽度。").Then("得到一个 3 秒、每秒 12 帧、宽 480 像素的 GIF，可以直接发到聊天软件。"),
+                "`<开始时间>` 为起点，`-t 3` 截 3 秒；`fps=12` 与 `scale=480:-1` 控制帧率和宽度（`lanczos` 是缩放算法）。GIF 体积增长很快，时长、帧率、宽度都不宜大。").Then("得到一个 3 秒、每秒 12 帧、宽 480 像素的 GIF，可以直接发到聊天软件。"),
             Step.Read(
                 "列出可用的硬件编码器",
                 "ffmpeg -hide_banner -encoders | grep vaapi",

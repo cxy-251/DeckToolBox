@@ -41,19 +41,19 @@ public static class KdeConnectData
             Step.Change(
                 "向手机发起配对",
                 "kdeconnect-cli -n '<设备名>' --pair",
-                "在手机上确认配对请求。").Then("手机弹出配对请求，确认后再执行 `kdeconnect-cli -l`，状态变为 `paired and reachable`。"),
+                "`<设备名>` 为上一步 `kdeconnect-cli -l` 输出的冒号前设备名。在手机端确认配对请求。").Then("手机弹出配对请求，确认后再执行 `kdeconnect-cli -l`，状态变为 `paired and reachable`。"),
             Step.Change(
                 "测试连通",
                 "kdeconnect-cli -n '<设备名>' --ping-msg '来自 Steam Deck'",
-                "向手机发送一条通知。").Then("手机上收到一条内容为「来自 Steam Deck」的通知。"),
+                "`<设备名>` 由第 1 步查得。向手机发送一条测试通知。").Then("手机上收到一条内容为「来自 Steam Deck」的通知。"),
             Step.Change(
                 "把文件发送到手机",
                 "kdeconnect-cli -n '<设备名>' --share ~/Pictures/<文件名>",
-                "也可以分享网址：`--share https://...`，手机会用浏览器打开。").Then("手机收到文件（Android 默认保存到「下载」目录），并显示完成通知。"),
+                "`<设备名>` 由第 1 步查得；`<文件名>` 为待发送文件（可先 `ls ~/Pictures` 确认）。亦可分享 URL。").Then("手机收到文件（Android 默认保存到「下载」目录），并显示完成通知。"),
             Step.Change(
                 "让手机响铃",
                 "kdeconnect-cli -n '<设备名>' --ring",
-                "即使手机处于静音模式也会响。").Then("手机以最大音量响铃，直到在手机上点击停止。"),
+                "`<设备名>` 由第 1 步查得。即使手机处于静音模式也会发声。").Then("手机以最大音量响铃，直到在手机上点击停止。"),
         ],
 
         Verify =

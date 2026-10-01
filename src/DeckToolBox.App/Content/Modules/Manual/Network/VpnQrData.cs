@@ -45,7 +45,7 @@ public static class VpnQrData
             Step.Root(
                 "查看 WireGuard 隧道状态",
                 "sudo wg show",
-                "需要 root。").Then("显示接口、公钥、监听端口，以及每个对端的地址、`latest handshake`（最近握手时间）和 `transfer`（收发量）。握手时间在几分钟内说明隧道正常。"),
+                "查询内核 WireGuard 模块状态；输出公钥、监听端口，重点关注 `latest handshake` 握手时戳与双向收发流量。").Then("显示接口、公钥、监听端口，以及每个对端的地址、`latest handshake`（最近握手时间）和 `transfer`（收发量）。握手时间在几分钟内说明隧道正常。"),
             Step.Read(
                 "在终端显示一个网址的二维码",
                 "qrencode -t ANSIUTF8 'https://store.steampowered.com'",
@@ -53,7 +53,7 @@ public static class VpnQrData
             Step.Change(
                 "生成一个 Wi-Fi 二维码图片",
                 "qrencode -s 10 -o ~/Pictures/wifi-qr.png 'WIFI:T:WPA;S:<网络名>;P:<密码>;;' && xdg-open ~/Pictures/wifi-qr.png",
-                "`-s 10` 让每个点 10 像素，打印或在屏幕上显示都清晰。").Then("生成 PNG 图片并用图片查看器打开；访客用手机扫描即可直接连上这个 Wi-Fi。"),
+                "`<网络名>` 与 `<密码>` 填入热点实际 SSID 与连接口令；`-s 10` 指定每个点阵块像素大小。").Then("生成 PNG 图片并用图片查看器打开；访客用手机扫描即可直接连上这个 Wi-Fi。"),
         ],
 
         Verify =

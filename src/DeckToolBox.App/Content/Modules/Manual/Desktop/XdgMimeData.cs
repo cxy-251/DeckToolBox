@@ -40,7 +40,7 @@ public static class XdgMimeData
             Step.Read(
                 "查询几种常见类型的默认程序",
                 "for t in x-scheme-handler/https application/pdf image/png video/mp4; do printf '%-26s %s\\n' \"$t\" \"$(xdg-mime query default $t)\"; done",
-                "循环查询多个类型。").Then("每行「类型 默认程序」，如 `x-scheme-handler/https chrome.desktop`（网页用 Chrome）、`application/pdf okularApplication_pdf.desktop`、`image/png org.kde.gwenview.desktop`；空白表示没有设置。"),
+                "遍历查询 HTTPS 协议处理程序及常见音视频格式默认桌面项，读取 `mimeapps.list` 映射结果。").Then("每行「类型 默认程序」，如 `x-scheme-handler/https chrome.desktop`（网页用 Chrome）、`application/pdf okularApplication_pdf.desktop`、`image/png org.kde.gwenview.desktop`；空白表示没有设置。"),
             Step.Change(
                 "用默认程序打开文件或网址",
                 "xdg-open ~/Pictures; xdg-open https://store.steampowered.com",

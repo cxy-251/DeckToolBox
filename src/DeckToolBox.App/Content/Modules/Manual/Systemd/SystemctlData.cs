@@ -70,7 +70,7 @@ public static class SystemctlData
             Step.Root(
                 "用 drop-in 覆盖服务配置（示例）",
                 "sudo systemctl edit <服务名>",
-                "在打开的编辑器中两行注释之间写入要修改的项，如 `[Service]` 与 `Restart=always`，保存退出。").Then("在 `/etc/systemd/system/<服务名>.service.d/override.conf` 生成覆盖文件并自动重新加载；`systemctl cat <服务名>` 末尾会多出这个文件的内容。"),
+                "`<服务名>` 为系统服务名（如 `sshd`，由 `systemctl list-units --type=service` 查得）。在编辑器中两行注释之间写入覆盖配置。").Then("在 `/etc/systemd/system/<服务名>.service.d/override.conf` 生成覆盖文件并自动重新加载；`systemctl cat <服务名>` 末尾会多出这个文件的内容。"),
         ],
 
         Verify =

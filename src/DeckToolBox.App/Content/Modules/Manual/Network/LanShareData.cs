@@ -45,19 +45,19 @@ public static class LanShareData
             Step.Read(
                 "列出一台电脑上的共享文件夹",
                 "smbclient -L //<主机名或IP> -U <用户名>",
-                "按提示输入该用户在对方电脑上的密码。").Then("表格列出 `Sharename Type Comment`，`Disk` 类型的就是可以访问的共享文件夹。"),
+                "`<主机名或IP>` 由上一步查得；`<用户名>` 为对方机器账户名。按提示输入密码。").Then("表格列出 `Sharename Type Comment`，`Disk` 类型的就是可以访问的共享文件夹。"),
             Step.Change(
                 "从共享文件夹下载一个文件",
                 "smbclient //<主机名或IP>/<共享名> -U <用户名> -c 'ls; get <文件名>'",
-                "`-c` 执行一串命令后退出；文件下载到当前目录。").Then("先列出共享根目录的文件，然后显示 `getting file ... as ...` 与传输速度。"),
+                "`<主机名或IP>`、`<共享名>`、`<用户名>` 由前述步骤查得；`<文件名>` 为共享内的文件名。`-c` 执行后退出。").Then("先列出共享根目录的文件，然后显示 `getting file ... as ...` 与传输速度。"),
             Step.Read(
                 "在 Dolphin 中打开共享",
                 "kde-open 'smb://<主机名或IP>/<共享名>'",
-                "效果与在 Dolphin 地址栏输入该地址相同。").Then("Dolphin 打开并提示输入用户名与密码（可选择记住），随后像本地文件夹一样显示共享内容。"),
+                "`<主机名或IP>` 与 `<共享名>` 来源同上。效果与在 Dolphin 地址栏输入相同。").Then("Dolphin 打开并提示输入用户名与密码（可选择记住），随后像本地文件夹一样显示共享内容。"),
             Step.Root(
                 "把共享挂载为本地目录（示例）",
                 "sudo mkdir -p /mnt/share && sudo mount -t cifs //<主机名或IP>/<共享名> /mnt/share -o username=<用户名>,uid=$(id -u),gid=$(id -g)",
-                "会提示输入共享的密码。卸载：`sudo umount /mnt/share`。").Then("`/mnt/share` 中显示共享内容，文件属于你，任何程序都可以读写。"),
+                "`<主机名或IP>`、`<共享名>`、`<用户名>` 来源同上。卸载使用 `sudo umount /mnt/share`。").Then("`/mnt/share` 中显示共享内容，文件属于你，任何程序都可以读写。"),
         ],
 
         Verify =

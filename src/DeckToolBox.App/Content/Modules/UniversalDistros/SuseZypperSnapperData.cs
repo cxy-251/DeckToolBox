@@ -44,11 +44,11 @@ public static class SuseZypperSnapperData
             Step.Read(
                 "搜索软件包与模式",
                 "zypper se <关键词>; zypper patterns",
-                "`se` 是 `search` 的简写。").On(Hosts.OpenSuse).Then("`zypper se` 以表格列出匹配的包（`S` 列为 `i` 表示已安装）；`zypper patterns` 列出所有模式及其是否已安装。"),
+                "`<关键词>` 为待检索词（如 `git`）。`se` 为 search 简写。").On(Hosts.OpenSuse).Then("`zypper se` 以表格列出匹配的包（`S` 列为 `i` 表示已安装）；`zypper patterns` 列出所有模式及其是否已安装。"),
             Step.Root(
                 "安装软件包",
                 "sudo zypper in <包名>",
-                "`in` 是 `install` 的简写。").On(Hosts.OpenSuse).Then("显示将要安装的包、下载大小，询问 `继续吗？ [y/n/v/...]`，输入 `y` 后安装。遇到依赖冲突时列出几个编号方案供你选择。"),
+                "`<包名>` 由 `zypper se` 查得。`in` 为 install 简写。").On(Hosts.OpenSuse).Then("显示将要安装的包、下载大小，询问 `继续吗？ [y/n/v/...]`，输入 `y` 后安装。遇到依赖冲突时列出几个编号方案供你选择。"),
             Step.Root(
                 "Tumbleweed 整体升级",
                 "sudo zypper ref && sudo zypper dup",
@@ -60,11 +60,11 @@ public static class SuseZypperSnapperData
             Step.Root(
                 "对比两个快照之间改动了哪些文件",
                 "sudo snapper status <旧快照号>..<新快照号>",
-                "`snapper diff` 可进一步查看具体文件内容的差异。").On(Hosts.OpenSuse).Then("每行一个文件，前缀 `+` 新增、`-` 删除、`c` 内容改变。"),
+                "`<旧快照号>` 与 `<新快照号>` 为 `snapper list` 编号（如 `10..11`）。`diff` 查看内容。").On(Hosts.OpenSuse).Then("每行一个文件，前缀 `+` 新增、`-` 删除、`c` 内容改变。"),
             Step.Danger(
                 "回滚到指定快照",
                 "sudo snapper rollback <快照号>",
-                "通常先从 GRUB 菜单用该快照启动验证，再执行此命令。").On(Hosts.OpenSuse).Then("提示已创建新的读写快照并设为默认子卷，需要重启；重启后系统回到该快照的状态。"),
+                "`<快照号>` 为 `snapper list` 第一列编号。执行前先从 GRUB 菜单验证。").On(Hosts.OpenSuse).Then("提示已创建新的读写快照并设为默认子卷，需要重启；重启后系统回到该快照的状态。"),
         ],
 
         Verify =

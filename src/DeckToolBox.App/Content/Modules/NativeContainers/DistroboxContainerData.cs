@@ -56,11 +56,11 @@ public static class DistroboxContainerData
             Step.Change(
                 "把容器里的命令导出给宿主",
                 "distrobox-export --bin /usr/bin/git --export-path ~/.local/bin",
-                "在容器内执行。").On(Hosts.Distrobox).Then("提示导出成功，并在宿主的 `~/.local/bin/git` 生成一个小脚本。回到 SteamOS 终端输入 `git`，会自动进入容器运行它（第一次稍慢）。"),
+                "在容器内执行。`--bin` 将容器内二进制封装为宿主包装脚本，宿主执行时自动拉起容器并在内部运行。").On(Hosts.Distrobox).Then("提示导出成功，并在宿主的 `~/.local/bin/git` 生成一个小脚本。回到 SteamOS 终端输入 `git`，会自动进入容器运行它（第一次稍慢）。"),
             Step.Change(
                 "把容器里的图形程序导出到应用菜单",
                 "distrobox-export --app <程序名>",
-                "在容器内执行。取消导出用 `distrobox-export --app <程序名> --delete`。").On(Hosts.Distrobox).Then("提示导出成功。KDE 应用菜单中出现该程序（名称后带容器名），点击即可在容器里启动它。"),
+                "在容器内执行。`<程序名>` 填写容器内安装的软件命令名或 `.desktop` 名称。取消导出加 `--delete`。").On(Hosts.Distrobox).Then("提示导出成功。KDE 应用菜单中出现该程序（名称后带容器名），点击即可在容器里启动它。"),
             Step.Change(
                 "停止容器",
                 "distrobox stop arch",

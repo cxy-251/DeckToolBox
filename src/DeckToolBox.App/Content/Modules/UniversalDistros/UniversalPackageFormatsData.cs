@@ -49,7 +49,7 @@ public static class UniversalPackageFormatsData
             Step.Change(
                 "查看 AppImage 内部的文件结构",
                 "./<程序名>.AppImage --appimage-extract && ls squashfs-root",
-                "解出到当前目录的 `squashfs-root/`。").Then("先逐行打印解出的文件，最后 `ls` 显示 `AppRun`、`.desktop` 文件、图标以及 `usr/` 目录。"),
+                "`<程序名>` 为当前目录下 AppImage 文件名（`ls *.AppImage` 查得）。解出到 `squashfs-root/`。").Then("先逐行打印解出的文件，最后 `ls` 显示 `AppRun`、`.desktop` 文件、图标以及 `usr/` 目录。"),
             Step.Read(
                 "查看 AppImage 自带了哪些运行库",
                 "ls squashfs-root/usr/lib | head -n 30",

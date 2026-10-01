@@ -50,15 +50,15 @@ public static class ArchivesBackupData
             Step.Read(
                 "演练：看看 rsync 将会复制什么",
                 "rsync -avhn ~/Documents/ /run/media/deck/<卷标>/backup/Documents/",
-                "`-n` 只演练不执行；`-a` 保留属性；`-v` 列出文件；`-h` 人类可读的大小。").Then("列出将要传输的文件，末尾提示 `(DRY RUN)`。不会复制任何东西。"),
+                "`-n` 演练模式（dry-run）不写盘；`-a` 归档模式（保留权限/时间/软链接）；`-vh` 可读详细输出。`<卷标>` 为外接盘名称，可用 `lsblk -o NAME,LABEL,MOUNTPOINT` 查看。").Then("列出将要传输的文件，末尾提示 `(DRY RUN)`。不会复制任何东西。"),
             Step.Change(
                 "执行备份",
                 "rsync -avh --info=progress2 ~/Documents/ /run/media/deck/<卷标>/backup/Documents/",
-                "`--info=progress2` 显示总体进度。再次执行时只复制变化的文件。").Then("显示一行不断刷新的总体进度（已传输量、百分比、速度、剩余时间），结束后汇总传输了多少数据。目标目录与源内容一致；源中已删除的文件在目标中保留。"),
+                "`--info=progress2` 显示总体进度。再次执行时按大小和修改时间跳过没变的文件，只复制新增或改动过的。`<卷标>` 同上。").Then("显示一行不断刷新的总体进度（已传输量、百分比、速度、剩余时间），结束后汇总传输了多少数据。目标目录与源内容一致；源中已删除的文件在目标中保留。"),
             Step.Danger(
                 "镜像同步：让目标与源完全一致",
                 "rsync -avh --delete ~/Documents/ /run/media/deck/<卷标>/backup/Documents/",
-                "目标中多出来的文件会被删除。先把同样的命令加上 `-n` 执行一次，确认删除列表。").Then("除复制新文件外，还会逐行打印 `deleting <文件>`，删除目标中源里已经没有的文件。"),
+                "`--delete` 删除目标中源里已经没有的文件，让目标与源完全一致。先把同样的命令加上 `-n` 执行一次，确认删除列表。").Then("除复制新文件外，还会逐行打印 `deleting <文件>`，删除目标中源里已经没有的文件。"),
         ],
 
         Verify =

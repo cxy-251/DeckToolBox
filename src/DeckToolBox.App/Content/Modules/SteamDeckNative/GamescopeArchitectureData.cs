@@ -25,11 +25,18 @@ public static class GamescopeArchitectureData
             "- `NIS`：NVIDIA Image Scaling，同类算法。",
             "- 整数缩放：像素精确放大，适合像素风游戏。",
             "4. 屏幕是竖屏面板：Deck 的屏幕物理上是 800×1280 的竖屏，由系统旋转成横屏使用，所以内核报告的模式是 `800x1280`。",
+            "5. HDR 与色彩管理：",
+            "• 游戏通过 Gamescope 的 Vulkan WSI 层提交 HDR 画面（HDR10 PQ 或 scRGB）及亮度元数据。",
+            "• Gamescope 从屏幕的 EDID 读取它支持的 HDR 能力（OLED 版内置屏的 EDID 中有 HDR 静态元数据块，最高亮度约 600 cd/m²）。屏幕支持时按 HDR 输出；不支持或未开启时，HDR 画面被色调映射成 SDR。",
+            "• 在 HDR 输出下，普通 SDR 内容按多亮显示由 `--hdr-sdr-content-nits` 决定（默认 400 nits）；`--hdr-itm-enabled` 可以把 SDR 画面反向映射成 HDR。",
+            "6. 游戏模式会话的几个细节：",
+            "- 游戏模式由用户服务 `gamescope-session.service` 运行脚本 `/usr/lib/steamos/gamescope-session`；脚本把当时的全部环境变量保存到 `$XDG_RUNTIME_DIR/gamescope-environment`（即 `/run/user/1000/`），其中 `STEAM_GAMESCOPE_*` 告诉 Steam 这台设备支持哪些功能（VRR、HDR、撕裂、NIS 等），`STEAM_DISPLAY_REFRESH_LIMITS` 是内置屏允许的刷新率范围。",
+            "- 会话结束后，drop-in 配置 `drm_janitor.conf` 通过 `ExecStopPost` 运行 `/usr/bin/drm_janitor`，清理 Gamescope 留下的显示状态，再交给桌面模式或下一次会话。",
         ],
 
         Consequences =
         [
-            "• 查看 DRM 连接器与屏幕模式完全只读。",
+            "• 查看 DRM 连接器、屏幕模式与 EDID 均为只读操作，不会改变硬件状态。",
             "• 在桌面模式用 `gamescope` 嵌套运行程序，只会打开一个独立窗口，关闭即结束，对系统没有影响，适合测试程序在 1280×800 下的显示效果。",
             "• 在游戏模式中给游戏的启动选项再套一层 `gamescope`，会形成嵌套合成器，通常没有必要，缩放和限帧请直接用快捷菜单。启动选项里的 gamescope 主要用于桌面模式或其他 Linux 电脑。",
             "• 启动选项里 `--` 分隔 gamescope 参数和要运行的命令，必须放在 `%command%` 之前。",
@@ -50,6 +57,14 @@ public static class GamescopeArchitectureData
                 "cat /sys/class/drm/card*-eDP-1/modes",
                 "系统在显示时把它旋转成横屏。").Then("输出 `800x1280`：宽 800、高 1280，说明面板物理上是竖屏。"),
             Step.Read(
+                "查看屏幕 EDID 色深与 HDR 元数据",
+                "edid-decode /sys/class/drm/card0-eDP-1/edid | grep -iE 'Manufacturer|Bits per primary|HDR Static|luminance'",
+                "EDID 是屏幕自己报告的能力表，`edid-decode` 把它解码成可读文本。外接显示器把 `eDP-1` 换成 `DP-1`。").Then("OLED 版输出如 `Manufacturer: VLV`、`Bits per primary color channel: 8`、`HDR Static Metadata Data Block:`，以及 `Desired content max luminance: 115 (603.666 cd/m^2)` 等三行亮度；LCD 版没有 HDR 相关的行。"),
+            Step.Read(
+                "查看 gamescope 的 HDR 与色彩管理参数",
+                "gamescope --help 2>&1 | grep -i hdr",
+                "这些参数主要用于桌面模式或其他电脑上手动运行 gamescope；游戏模式中的 HDR 由 Steam 设置控制。").Then("十行左右的参数说明，如 `--hdr-enabled  enable HDR output ...`、`--hdr-sdr-content-nits  ... Default: 400 nits.`、`--hdr-itm-enabled  enable SDR->HDR inverse tone mapping`。"),
+            Step.Read(
                 "查看当前是否有 gamescope 在运行",
                 "pgrep -a gamescope || echo '当前没有运行 gamescope（桌面模式下属正常）'",
                 "`||` 表示前一条命令没找到时才执行后一条。").Then("游戏模式下输出 gamescope 的 PID 和完整启动参数；桌面模式下输出「当前没有运行 gamescope（桌面模式下属正常）」。"),
@@ -61,6 +76,14 @@ public static class GamescopeArchitectureData
                 "启动选项模板：以 720p 渲染并用 FSR 放大、限制 40 FPS",
                 "gamescope -W 1280 -H 800 -w 1152 -h 720 -F fsr -r 40 -f -- %command%",
                 "用于桌面模式或其他 Linux 电脑上的 Steam。在 Deck 的游戏模式中请改用快捷菜单的缩放和帧率设置。").On(Hosts.SteamLaunchOptions).Then("游戏在一个全屏的 gamescope 会话中运行：以 1152×720 渲染、放大到 1280×800，帧率不超过 40。退出游戏时 gamescope 一并退出。"),
+            Step.Read(
+                "查看 Gamescope 动态特性环境表",
+                "grep -E 'STEAM_GAMESCOPE|STEAM_DISPLAY|VRS' \"$XDG_RUNTIME_DIR/gamescope-environment\"",
+                "进入过一次游戏模式后才会有这个文件，回到桌面模式后仍然保留。").Then("十几行 `变量=值`，如 `STEAM_GAMESCOPE_VRR_SUPPORTED=1`、`STEAM_GAMESCOPE_HDR_SUPPORTED=1`、`STEAM_GAMESCOPE_TEARING_SUPPORTED=1`、`STEAM_DISPLAY_REFRESH_LIMITS=45,90`（OLED 版内置屏 45~90 Hz）、`STEAM_USE_DYNAMIC_VRS=1`。"),
+            Step.Read(
+                "查看游戏模式会话的服务配置",
+                "systemctl --user cat gamescope-session.service --no-pager | grep -E '^# /|^Exec'",
+                "`systemctl cat` 显示服务文件及其所有 drop-in 片段，`# /` 开头的行标出每个片段的路径。").Then("几行结果：服务文件路径、`ExecStart=/usr/lib/steamos/gamescope-session`，以及 `drm_janitor.conf` 片段中的 `ExecStopPost=-/usr/bin/drm_janitor`。"),
         ],
 
         Verify =

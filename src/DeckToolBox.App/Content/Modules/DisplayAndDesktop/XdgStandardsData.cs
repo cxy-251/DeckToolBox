@@ -48,15 +48,15 @@ public static class XdgStandardsData
             Step.Change(
                 "为便携应用创建一个菜单项",
                 "cat > ~/.local/share/applications/<程序名>.desktop <<'EOF'\n[Desktop Entry]\nType=Application\nName=<显示名称>\nExec=/home/deck/Applications/<程序名>/<可执行文件> %U\nIcon=<图标名或图标文件绝对路径>\nTerminal=false\nCategories=Utility;\nEOF",
-                "`Exec` 必须写绝对路径（`~` 不会被展开）。`Categories` 决定出现在菜单的哪个分类，可选 `Game;`、`Utility;`、`Network;`、`AudioVideo;`、`Development;` 等。").Then("没有输出，`~/.local/share/applications/` 下出现新的 `.desktop` 文件。几秒后 KDE 应用菜单的对应分类中出现这个程序。"),
+                "`<程序名>` 建议用全小写英文；`<显示名称>` 为菜单显示名；`<可执行文件>` 填二进制绝对路径；`<图标名或图标文件绝对路径>` 填系统预置名或图片绝对路径。`Exec` 必须写绝对路径（`~` 不会被展开）。`Categories` 决定出现在菜单的哪个分类，可选 `Game;`、`Utility;`、`Network;`、`AudioVideo;`、`Development;` 等。").Then("没有输出，`~/.local/share/applications/` 下出现新的 `.desktop` 文件。几秒后 KDE 应用菜单的对应分类中出现这个程序。"),
             Step.Read(
                 "检查 .desktop 文件的语法",
                 "desktop-file-validate ~/.local/share/applications/<程序名>.desktop",
-                "由 desktop-file-utils 提供。").Then("格式正确时没有任何输出；有问题时每行一条 `error:` 或 `warning:` 说明哪个键写错了。"),
+                "`<程序名>` 与上一步相同。命令由 desktop-file-utils 提供，按 XDG 规范检查必需的键和取值。").Then("格式正确时没有任何输出；有问题时每行一条 `error:` 或 `warning:` 说明哪个键写错了。"),
             Step.Change(
                 "隐藏一个系统自带的菜单项（不删除程序）",
                 "cp /usr/share/applications/<名称>.desktop ~/.local/share/applications/ && echo 'NoDisplay=true' >> ~/.local/share/applications/<名称>.desktop",
-                "用户目录中的同名副本覆盖系统版本。恢复显示只需删除这个副本。先用 `ls /usr/share/applications` 找到文件名。").Then("没有输出。刷新菜单后该程序不再显示，但程序本身和它的文件关联仍然存在。"),
+                "`<名称>` 可先用 `ls /usr/share/applications` 查得。用户目录副本优先于系统版本，通过追加 `NoDisplay=true` 隐藏图标而不改动系统包。").Then("没有输出。刷新菜单后该程序不再显示，但程序本身和它的文件关联仍然存在。"),
             Step.Change(
                 "让 KDE 立即重新读取菜单",
                 "kbuildsycoca6",

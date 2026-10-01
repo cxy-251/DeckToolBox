@@ -49,7 +49,7 @@ public static class Sqlite3Data
             Step.Read(
                 "统计与筛选",
                 "sqlite3 games.db 'SELECT count(*), sum(hours), avg(hours) FROM games; SELECT name FROM games WHERE hours > 50;'",
-                "一次执行多条语句。").Then("第一行 `3|215|71.66...`（数量、总和、平均），随后是 `Terraria` 与 `Hades`。"),
+                "以分号分隔连续执行多条 SQL；第一条聚合统计总量与均值，第二条条件过滤满足记录。").Then("第一行 `3|215|71.66...`（数量、总和、平均），随后是 `Terraria` 与 `Hades`。"),
             Step.Change(
                 "导出为 CSV 和 JSON",
                 "sqlite3 -header -csv games.db 'SELECT * FROM games;' > games.csv && sqlite3 -json games.db 'SELECT * FROM games;' && cat games.csv",
@@ -57,7 +57,7 @@ public static class Sqlite3Data
             Step.Read(
                 "以只读方式查看其他程序的数据库（示例）",
                 "cp <数据库文件> /tmp/copy.db && sqlite3 /tmp/copy.db '.tables'",
-                "复制一份再查看，不影响原程序。").Then("列出该数据库中所有表的名称；再用 `.schema <表名>` 或 `SELECT * FROM <表名> LIMIT 5;` 查看具体内容。"),
+                "`<数据库文件>` 为目标 sqlite 文件路径（如浏览器 `History`）。先复制再看，避免读写锁冲突。").Then("列出该数据库中所有表的名称；再用 `.schema <表名>` 或 `SELECT * FROM <表名> LIMIT 5;` 查看具体内容。"),
         ],
 
         Verify =

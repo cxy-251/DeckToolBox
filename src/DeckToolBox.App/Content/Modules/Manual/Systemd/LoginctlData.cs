@@ -42,11 +42,11 @@ public static class LoginctlData
             Step.Read(
                 "查看用户是否开启 linger",
                 "loginctl show-user \"$USER\" -p Linger -p State",
-                "默认为 no。").Then("输出 `Linger=no` 与 `State=active`。"),
+                "查询 systemd-logind 状态；Linger 设为 yes 时允许用户注销后其后台 `user@.service` 服务保持常驻。").Then("输出 `Linger=no` 与 `State=active`。"),
             Step.Change(
                 "锁屏",
                 "loginctl lock-session",
-                "锁定当前会话。").Then("屏幕立即显示锁屏界面，输入密码解锁。"),
+                "向会话管理器发送 Lock 信号；由屏幕锁程序（如 kscreenlocker）接管输入以保护当前桌面会话。").Then("屏幕立即显示锁屏界面，输入密码解锁。"),
             Step.Change(
                 "让用户服务开机即运行、注销后不停止",
                 "loginctl enable-linger",

@@ -54,7 +54,7 @@ public static class RgData
             Step.Read(
                 "用 rg 搜索压缩包",
                 "rg keyword pack.zip",
-                "rg 不解压。").Then("只提示 `binary file matches (found \"\\0\" byte ...)`，看不到具体内容。"),
+                "rg 不会解开 zip，只把它当作二进制文件搜索（`-z` 只支持 gzip、xz、bzip2 等单文件压缩格式）。").Then("只提示 `binary file matches (found \"\\0\" byte ...)`，看不到具体内容。"),
             Step.Read(
                 "用 rga 搜索压缩包内部",
                 "rga keyword pack.zip",

@@ -38,7 +38,7 @@ public static class KernelModulesKmodData
             Step.Read(
                 "列出已加载的内核模块",
                 "lsmod | head -n 25",
-                "显示前 25 行。").Then("表格 `Module  Size  Used by`：模块名、占用内存字节数、被引用次数及引用它的模块。"),
+                "读取内核 `/proc/modules` 虚文件格式化输出。`Module` 为模块名，`Size` 为占用 RAM 字节数，`Used by` 为依赖引用计数与具体被哪些模块引用。").Then("表格 `Module  Size  Used by`：模块名、占用内存字节数、被引用次数及引用它的模块。"),
             Step.Read(
                 "查看一个模块的信息与参数",
                 "modinfo amdgpu | head -n 30",

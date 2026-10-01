@@ -20,7 +20,8 @@ public static class LaunchOptionsData
             "- `程序 %command%`：用一个**包装器**启动游戏，例如 `mangohud %command%`，由 MangoHud 先启动再拉起游戏。",
             "- `%command% 参数`：写在后面的是**传给游戏本体的参数**，例如 `%command% -dx11`；游戏是否认识该参数取决于游戏本身。",
             "3. 三种写法可以组合：`变量=值 包装器 %command% 参数`。",
-            "4. 如果启动选项里没有 `%command%`，Steam 会把整段内容当作追加在末尾的游戏参数。",
+            "4. 复合嵌套顺序：多个环境变量置于最左侧；多个包装器自左向右嵌套（最左先执行，最右拉起被包装程序）；`%command%` 右侧全部作为 CLI 参数传给游戏本体。",
+            "5. 如果启动选项里没有 `%command%`，Steam 会把整段内容当作追加在末尾的游戏参数。",
         ],
 
         Consequences =
@@ -37,6 +38,10 @@ public static class LaunchOptionsData
                 "mangohud %command%",
                 "SteamOS 自带 MangoHud。在 Deck 游戏模式中，快捷菜单的「性能浮层」就是 MangoHud，因此这条主要用于桌面模式。").On(Hosts.SteamLaunchOptions).Then("游戏画面左上角出现半透明的信息浮层，实时显示 FPS、帧时间曲线、CPU/GPU 占用与温度。删掉启动选项即恢复。"),
             Step.Change(
+                "多变量与多包装器复合使用（示例）",
+                "DXVK_FRAME_RATE=60 PROTON_LOG=1 mangohud gamemoderun %command% -novid",
+                "左侧传入限帧与日志环境变量；MangoHud 嵌套包裹 GameMode 启动；末尾传递游戏跳过动画参数。").On(Hosts.SteamLaunchOptions).Then("启动链：MangoHud 先启动并准备渲染浮层，拉起 GameMode 调整 CPU 调度策略，随后启动 Proton 游戏本体并接收 `-novid` 参数。"),
+            Step.Change(
                 "禁用 Steam 覆盖层的注入",
                 "LD_PRELOAD=\"\" %command%",
                 "`LD_PRELOAD` 是预先加载的库列表，设为空即不注入任何库。个别原生 Linux 程序与覆盖层冲突时使用。").On(Hosts.SteamLaunchOptions).Then("游戏启动时不再加载 Steam 覆盖层：按 `Shift+Tab` 不会弹出覆盖层界面，由它引起的黑屏或崩溃随之消失。"),
@@ -51,7 +56,7 @@ public static class LaunchOptionsData
             Step.Read(
                 "查看正在运行的游戏实际收到的环境变量",
                 "tr '\\0' '\\n' < /proc/$(pgrep -n -f '<游戏exe名>')/environ | grep -E 'PROTON|DXVK|LD_PRELOAD'",
-                "`pgrep -n -f` 找到名字匹配的最新进程，`/proc/<PID>/environ` 是它的环境变量（以空字符分隔，`tr` 转成换行）。游戏运行时在桌面模式终端执行。").Then("每行一个变量，例如 `DXVK_FRAME_RATE=40`；没有输出说明游戏进程里没有这些变量，启动选项可能没生效，或者 exe 名写错了。"),
+                "`pgrep -n -f` 匹配最新进程。`<游戏exe名>` 可先在游戏运行时用 `pgrep -l -f .exe` 查得；`/proc/<PID>/environ` 为内核环境变量（空字符分隔，`tr` 转为换行）。").Then("每行一个变量，例如 `DXVK_FRAME_RATE=40`；没有输出说明游戏进程里没有这些变量，启动选项可能没生效，或者 exe 名写错了。"),
         ],
 
         Verify =

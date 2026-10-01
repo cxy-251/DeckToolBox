@@ -56,7 +56,7 @@ public static class DialogsData
             Step.Change(
                 "不打断操作的气泡提示",
                 "kdialog --passivepopup '下载完成' 5",
-                "5 秒后自动消失。").Then("屏幕角落出现一个气泡通知，5 秒后自动消失，不需要点击。"),
+                "向桌面通知服务发送非阻塞气泡弹窗；第二个参数指定超时自动关闭秒数，无需人工点击。").Then("屏幕角落出现一个气泡通知，5 秒后自动消失，不需要点击。"),
             Step.Change(
                 "用 zenity 显示进度条",
                 "(for i in 20 40 60 80 100; do echo $i; echo \"# 正在处理 $i%\"; sleep 1; done) | zenity --progress --title='处理中' --auto-close",

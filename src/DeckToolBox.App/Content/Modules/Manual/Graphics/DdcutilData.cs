@@ -39,7 +39,7 @@ public static class DdcutilData
             Step.Read(
                 "检测显示器",
                 "ddcutil detect 2>&1 | grep -E '^Display|^Invalid|I2C bus|DRM_connector|Model'",
-                "只保留关键行。").Then("每台显示器一段：`Display 1`（可用）或 `Invalid display`（不可用），附带 I2C 总线、连接器（`card0-eDP-1` 为内置屏、`card0-DP-1` 为外接）和型号。内置屏总是 `Invalid display`。"),
+                "通过 `/dev/i2c` 总线基于 DDC/CI 协议扫描外接显示器；过滤保留显示器序号、DRM 连接器与型号。").Then("每台显示器一段：`Display 1`（可用）或 `Invalid display`（不可用），附带 I2C 总线、连接器（`card0-eDP-1` 为内置屏、`card0-DP-1` 为外接）和型号。内置屏总是 `Invalid display`。"),
             Step.Root(
                 "读取外接显示器亮度",
                 "sudo ddcutil getvcp 10",
@@ -47,11 +47,11 @@ public static class DdcutilData
             Step.Root(
                 "设置亮度",
                 "sudo ddcutil setvcp 10 <0到100>",
-                "例如 `sudo ddcutil setvcp 10 40`。").Then("显示器亮度立即改变，没有其他输出。"),
+                "`<0到100>` 为亮度百分比整数（如 `40`）。").Then("显示器亮度立即改变，没有其他输出。"),
             Step.Root(
                 "查看显示器支持的全部可调项",
                 "sudo ddcutil capabilities",
-                "输出较长。").Then("列出型号、支持的 VCP 代码及名称（如 `Feature: 10 (Brightness)`、`Feature: 60 (Input Source)` 及其可选值）。"),
+                "向显示器 MCU 查询 VESA MCCS 规范支持的 VCP 控制特性代码表（包含亮度、对比度、输入源编码）。").Then("列出型号、支持的 VCP 代码及名称（如 `Feature: 10 (Brightness)`、`Feature: 60 (Input Source)` 及其可选值）。"),
         ],
 
         Verify =

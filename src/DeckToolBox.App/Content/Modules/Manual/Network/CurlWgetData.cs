@@ -58,7 +58,7 @@ public static class CurlWgetData
             Step.Change(
                 "批量下载一个列表中的所有文件（示例）",
                 "wget -c -i <网址列表>.txt -P ~/Downloads --limit-rate=5m",
-                "列表文件每行一个网址；`--limit-rate` 限速。").Then("依次下载每个网址，每个文件一条进度条，最后汇总下载了多少文件、总大小和耗时。"),
+                "`<网址列表>.txt` 替换为你保存的文本文件路径，内容每行一个 URL；`--limit-rate` 限速。").Then("依次下载每个网址，每个文件一条进度条，最后汇总下载了多少文件、总大小和耗时。"),
             Step.Read(
                 "调用一个返回 JSON 的接口",
                 "curl -fsSL 'https://api.github.com/repos/ValveSoftware/Proton/releases/latest' | jq -r '.tag_name, .published_at'",

@@ -24,6 +24,7 @@ public static class MangoHudData
             "- 记录：`output_folder=~/mangohud-logs`、`log_duration=60`，运行时按 `Shift_L+F2` 开始/停止记录，得到 CSV 文件。",
             "3. gamemode：`gamemoderun 程序` 在程序运行期间请求 CPU 使用性能调速策略、提高进程优先级等，程序退出后恢复。`gamemoded -s` 查看状态。在 Deck 上 SteamOS 自身已有功耗与调度管理，效果通常不明显，在其他 Linux 电脑上更有用。",
             "4. vkmark：运行一组 Vulkan 场景并给出分数，用于对比设置改动（TDP、GPU 频率、调度器）前后的图形性能。",
+            "5. 游戏模式里的性能浮层是 mangoapp：Gamescope 以 `--mangoapp` 启动独立的 `/usr/bin/mangoapp` 进程，帧时间数据由 Gamescope 通过 System V 消息队列（`msgget`/`msgrcv`）发给它，浮层作为单独的窗口由 Gamescope 叠加在画面上，不需要把 Vulkan 层注入游戏进程。快捷菜单切换浮层级别时，Steam 改写的是环境变量 `MANGOHUD_CONFIGFILE` 指向的配置文件，mangoapp 发现文件变化后重新加载。",
         ],
 
         Consequences =
@@ -35,6 +36,10 @@ public static class MangoHudData
 
         Steps =
         [
+            Step.Read(
+                "查看游戏模式浮层读取的配置文件",
+                "grep MANGOHUD_CONFIGFILE \"$XDG_RUNTIME_DIR/gamescope-environment\" && cat \"$(sed -n 's/^MANGOHUD_CONFIGFILE=//p' \"$XDG_RUNTIME_DIR/gamescope-environment\")\"",
+                "`gamescope-environment` 是游戏模式会话启动时保存的环境变量快照，回到桌面模式后仍保留。不要直接运行 `mangoapp`，脱离 Gamescope 时它会崩溃。").Then("第一行是 `MANGOHUD_CONFIGFILE=/run/user/1000/gamescope.xxxxxxx/mangohud.config`；接着是文件内容，如 `control=mangohud`、`fsr_steam_sharpness=5`，浮层关闭时还有一行 `no_display`，打开时则是 Steam 写入的一组显示选项。文件已被清理时 `cat` 报「没有那个文件或目录」。"),
             Step.Read(
                 "给一个程序加上浮层",
                 "MANGOHUD_CONFIG=fps,frametime,gpu_temp,cpu_temp,gpu_power mangohud vkcube",

@@ -54,7 +54,7 @@ public static class SystemStorageHygieneData
             Step.Change(
                 "删除某个游戏的着色器缓存",
                 "rm -rf ~/.local/share/Steam/steamapps/shadercache/<AppID>",
-                "可再生数据。").Then("没有输出，该目录被删除，空间立即释放。下次启动该游戏时 Steam 会显示「正在处理 Vulkan 着色器」，重新生成缓存。"),
+                "`<AppID>` 为游戏的数字编号，可由上步输出确定。缓存包含预编译流水线与 DXVK 状态数据，删除后空间释放，下次进游戏时重新生成。").Then("没有输出，该目录被删除，空间立即释放。下次启动该游戏时 Steam 会显示「正在处理 Vulkan 着色器」，重新生成缓存。"),
             Step.Danger(
                 "删除某个残留的 Proton 前缀",
                 "rm -rf ~/.local/share/Steam/steamapps/compatdata/<AppID>",

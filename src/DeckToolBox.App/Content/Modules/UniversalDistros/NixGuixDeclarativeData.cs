@@ -62,7 +62,7 @@ public static class NixGuixDeclarativeData
             Step.Root(
                 "回滚到上一个部署",
                 "sudo rpm-ostree rollback",
-                "重启后生效。").On(Hosts.Silverblue).Then("提示已将默认启动的部署改为上一个，并建议重启；重启后系统回到上一次更新前的状态。"),
+                "只是把默认启动的部署换成上一个，当前系统不变；重启后 GRUB 从旧部署启动。").On(Hosts.Silverblue).Then("提示已将默认启动的部署改为上一个，并建议重启；重启后系统回到上一次更新前的状态。"),
         ],
 
         Verify =

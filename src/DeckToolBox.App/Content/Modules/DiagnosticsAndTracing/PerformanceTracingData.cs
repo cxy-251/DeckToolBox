@@ -25,6 +25,7 @@ public static class PerformanceTracingData
             "4. perf 与硬件计数器：CPU 内置性能监控单元 (PMU)，能统计执行了多少指令、消耗了多少时钟周期、缓存未命中多少次。`perf stat` 汇总这些数据：",
             "- IPC（每周期指令数）：数值低（如 0.5 以下）通常说明 CPU 大部分时间在等内存数据；数值高说明计算密集且顺畅。",
             "5. eBPF：在内核中安全地运行小程序，统计各种事件而不必修改内核。加载前由内核的验证器检查，但仍需要 root 权限；bpftrace 等前端工具 SteamOS 没有自带。",
+            "6. SteamOS 的调度器参数：开机时 `steamos-cfs-debugfs-tunings.service` 运行 `/usr/lib/steamos/steamos-cfs-debugfs-settings`，向 `/sys/kernel/debug/sched/` 写入一组 CFS 参数（`latency_ns`=3 ms、`min_granularity_ns`=0.3 ms、`wakeup_granularity_ns`、`migration_cost_ns`、`nr_migrate`），用更短的时间片换取更快的响应。注意：内核 6.6 起默认调度器换成了 EEVDF，前三个参数已不存在，脚本会跳过不存在的文件，在当前内核上实际生效的只有 `migration_cost_ns` 与 `nr_migrate`。",
         ],
 
         Consequences =
@@ -56,6 +57,10 @@ public static class PerformanceTracingData
                 "列出内核的追踪点分类",
                 "sudo ls /sys/kernel/tracing/events/ | head -n 25",
                 "每个目录下是内核中该子系统预置的追踪点。").Then("输入 sudo 密码后列出前 25 个子系统目录名，如 `block`、`sched`、`syscalls`、`net`。"),
+            Step.Read(
+                "查看内核调度微调配置脚本",
+                "cat /usr/lib/steamos/steamos-cfs-debugfs-settings",
+                "脚本很短，可以直接阅读；`set_sched_dbgfs` 函数在目标文件不存在时只记一个错误，不会中断。").Then("输出整个 bash 脚本，末尾是五行 `set_sched_dbgfs \"latency_ns\" \"3000000\"`、`\"min_granularity_ns\" \"300000\"`、`\"wakeup_granularity_ns\" \"500000\"`、`\"migration_cost_ns\" \"50000\"`、`\"nr_migrate\" \"128\"`。"),
         ],
 
         Verify =

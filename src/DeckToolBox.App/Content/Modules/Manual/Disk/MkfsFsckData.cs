@@ -48,19 +48,19 @@ public static class MkfsFsckData
             Step.Danger(
                 "清除旧签名并新建一个占满整盘的分区",
                 "udisksctl unmount -b /dev/<分区名>; sudo wipefs -a /dev/<磁盘名> && sudo parted -s /dev/<磁盘名> mklabel gpt mkpart data 0% 100%",
-                "**会清除整个磁盘上的所有数据。**`-s` 表示不逐项询问。").Then("wipefs 列出被擦除的签名；parted 没有输出。`lsblk` 显示该磁盘下只有一个新分区（如 `sda1`），尚无文件系统。"),
+                "`<分区名>`（如 `sda1`）与 `<磁盘名>`（如 `sda`）由第 1 步 `lsblk` 确认，确认 TRAN 为 usb 且不是内置硬盘。**清除磁盘所有数据。**`-s` 为非交互式。").Then("wipefs 列出被擦除的签名；parted 没有输出。`lsblk` 显示该磁盘下只有一个新分区（如 `sda1`），尚无文件系统。"),
             Step.Danger(
                 "格式化为 ext4，并让根目录属于自己",
                 "sudo mkfs.ext4 -L <卷标> -E root_owner=$(id -u):$(id -g) /dev/<分区名>",
-                "`root_owner` 让你挂载后无需 sudo 就能写入。").Then("输出创建过程（块数、inode 数、写入超级块），最后 `写入超级块和文件系统账户统计信息： 已完成`。"),
+                "`<分区名>`（如 `sda1`）由 `lsblk` 获取；`<卷标>` 为自定义名称（建议纯英文数字如 `SD_EXT4`）。`root_owner` 将 ext4 顶级目录所属 uid:gid 设为当前用户，挂载后免 sudo 写入。").Then("输出创建过程（块数、inode 数、写入超级块），最后 `写入超级块和文件系统账户统计信息： 已完成`。"),
             Step.Danger(
                 "或者格式化为 exFAT（与 Windows/macOS 通用）",
                 "sudo mkfs.exfat -L <卷标> /dev/<分区名>",
-                "exFAT 没有 Linux 权限，挂载后普通用户可以直接写入。").Then("输出 `Format success.`。"),
+                "`<分区名>` 由 `lsblk` 获取；`<卷标>` 为自定义名称（如 `USB_EXFAT`）。exFAT 缺乏 POSIX 权限与软链接支持，不适用于 Steam 库，挂载后普通用户直接拥有所有权。").Then("输出 `Format success.`。"),
             Step.Root(
                 "检查并修复文件系统（卸载状态下）",
                 "udisksctl unmount -b /dev/<分区名>; sudo fsck.ext4 -f /dev/<分区名>",
-                "exFAT 分区改用 `sudo fsck.exfat /dev/<分区名>`。").Then("逐项输出 `第 1 步：检查 inode、块和大小` 到第 5 步，最后一行汇总文件数与块使用情况；发现错误时会询问是否修复。"),
+                "`<分区名>` 由 `lsblk` 确认；exFAT 分区改用 `sudo fsck.exfat /dev/<分区名>`。`-f` 强制检查干净的文件系统。**严禁在挂载状态下运行。**").Then("逐项输出 `第 1 步：检查 inode、块和大小` 到第 5 步，最后一行汇总文件数与块使用情况；发现错误时会询问是否修复。"),
         ],
 
         Verify =

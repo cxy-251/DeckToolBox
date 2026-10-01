@@ -60,7 +60,7 @@ public static class JqJsonData
             Step.Change(
                 "查看一个 SQLite 数据库的表结构（示例）",
                 "cp <数据库文件> /tmp/db-copy.sqlite && sqlite3 /tmp/db-copy.sqlite '.tables'",
-                "先复制再查看；进一步可用 `sqlite3 /tmp/db-copy.sqlite '.schema <表名>'` 查看表结构。").Then("列出数据库中的所有表名。原数据库文件不受影响。"),
+                "`<数据库文件>` 换成要查看的 SQLite 文件。先复制再查看，原文件不受影响；进一步可用 `sqlite3 /tmp/db-copy.sqlite '.schema <表名>'` 查看表结构。").Then("列出数据库中的所有表名。原数据库文件不受影响。"),
         ],
 
         Verify =

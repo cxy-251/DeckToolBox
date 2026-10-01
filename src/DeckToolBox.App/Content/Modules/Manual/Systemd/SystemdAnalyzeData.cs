@@ -35,7 +35,7 @@ public static class SystemdAnalyzeData
             Step.Read(
                 "查看开机总耗时",
                 "systemd-analyze",
-                "统计的是本次开机。").Then("输出如 `Startup finished in 4.1s (firmware) + 1.4s (loader) + 1.5s (kernel) + 10.7s (userspace) = 17.8s` 和 `graphical.target reached after 10.7s in userspace`。"),
+                "解析内核与 systemd 启动时戳；拆解固件（firmware）、加载器（loader）、内核（kernel）与用户空间（userspace）各自耗时。").Then("输出如 `Startup finished in 4.1s (firmware) + 1.4s (loader) + 1.5s (kernel) + 10.7s (userspace) = 17.8s` 和 `graphical.target reached after 10.7s in userspace`。"),
             Step.Read(
                 "按耗时排序各单元",
                 "systemd-analyze blame --no-pager | head -n 10",

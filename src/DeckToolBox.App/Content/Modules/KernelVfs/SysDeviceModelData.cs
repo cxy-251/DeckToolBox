@@ -21,7 +21,10 @@ public static class SysDeviceModelData
             "- `/sys/devices/system/cpu/cpu*/cpufreq/`：各核心当前频率、调频驱动和策略。",
             "- `/sys/class/thermal/thermal_zone*/`：温区温度。",
             "- `/sys/class/hwmon/`：各类硬件传感器（见「硬件传感器、功耗与风扇」）。",
-            "- `/sys/class/drm/`：显示接口与连接状态。",
+            "- `/sys/class/drm/card0/device/`：显卡负载（`gpu_busy_percent`）与核心频率（`pp_dpm_sclk`）。",
+            "- `/sys/class/backlight/`：屏幕背光驱动级别（`actual_brightness`、`max_brightness`）。",
+            "- `/sys/devices/virtual/dmi/id/`：主板与 BIOS 固件信息（`product_name`、`bios_version`、`sys_vendor`）。",
+            "- `/sys/class/net/<接口>/`：网络物理链路状态（`operstate`）与 MAC 地址（`address`）。",
             "4. 数值单位通常是整数形式的最小单位：温度为毫摄氏度，频率为 kHz，电流为微安，电压为微伏。",
         ],
 
@@ -33,6 +36,10 @@ public static class SysDeviceModelData
 
         Steps =
         [
+            Step.Read(
+                "读取机型、厂商与 BIOS 版本",
+                "head -n 1 /sys/class/dmi/id/{sys_vendor,product_name,bios_version,chassis_type}",
+                "DMI 是固件提供给系统的硬件描述表。`head` 给多个文件时会在每个前面加 `==> 文件名 <==` 标题。`chassis_type` 是 SMBIOS 规定的机箱类型代码（8 = 便携式，10 = 笔记本，3 = 台式机）。").Then("四段输出：`Valve`、`Galileo`（OLED 版；LCD 版为 `Jupiter`）、BIOS 版本如 `F7G0114`、机箱类型 `8`。"),
             Step.Read(
                 "查看电池健康度（满电容量 / 设计容量）",
                 "cd /sys/class/power_supply/BAT1 && echo \"健康度 $((100 * $(cat charge_full) / $(cat charge_full_design)))%  循环次数 $(cat cycle_count)\"",
@@ -53,6 +60,18 @@ public static class SysDeviceModelData
                 "查看各温区温度",
                 "paste <(cat /sys/class/thermal/thermal_zone*/type) <(awk '{printf \"%.1f °C\\n\", $1/1000}' /sys/class/thermal/thermal_zone*/temp)",
                 "更完整的传感器读数见 `sensors` 命令（「硬件传感器、功耗与风扇」模块）。").Then("每行「温区类型  温度」，Deck 上通常只有 `acpitz  62.0 °C`。"),
+            Step.Read(
+                "读取 GPU 核心实时负载百分比",
+                "cat /sys/class/drm/card0/device/gpu_busy_percent",
+                "amdgpu 驱动提供的瞬时值。连续观察可用 `watch -n 1 cat /sys/class/drm/card0/device/gpu_busy_percent`。").Then("输出一个 0~100 的整数；桌面空闲时通常是 `0` 或个位数，玩游戏时接近满载。"),
+            Step.Read(
+                "查看屏幕背光物理亮度与最大级别",
+                "cd /sys/class/backlight/* && echo \"当前: $(cat actual_brightness) / 最大: $(cat max_brightness)\"",
+                "Deck 只有一个背光设备 `amdgpu_bl0`，所以通配符 `*` 只会匹配到它。数值是驱动内部的级别，不是百分比。").Then("输出一行，如 `当前: 41931 / 最大: 599000`。拖动亮度滑块后再执行，`当前` 随之变化。"),
+            Step.Read(
+                "查看 DRM 屏幕物理连接与原生分辨率",
+                "cat /sys/class/drm/card0-eDP-1/status && cat /sys/class/drm/card0-eDP-1/modes",
+                "`eDP-1` 是内置屏的接口名，外接显示器为 `DP-1`。").Then("第一行 `connected`，第二行 `800x1280`：面板物理上是竖屏，由桌面或 Gamescope 旋转成横屏使用。"),
         ],
 
         Verify =

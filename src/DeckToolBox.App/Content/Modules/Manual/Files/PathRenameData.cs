@@ -56,7 +56,7 @@ public static class PathRenameData
             Step.Change(
                 "执行批量改名",
                 "rename -v .JPG .jpg *.JPG && ls",
-                "把扩展名改成小写。").Then("输出三行改名记录，`ls` 显示 `IMG_001.jpg  IMG_002.jpg  IMG_003.jpg`。"),
+                "这是 util-linux 的 `rename`：把文件名中第一次出现的 `.JPG` 换成 `.jpg`（普通字符串，不是正则）；`-v` 显示每个改名。").Then("输出三行改名记录，`ls` 显示 `IMG_001.jpg  IMG_002.jpg  IMG_003.jpg`。"),
             Step.Change(
                 "用循环按规则改名：加上日期前缀",
                 "for f in *.jpg; do mv -nv \"$f\" \"$(date +%F)_${f#IMG_}\"; done",

@@ -35,7 +35,7 @@ public static class StatFileData
             Step.Read(
                 "查看文件的全部元数据",
                 "stat ~/.bashrc",
-                "对目录同样适用。").Then("显示 `文件`、`大小`、`块`、`Inode`、`硬链接`、`权限：(0644/-rw-r--r--)`、`Uid`/`Gid`，以及访问、修改、变更、创建四个时间。"),
+                "调用内核 `statx` 系统调用；显示 Inode 节点、硬链接数、Uid/Gid 及访问（Access）、修改（Modify）、属性变动（Change）、创建（Birth）四大时间戳。").Then("显示 `文件`、`大小`、`块`、`Inode`、`硬链接`、`权限：(0644/-rw-r--r--)`、`Uid`/`Gid`，以及访问、修改、变更、创建四个时间。"),
             Step.Read(
                 "只取需要的字段",
                 "stat -c '%a %U %s %y %n' ~/.bashrc ~/.bash_profile",

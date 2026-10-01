@@ -24,6 +24,8 @@ public static class SteamosctlData
             "- **GPU 性能级别**：`auto` 自动；`low`/`high` 锁定最低/最高频率；`manual` 配合 `set-manual-gpu-clock` 手动指定频率。",
             "- **CPU 调度器**：`none` 为内核默认调度器；`lavd` 是基于 sched_ext 的「延迟关键度感知」调度器，面向游戏的交互延迟优化。",
             "- **风扇控制**：`os` 由 jupiter-fan-control 服务控制（更安静），`bios` 交给固件曲线。",
+            "- **存储维护**：`trim-devices` 对内置固态硬盘与 SD 卡执行 TRIM，告诉存储设备哪些块已经不用了，有助于保持写入速度。设置里「存储空间」下的维护按钮做的是同一件事。",
+            "- **扩展坞固件**：`update-dock` 检查并更新官方 Steam Deck 扩展坞的固件。实际工作由 `/usr/lib/jupiter-dock-updater/jupiter-dock-updater.sh` 完成，它调用同目录的 `hub_update` 按 USB ID `28de:2001` 找到扩展坞，固件文件也放在这个目录里。",
             "4. 部分命令可能提示 `Unknown interface`：说明当前系统版本或机型不支持该功能，不是出错。",
         ],
 
@@ -52,7 +54,7 @@ public static class SteamosctlData
             Step.Change(
                 "设置 TDP 限制",
                 "steamosctl set-tdp-limit <瓦数>",
-                "例如 `steamosctl set-tdp-limit 10`。取值必须在上一步的范围内。").Then("没有输出即表示成功。APU 功耗上限立即改为新值：画面帧率可能下降，风扇和耗电随之降低；快捷菜单中的 TDP 滑块会同步到这个值。"),
+                "`<瓦数>` 取整数，由上一步 min/max 查询结果确定合法范围（Steam Deck 通常为 3 到 15，例如设为 10）。").Then("没有输出即表示成功。APU 功耗上限立即改为新值：画面帧率可能下降，风扇和耗电随之降低；快捷菜单中的 TDP 滑块会同步到这个值。"),
             Step.Read(
                 "查看电池充电上限",
                 "steamosctl get-max-charge-level; steamosctl suggested-minimum-charge-limit",
@@ -60,7 +62,7 @@ public static class SteamosctlData
             Step.Change(
                 "设置电池充电上限",
                 "steamosctl set-max-charge-level <百分比>",
-                "长期插电时设为 80；需要出门用满电前设为 100。").Then("没有输出即成功。插着电源时，电量充到这个百分比就停止充电，电池状态显示「未充电 / Not charging」；设为 100 则恢复充满。"),
+                "`<百分比>` 设为整数（范围 10 到 100）。长期插电扩展坞推荐 80，外出前充至 100。").Then("没有输出即成功。插着电源时，电量充到这个百分比就停止充电，电池状态显示「未充电 / Not charging」；设为 100 则恢复充满。"),
             Step.Read(
                 "查看 GPU 性能级别与 CPU 状态",
                 "steamosctl get-gpu-performance-level; steamosctl get-cpu-scaling-governor; steamosctl get-cpu-boost-state",
@@ -81,6 +83,18 @@ public static class SteamosctlData
                 "查看风扇控制方式",
                 "steamosctl get-fan-control-state",
                 "查询当前由谁控制风扇转速。").Then("输出 `Fan control state: OS`（由系统服务控制）或 `BIOS`（由固件控制）。"),
+            Step.Change(
+                "执行存储设备 TRIM 整理维护",
+                "steamosctl trim-devices",
+                "通过 steamos-manager 以 root 身份运行 `/usr/lib/hwsupport/trim-devices.sh`，不需要 sudo。").Then("终端没有输出，可能要等几十秒才返回。脚本对所有以读写方式挂载的 ext4、btrfs 分区按每段 1 GB 运行 `fstrim`，并跳过已知 TRIM 有问题的 SD 卡型号。"),
+            Step.Change(
+                "更新官方扩展坞固件",
+                "steamosctl update-dock",
+                "只在连着官方扩展坞时有意义；刷写期间不要拔线。").Then("没有连接扩展坞或固件已是最新时很快返回；有新固件时开始刷写，扩展坞上的设备（显示器、网卡、USB 设备）会短暂断开。"),
+            Step.Read(
+                "检查官方扩展坞固件更新状态",
+                "/usr/lib/jupiter-dock-updater/jupiter-dock-updater.sh --check 2>&1 | tail -n 4",
+                "`--check` 让 `hub_update` 只检查不刷写（`-checkupdateonly=1`）。").Then("先列出扫描到的 USB 设备；没有连接官方扩展坞时最后是 `Target_Device_Not_Found.` 与 `target device not found -5`；连接时输出扩展坞当前固件版本以及是否需要更新。"),
             Step.Change(
                 "从终端切换到游戏模式",
                 "steamosctl switch-to-game-mode",

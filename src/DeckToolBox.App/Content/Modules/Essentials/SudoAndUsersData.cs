@@ -54,7 +54,7 @@ public static class SudoAndUsersData
             Step.Root(
                 "查看自己被允许用 sudo 执行哪些命令",
                 "sudo -l",
-                "需要先输入密码。").Then("先显示默认设置（如 `secure_path=...`），最后一行 `(ALL) ALL` 表示可以以任何身份执行任何命令。"),
+                "`-l` 列出 `/etc/sudoers` 及 `sudoers.d/` 中为当前用户授予的特权指令清单；执行时若无缓存则需先验证密码。").Then("先显示默认设置（如 `secure_path=...`），最后一行 `(ALL) ALL` 表示可以以任何身份执行任何命令。"),
             Step.Root(
                 "修复被 root 占用的家目录文件",
                 "sudo chown -R \"$USER\":\"$USER\" <路径>",

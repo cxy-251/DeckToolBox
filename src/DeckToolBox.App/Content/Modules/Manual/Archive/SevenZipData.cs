@@ -44,15 +44,15 @@ public static class SevenZipData
             Step.Change(
                 "创建 7z 压缩包",
                 "7z a data.7z src",
-                "`a` 表示添加。").Then("输出扫描与压缩信息，最后一行 `Everything is Ok`，生成体积远小于原数据的 `data.7z`。"),
+                "`a`（add）将文件或目录加入压缩包，7z 遵循子命令语法无须 `-` 前缀；默认采用 LZMA2 压缩算法，具备高压缩比与多线程块压缩特性。").Then("输出扫描与压缩信息，最后一行 `Everything is Ok`，生成体积远小于原数据的 `data.7z`。"),
             Step.Read(
                 "列出与测试",
                 "7z l data.7z | tail -n 4; 7z t data.7z | tail -n 3",
-                "`l` 列出，`t` 测试完整性。").Then("先显示文件列表的末尾和合计行；测试部分以 `Everything is Ok` 结尾。"),
+                "`l` 读取元数据列出文件清单；`t`（test）在内存中流式解压并校验每块数据的 CRC32 校验和，不向磁盘写出文件。").Then("先显示文件列表的末尾和合计行；测试部分以 `Everything is Ok` 结尾。"),
             Step.Change(
                 "创建加密且隐藏文件名的压缩包",
                 "7z a -p -mhe=on secret.7z src",
-                "`-p` 后不写密码则交互输入两次。").Then("提示 `Enter password:` 与 `Verify password:`；之后执行 `7z l secret.7z` 也会要求输入密码，否则连文件名都无法看到。"),
+                "`-p` 开启 AES-256 载荷加密；`-mhe=on` 开启头部加密（header encryption），没有密码连文件名都无法查看。").Then("提示 `Enter password:` 与 `Verify password:`；之后执行 `7z l secret.7z` 也会要求输入密码，否则连文件名都无法看到。"),
             Step.Change(
                 "按大小分卷压缩",
                 "head -c 3M /dev/urandom > src/random.bin && 7z a -v1m parts.7z src/random.bin && ls parts.7z.*",

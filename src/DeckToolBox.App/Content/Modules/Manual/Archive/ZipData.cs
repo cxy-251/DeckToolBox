@@ -43,11 +43,11 @@ public static class ZipData
             Step.Change(
                 "打包目录并排除日志",
                 "zip -r docs.zip docs -x '*.log'",
-                "`-r` 递归，`-x` 排除。").Then("逐行输出 `adding: docs/ (stored 0%)`、`adding: docs/report.txt (stored 0%)`；没有 debug.log。"),
+                "`-r` 递归扫描子目录，zip 默认基于 DEFLATE 压缩算法；`-x` 指定排除模式（带引号避免被 Shell 提前展开）。").Then("逐行输出 `adding: docs/ (stored 0%)`、`adding: docs/report.txt (stored 0%)`；没有 debug.log。"),
             Step.Read(
                 "查看 zip 的内容",
                 "unzip -l docs.zip",
-                "`-l` 只列出。").Then("表格列出每个文件的大小、日期和路径，最后一行是文件总数与总大小。"),
+                "`-l` 解析 Zip 文件末尾的中央目录（Central Directory）列出条目与未压缩大小，不解压写盘。").Then("表格列出每个文件的大小、日期和路径，最后一行是文件总数与总大小。"),
             Step.Change(
                 "解压到指定目录",
                 "unzip docs.zip -d out && find out",
@@ -59,7 +59,7 @@ public static class ZipData
             Step.Change(
                 "解压 Windows 中文 zip 时修正文件名编码（示例）",
                 "unzip -O GBK <文件>.zip -d <目标目录>",
-                "`-O GBK` 指定 zip 内文件名的编码。").Then("中文文件名正确显示，而不是 `╬─╝■` 之类的乱码。"),
+                "`<文件>.zip` 为待解压包名；`<目标目录>` 为解压目标路径。`-O GBK` 解决 Windows ZIP 中文乱码。").Then("中文文件名正确显示，而不是 `╬─╝■` 之类的乱码。"),
         ],
 
         Verify =

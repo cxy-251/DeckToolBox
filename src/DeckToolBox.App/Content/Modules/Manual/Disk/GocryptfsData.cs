@@ -44,11 +44,11 @@ public static class GocryptfsData
             Step.Change(
                 "挂载保险箱",
                 "gocryptfs ~/Vault/cipher ~/Vault/plain",
-                "输入密码。").Then("输出 `Decrypting master key` 和 `Filesystem mounted and ready.`；`~/Vault/plain` 现在可以正常使用。"),
+                "按提示输入密码。gocryptfs 用密码解开存放在 `gocryptfs.conf` 里的主密钥，再通过 FUSE 挂载；文件内容按 4 KB 一块用 AES-256-GCM 加密，每块都带校验，被篡改能被发现。").Then("输出 `Decrypting master key` 和 `Filesystem mounted and ready.`；`~/Vault/plain` 现在可以正常使用。"),
             Step.Change(
                 "放入文件，对比明文与密文",
                 "echo 私密内容 > ~/Vault/plain/note.txt && ls ~/Vault/plain; ls ~/Vault/cipher",
-                "在明文目录中操作。").Then("明文目录中是 `note.txt`；密文目录中是 `gocryptfs.conf`、`gocryptfs.diriv` 和一个形如 `-O7QAQd22tdT_t_xoqsy3w` 的加密文件名。"),
+                "始终在明文目录中操作，写入时自动加密到密文目录。文件名也被加密（用 EME 算法，有密钥才能还原），所以密文目录里看不出原来的名字。").Then("明文目录中是 `note.txt`；密文目录中是 `gocryptfs.conf`、`gocryptfs.diriv` 和一个形如 `-O7QAQd22tdT_t_xoqsy3w` 的加密文件名。"),
             Step.Change(
                 "卸载",
                 "fusermount3 -u ~/Vault/plain && ls ~/Vault/plain",

@@ -54,11 +54,11 @@ public static class MountLoopData
             Step.Change(
                 "只读挂载一个 ISO 镜像（示例）",
                 "dev=$(udisksctl loop-setup -r -f ~/Downloads/<文件>.iso | grep -o '/dev/loop[0-9]*') && udisksctl mount -b \"$dev\"",
-                "`-r` 只读；ISO 的挂载目录名为光盘卷标。").Then("ISO 内容出现在 `/run/media/deck/<卷标>`，可以直接浏览、复制其中的文件。"),
+                "`<文件>.iso` 为下载目录中的镜像名（`ls ~/Downloads/*.iso` 查得）。`-r` 只读挂载。").Then("ISO 内容出现在 `/run/media/deck/<卷标>`，可以直接浏览、复制其中的文件。"),
             Step.Root(
                 "用 mount 挂载到指定目录并指定选项（示例）",
                 "sudo mkdir -p /mnt/usb && sudo mount -o uid=$(id -u),gid=$(id -g) /dev/<分区名> /mnt/usb",
-                "`uid`/`gid` 适用于 exFAT、FAT、NTFS 等不支持 Linux 权限的文件系统。卸载用 `sudo umount /mnt/usb`。").Then("该分区出现在 `/mnt/usb`，其中的文件属于你，可以直接读写。"),
+                "`<分区名>`（如 `sda1`）由 `lsblk` 查得。`uid`/`gid` 挂载无 POSIX 权限的 exFAT/NTFS。卸载用 `sudo umount /mnt/usb`。").Then("该分区出现在 `/mnt/usb`，其中的文件属于你，可以直接读写。"),
         ],
 
         Verify =
