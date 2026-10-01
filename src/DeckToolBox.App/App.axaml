@@ -110,6 +110,21 @@
             <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
         </Style>
 
+        <Style Selector="Button.Related">
+            <Setter Property="Background" Value="{StaticResource Bg3}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBody}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.Related:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource Line}" />
+            <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+        </Style>
+
         <!-- ========== 顶部专区 Tab ========== -->
         <Style Selector="Button.ScopeTab">
             <Setter Property="Background" Value="Transparent" />

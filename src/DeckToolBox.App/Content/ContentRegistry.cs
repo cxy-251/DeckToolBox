@@ -15,6 +15,7 @@ using DeckToolBox.App.Content.Modules.Manual.Desktop;
 using DeckToolBox.App.Content.Modules.Manual.Data;
 using DeckToolBox.App.Content.Modules.Manual.Dev;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
+using DeckToolBox.App.Content.Modules.Symptoms;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
 using DeckToolBox.App.Content.Modules.DisplayAndDesktop;
@@ -87,6 +88,41 @@ public static class ContentRegistry
                 ProcessBasicsData.Create(),
                 TroubleshootingData.Create(),
                 ScheduledTasksData.Create(),
+            ]),
+        ]),
+
+        new("symptoms", "🩺", "按症状查", "遇到问题：按症状查",
+            "从看到的现象出发：每页列出常见原因，给出几条只读的检查命令，并说明看到什么结果意味着什么、接下来去哪个模块。",
+        [
+            new("存储与游戏库", "💽", "存储设备不识别、空间不足、游戏显示未安装或更新卡住",
+            [
+                DriveNotMountedSymptomData.Create(),
+                DiskFullSymptomData.Create(),
+                GameNotInstalledSymptomData.Create(),
+            ]),
+            new("网络", "📡", "上不了网、联机延迟忽高忽低",
+            [
+                NoInternetSymptomData.Create(),
+                LagSpikesSymptomData.Create(),
+            ]),
+            new("游戏与程序", "🎮", "游戏闪退、卡顿、存档不同步，下载的程序打不开",
+            [
+                GameWontStartSymptomData.Create(),
+                GameStutterSymptomData.Create(),
+                CloudSaveSymptomData.Create(),
+                AppWontOpenSymptomData.Create(),
+            ]),
+            new("声音与输入设备", "🎧", "没声音、蓝牙设备、手柄按键与摇杆",
+            [
+                NoSoundSymptomData.Create(),
+                BluetoothAudioSymptomData.Create(),
+                ControllerSymptomData.Create(),
+            ]),
+            new("Steam 与整机", "🔋", "Steam 打不开、电池与充电、发热与风扇噪音",
+            [
+                SteamWontStartSymptomData.Create(),
+                BatterySymptomData.Create(),
+                HotNoisySymptomData.Create(),
             ]),
         ]),
 

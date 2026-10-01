@@ -106,6 +106,28 @@
                     <ItemsControl ItemsSource="{Binding Verify}" ItemTemplate="{StaticResource Paragraph}" />
                 </StackPanel>
             </Border>
+
+            <!-- 5. 相关模块 -->
+            <Border Classes="Section" IsVisible="{Binding HasRelated}">
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="SectionTitle" Text="🔗 相关模块" Foreground="{StaticResource Accent}" Margin="0" />
+                    <ItemsControl ItemsSource="{Binding Related}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NavModuleViewModel">
+                                <Button Classes="Related" Command="{Binding SelectCommand}" Margin="0,0,8,8">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Text="{Binding Location}" FontSize="11" Foreground="{StaticResource TextMuted}" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

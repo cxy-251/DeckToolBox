@@ -123,7 +123,11 @@ public sealed class MainWindowViewModel : ViewModelBase
         _selected = item;
         item.IsSelected = true;
 
-        CurrentModule = new ModuleViewModel(item.Module, item.Scope, item.Category, CopyToClipboard);
+        var related = item.Module.Related
+            .Select(id => _allModules.FirstOrDefault(m => m.Module.Id == id))
+            .OfType<NavModuleViewModel>()
+            .ToList();
+        CurrentModule = new ModuleViewModel(item.Module, item.Scope, item.Category, CopyToClipboard, related);
 
         if (item.Scope != _activeTab.Scope)
             ActivateTab(ScopeTabs.First(t => t.Scope == item.Scope));

@@ -10,11 +10,13 @@ namespace DeckToolBox.App.Framework.ViewModels;
 /// <summary>右侧内容区：一个模块的完整渲染数据。</summary>
 public sealed class ModuleViewModel
 {
-    public ModuleViewModel(ModuleDefinition module, KnowledgeScope scope, CategoryDefinition category, Action<string> copy)
+    public ModuleViewModel(ModuleDefinition module, KnowledgeScope scope, CategoryDefinition category, Action<string> copy,
+        IReadOnlyList<NavModuleViewModel> related)
     {
         Module = module;
         Breadcrumb = $"{scope.Icon} {scope.TabLabel}  ›  {category.Icon} {category.Name}";
         Steps = module.Steps.Select((s, i) => new StepViewModel(s, i + 1, copy)).ToList();
+        Related = related;
     }
 
     public ModuleDefinition Module { get; }
@@ -28,11 +30,13 @@ public sealed class ModuleViewModel
     public IReadOnlyList<string> Consequences => Module.Consequences;
     public IReadOnlyList<StepViewModel> Steps { get; }
     public IReadOnlyList<string> Verify => Module.Verify;
+    public IReadOnlyList<NavModuleViewModel> Related { get; }
 
     public bool HasWhy => Why.Count > 0;
     public bool HasConsequences => Consequences.Count > 0;
     public bool HasSteps => Steps.Count > 0;
     public bool HasVerify => Verify.Count > 0;
+    public bool HasRelated => Related.Count > 0;
 }
 
 public sealed partial class StepViewModel

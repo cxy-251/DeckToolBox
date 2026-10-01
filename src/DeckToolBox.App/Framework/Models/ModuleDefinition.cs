@@ -32,4 +32,7 @@ public sealed class ModuleDefinition
     public IReadOnlyList<string> Consequences { get; init; } = [];
     public IReadOnlyList<CommandStep> Steps { get; init; } = [];
     public IReadOnlyList<string> Verify { get; init; } = [];
+
+    /// <summary>相关模块的 Id，显示在页面末尾，点击即跳转。</summary>
+    public IReadOnlyList<string> Related { get; init; } = [];
 }

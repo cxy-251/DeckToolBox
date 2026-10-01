@@ -49,8 +49,8 @@ public static class SystemStorageHygieneData
                 "目录名是 AppID，可在 `store.steampowered.com/app/<AppID>` 查到对应游戏。").Then("每行「大小  shadercache/<AppID>」，最后几行是占用最大的游戏。"),
             Step.Read(
                 "列出内置存储上「游戏已卸载但前缀还在」的 compatdata",
-                "cd ~/.local/share/Steam/steamapps && for d in compatdata/*/; do id=$(basename \"$d\"); [ -f \"appmanifest_$id.acf\" ] || du -sh \"$d\"; done",
-                "只检查内置库。装在 SD 卡上的游戏和非 Steam 游戏会被误报，删除前逐个核对。").Then("每行「大小  compatdata/<AppID>/」，列出没有对应安装清单的前缀；没有输出表示没有这类残留。"),
+                "cd ~/.local/share/Steam/steamapps && for d in compatdata/*/; do id=$(basename \"$d\"); [ -n \"$(ls ~/.local/share/Steam/steamapps/appmanifest_$id.acf /run/media/deck/*/steamapps/appmanifest_$id.acf 2>/dev/null)\" ] || du -sh \"$d\"; done 2>/dev/null | sort -h",
+                "同时检查内置存储和 SD 卡上的库：只有在所有库中都找不到安装清单的前缀才会列出。非 Steam 程序的前缀（10 位数字）也会被列出，删除前逐个核对。").Then("每行「大小  compatdata/<AppID>/」，列出没有对应安装清单的前缀；没有输出表示没有这类残留。"),
             Step.Change(
                 "删除某个游戏的着色器缓存",
                 "rm -rf ~/.local/share/Steam/steamapps/shadercache/<AppID>",

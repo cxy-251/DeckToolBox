@@ -26,6 +26,7 @@ public static partial class ContentValidator
     {
         var issues = new List<string>();
         var ids = new HashSet<string>();
+        var allIds = scopes.SelectMany(s => s.Categories).SelectMany(c => c.Modules).Select(m => m.Id).ToHashSet();
 
         foreach (var scope in scopes)
         foreach (var category in scope.Categories)
@@ -41,6 +42,8 @@ public static partial class ContentValidator
                 if (m.Consequences.Count == 0) issues.Add($"{where} 缺少「后果与边界」段");
                 if (m.Steps.Count == 0) issues.Add($"{where} 缺少操作步骤");
                 if (m.Verify.Count == 0) issues.Add($"{where} 缺少「验证」段");
+                foreach (var r in m.Related)
+                    if (r == m.Id || !allIds.Contains(r)) issues.Add($"{where} 相关模块「{r}」不存在或指向自身");
 
                 foreach (var text in m.Why.Concat(m.Consequences).Concat(m.Verify).Append(m.Overview))
                     CheckMarkup(text, where, issues);
