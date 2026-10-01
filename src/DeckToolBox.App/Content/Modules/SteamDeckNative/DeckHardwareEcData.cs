@@ -25,7 +25,7 @@ public static class DeckHardwareEcData
             "4. 风扇控制：`jupiter-fan-control` 服务（Python 脚本 `/usr/share/jupiter-fan-control/fancontrol.py`）按机型读取 `jupiter-config.yaml`、`galileo-config.yaml` 等配置：",
             "- CPU、GPU 温度各用一条二次曲线算出转速，并按功耗加一个前馈量；SSD 温度用另一条二次曲线；取几者的最大值，写入 `steamdeck_hwmon` 的 `fan1_target`。",
             "- 服务停止时把控制权交还 EC（嵌入式控制器）固件：新 BIOS 上的做法是向 `fan1_target` 写 `0`，由 EC 按固件内置曲线自行调速。",
-            "5. 充电上限与插电不充：设置了充电上限（见「steamosctl」模块的 `set-max-charge-level`）后，值保存在 `steamdeck_hwmon` 的 `max_battery_charge_level`。电量达到上限时，电池状态变为 `Not charging`、电流约为 0，整机由电源适配器直接供电，电池不再被反复充满。",
+            "5. 充电上限与插电不充：设置了充电上限（见「steamosctl：终端里的快捷菜单」中的 `set-max-charge-level`）后，值保存在 `steamdeck_hwmon` 的 `max_battery_charge_level`。电量达到上限时，电池状态变为 `Not charging`、电流约为 0，整机由电源适配器直接供电，电池不再被反复充满。",
         ],
 
         Consequences =

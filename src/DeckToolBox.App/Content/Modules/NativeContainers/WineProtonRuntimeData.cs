@@ -28,7 +28,7 @@ public static class WineProtonRuntimeData
             "4. 版本并存：Steam 可同时安装多个 Proton（Experimental、11.0、10.0…），每个游戏可在「属性 → 兼容性」里单独指定（详见「Proton 版本与 GE-Proton」）。",
             "5. 常见的无法解决或需要特殊处理的问题：",
             "- **反作弊**：工作在 Windows 内核里的反作弊驱动（如 Vanguard）无法在 Linux 上运行。EAC 与 BattlEye 提供了 Proton 支持，但需要游戏开发者主动启用；没启用的游戏会无法联机或无法启动。",
-            "- **过场视频**：部分游戏用 Windows Media Foundation 播放 WMV 等格式的视频，Proton 无法随附这些专利解码器，可能出现黑屏或测试彩条。Valve 的做法是把这类视频预先转码后随着色器缓存一起下发（存放在 `shadercache/<AppID>/fozmediav1/`）；GE-Proton 等社区版本则自行加入了更多解码支持。",
+            "- **过场视频**：部分游戏用 Windows Media Foundation 播放 WMV 等格式的视频，Proton 无法随附这些专利解码器，可能出现黑屏或测试彩条。Valve 的做法是把这类视频预先转码后随着色器缓存一起下发（存放在 `shadercache/<AppID>/transcoded_video.foz` 或 `fozmediav1/`）；GE-Proton 等社区版本则自行加入了更多解码支持。",
             "- **文件名大小写**：Windows 不区分大小写，Linux 区分。Wine 会做大小写不敏感的查找，但手动放进去的 Mod 或补丁文件若与游戏期望的大小写不一致，偶尔仍会找不到。",
         ],
 

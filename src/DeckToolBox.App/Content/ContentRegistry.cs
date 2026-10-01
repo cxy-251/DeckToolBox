@@ -13,6 +13,7 @@ using DeckToolBox.App.Content.Modules.Manual.Media;
 using DeckToolBox.App.Content.Modules.Manual.Graphics;
 using DeckToolBox.App.Content.Modules.Manual.Desktop;
 using DeckToolBox.App.Content.Modules.Manual.Data;
+using DeckToolBox.App.Content.Modules.Manual.Dev;
 using DeckToolBox.App.Content.Modules.SteamDeckNative;
 using DeckToolBox.App.Content.Modules.UniversalDistros;
 using DeckToolBox.App.Content.Modules.SystemHygiene;
@@ -202,6 +203,11 @@ public static class ContentRegistry
                 Sqlite3Data.Create(),
                 PodmanData.Create(),
             ]),
+            new("程序启动与崩溃排查", "🩺", "缺少共享库、查看依赖，以及崩溃调用栈与 gdb",
+            [
+                LddElfData.Create(),
+                GdbDebugData.Create(),
+            ]),
         ]),
 
         new("deck", "🎮", "Steam Deck 本机", "Steam Deck 本机 (SteamOS 3.x)",
@@ -223,8 +229,9 @@ public static class ContentRegistry
                 DistroboxContainerData.Create(),
                 PackageManagementData.Create(),
             ]),
-            new("存储与清理", "🧹", "日志、缓存、着色器与回收站的空间治理",
+            new("存储与清理", "🧹", "外置存储挂载、日志、缓存、着色器与空间治理",
             [
+                SteamosStorageSubsystemData.Create(),
                 SystemStorageHygieneData.Create(),
             ]),
             new("硬件、显示与输入", "⚡", "传感器与功耗、Gamescope 合成器、手柄输入链",
@@ -233,13 +240,21 @@ public static class ContentRegistry
                 GamescopeArchitectureData.Create(),
                 DeckInputSubsystemData.Create(),
             ]),
-            new("游戏兼容与启动", "🍷", "Proton / Wine、启动选项、非 Steam 程序与 Steam Runtime 容器",
+            new("游戏兼容与启动", "🍷", "Proton / Wine 与版本选择、启动选项、非 Steam 程序与 Steam Runtime 容器",
             [
                 WineProtonRuntimeData.Create(),
+                ProtonVersionsData.Create(),
                 ProtonRuntimeDeepData.Create(),
                 LaunchOptionsData.Create(),
                 GameModeIntegrationData.Create(),
                 PressureVesselData.Create(),
+            ]),
+            new("Steam 客户端", "🚂", "目录与关键文件、客户端进程与日志、着色器缓存、云存档与录制",
+            [
+                SteamDirectoryHierarchyData.Create(),
+                SteamArchitectureDevData.Create(),
+                SteamGameRuntimeInternalsData.Create(),
+                SteamNetworkAndCloudData.Create(),
             ]),
         ]),
 
