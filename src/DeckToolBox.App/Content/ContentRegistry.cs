@@ -254,10 +254,12 @@ public static class ContentRegistry
                 DesktopModeBasicsData.Create(),
                 SteamOsImmutabilityData.Create(),
             ]),
-            new("SteamOS 专有命令", "🎛️", "steamosctl 与 steamos-* 系列命令：在终端里完成快捷菜单和设置里的操作",
+            new("SteamOS 专有命令", "🎛️", "steamosctl 与 steamos-* 系列命令、免 sudo 的系统操作，以及怎样自己查清 SteamOS 的实现",
             [
                 SteamosctlData.Create(),
                 SteamosCommandsData.Create(),
+                PolkitHelpersData.Create(),
+                InspectSteamosData.Create(),
             ]),
             new("安装软件的正确方式", "📦", "在只读系统上安装软件：便携应用与 Distrobox 容器；不使用 Flatpak",
             [

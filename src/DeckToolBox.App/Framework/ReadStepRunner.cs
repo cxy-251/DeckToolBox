@@ -25,7 +25,7 @@ public static partial class ReadStepRunner
     private static partial Regex PlaceholderPattern();
 
     // 会打开窗口、等待输入或持续运行的命令，即使是只读的也不适合自动执行
-    [GeneratedRegex(@"\b(xdg-open|kde-open|kioclient\s+exec|less|man|vim?|nano|htop|btop|top|watch|evtest|vkcube|vkmark|glxgears|ssh|tmux|gamescope)\b|udevadm\s+monitor|journalctl\b[^|;]*\s-f\b|tail\s+-f|steam\s+steam://|\bping\b(?![^|;]*-c)")]
+    [GeneratedRegex(@"\b(xdg-open|kde-open|kioclient\s+exec|less|man|vim?|nano|htop|btop|top|watch|evtest|vkcube|vkmark|glxgears|ssh|tmux)\b|\bgamescope\s+-|udevadm\s+monitor|journalctl\b[^|;]*\s-f\b|tail\s+-f|steam\s+steam://|\bping\b(?![^|;]*-c)")]
     private static partial Regex InteractivePattern();
 
     // 输出中出现这些文字时提示人工确认（命令可能写错，或依赖的文件不存在）
