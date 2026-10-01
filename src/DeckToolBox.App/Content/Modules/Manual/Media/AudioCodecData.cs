@@ -33,8 +33,8 @@ public static class AudioCodecData
         [
             Step.Change(
                 "生成一段 3 秒的测试音频",
-                "mkdir -p /tmp/audio-demo && cd /tmp/audio-demo && ffmpeg -loglevel error -f lavfi -i sine=frequency=440:duration=3 -ac 2 t.wav && ls -l t.wav",
-                "440 Hz 正弦波，立体声。").Then("生成约 517 KB 的 `t.wav`。").Practice(),
+                "rm -rf /tmp/audio-demo && mkdir -p /tmp/audio-demo && cd /tmp/audio-demo && ffmpeg -loglevel error -f lavfi -i sine=frequency=440:duration=3 -ac 2 t.wav && ls -l t.wav",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。440 Hz 正弦波，立体声。").Then("生成约 517 KB 的 `t.wav`。").Practice(),
             Step.Change(
                 "无损压缩为 FLAC",
                 "flac -s t.wav && ls -l t.wav t.flac",

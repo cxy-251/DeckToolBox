@@ -37,8 +37,8 @@ public static class ChmodChownData
         [
             Step.Change(
                 "准备一个脚本",
-                "mkdir -p /tmp/perm-demo && cd /tmp/perm-demo && printf '#!/bin/bash\\necho 脚本运行了\\n' > hello.sh && ls -l hello.sh",
-                "新建的文件默认没有执行权限。").Then("显示 `-rw-r--r-- ... hello.sh`：没有 `x`。").Practice(),
+                "rm -rf /tmp/perm-demo && mkdir -p /tmp/perm-demo && cd /tmp/perm-demo && printf '#!/bin/bash\\necho 脚本运行了\\n' > hello.sh && ls -l hello.sh",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。新建的文件默认没有执行权限。").Then("显示 `-rw-r--r-- ... hello.sh`：没有 `x`。").Practice(),
             Step.Read(
                 "尝试运行没有执行权限的脚本",
                 "./hello.sh",

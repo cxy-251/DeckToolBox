@@ -35,8 +35,8 @@ public static class Exiv2Data
         [
             Step.Change(
                 "准备一张练习照片",
-                "mkdir -p /tmp/exif-demo && cd /tmp/exif-demo && ffmpeg -loglevel error -f lavfi -i testsrc2=size=320x240 -frames:v 1 p.jpg && exiv2 -M'set Exif.Image.Make DeckCam' -M'set Exif.Photo.DateTimeOriginal 2026:09:01 10:00:00' p.jpg",
-                "用 ffmpeg 生成一张测试图，再写入相机名和拍摄时间。").Then("没有输出，`p.jpg` 中写入了两项 Exif 信息。").Practice(),
+                "rm -rf /tmp/exif-demo && mkdir -p /tmp/exif-demo && cd /tmp/exif-demo && ffmpeg -loglevel error -f lavfi -i testsrc2=size=320x240 -frames:v 1 p.jpg && exiv2 -M'set Exif.Image.Make DeckCam' -M'set Exif.Photo.DateTimeOriginal 2026:09:01 10:00:00' p.jpg",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。用 ffmpeg 生成一张测试图，再写入相机名和拍摄时间。").Then("没有输出，`p.jpg` 中写入了两项 Exif 信息。").Practice(),
             Step.Read(
                 "查看照片摘要",
                 "exiv2 p.jpg",

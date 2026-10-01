@@ -40,8 +40,8 @@ public static class GrepData
         [
             Step.Change(
                 "准备练习文件",
-                "mkdir -p /tmp/grep-demo && cd /tmp/grep-demo && printf 'Line one\\nline two error\\nERROR three\\nfour\\n' > log.txt",
-                "在 `/tmp` 中建一个四行的练习文件，之后的步骤都在这个目录里执行。").Then("没有输出，当前目录变为 `/tmp/grep-demo`。").Practice(),
+                "rm -rf /tmp/grep-demo && mkdir -p /tmp/grep-demo && cd /tmp/grep-demo && printf 'Line one\\nline two error\\nERROR three\\nfour\\n' > log.txt",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。在 `/tmp` 中建一个四行的练习文件，之后的步骤都在这个目录里执行。").Then("没有输出，当前目录变为 `/tmp/grep-demo`。").Practice(),
             Step.Read(
                 "查找并显示行号",
                 "grep -n error log.txt",

@@ -51,7 +51,7 @@ public static class RmTrashData
             Step.Change(
                 "rmdir 只删除空目录",
                 "rmdir empty full",
-                "`full` 中有文件。").Then("`empty` 被删除；对 `full` 报错 `rmdir: 删除 'full' 失败: 目录非空`，它保持不变。").Practice(),
+                "`full` 中有文件。").Then("`empty` 被删除；对 `full` 报错 `rmdir: 删除 'full' 失败: 目录非空`，它保持不变。").Practice().ShowsError(),
             Step.Change(
                 "把文件移进回收站（可恢复）",
                 "gio trash keep.txt && ls ~/.local/share/Trash/files/ | grep keep",

@@ -38,8 +38,8 @@ public static class SedData
         [
             Step.Change(
                 "准备练习文件",
-                "mkdir -p /tmp/sed-demo && cd /tmp/sed-demo && printf '# 配置文件\\nvolume=50\\nname=deck\\n# 结束\\nvolume_max=100\\n' > app.conf && cat app.conf",
-                "一个模拟的配置文件。").Then("显示五行内容，其中两行以 `#` 开头。").Practice(),
+                "rm -rf /tmp/sed-demo && mkdir -p /tmp/sed-demo && cd /tmp/sed-demo && printf '# 配置文件\\nvolume=50\\nname=deck\\n# 结束\\nvolume_max=100\\n' > app.conf && cat app.conf",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。一个模拟的配置文件。").Then("显示五行内容，其中两行以 `#` 开头。").Practice(),
             Step.Read(
                 "替换（只输出结果，不改文件）",
                 "sed 's/deck/steamdeck/' app.conf",

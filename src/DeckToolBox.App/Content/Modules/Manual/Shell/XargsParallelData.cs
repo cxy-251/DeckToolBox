@@ -48,8 +48,8 @@ public static class XargsParallelData
                 "`-I{}` 用每一行替换 `{}`。").Then("输出两行，分别是 Downloads 与 Pictures 目录的大小。"),
             Step.Change(
                 "安全地处理带空格的文件名",
-                "mkdir -p /tmp/xa-demo && cd /tmp/xa-demo && touch 'a b.log' c.log && find . -name '*.log' -print0 | xargs -0 ls -l",
-                "`-print0` 与 `-0` 以空字符分隔，空格不会拆开文件名。").Then("正确列出 `./a b.log` 与 `./c.log` 两个文件；若不用 `-0`，会报错找不到 `./a` 和 `b.log`。").Practice(),
+                "rm -rf /tmp/xa-demo && mkdir -p /tmp/xa-demo && cd /tmp/xa-demo && touch 'a b.log' c.log && find . -name '*.log' -print0 | xargs -0 ls -l",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。`-print0` 与 `-0` 以空字符分隔，空格不会拆开文件名。").Then("正确列出 `./a b.log` 与 `./c.log` 两个文件；若不用 `-0`，会报错找不到 `./a` 和 `b.log`。").Practice(),
             Step.Read(
                 "先演示再执行",
                 "find /tmp/xa-demo -name '*.log' -print0 | xargs -0 echo rm",

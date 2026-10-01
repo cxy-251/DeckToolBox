@@ -54,8 +54,8 @@ public static class Sqlite3Data
                 "导出为 CSV 和 JSON",
                 "sqlite3 -header -csv games.db 'SELECT * FROM games;' > games.csv && sqlite3 -json games.db 'SELECT * FROM games;' && cat games.csv",
                 "`-csv` 与 `-json` 改变输出格式。").Then("先输出 JSON 数组 `[{\"name\":\"Terraria\",\"hours\":120}, ...]`，然后显示 CSV 文件内容 `name,hours`、`Terraria,120` 等。"),
-            Step.Read(
-                "以只读方式查看其他程序的数据库（示例）",
+            Step.Change(
+                "先复制再查看其他程序的数据库（示例）",
                 "cp <数据库文件> /tmp/copy.db && sqlite3 /tmp/copy.db '.tables'",
                 "`<数据库文件>` 为目标 sqlite 文件路径（如浏览器 `History`）。先复制再看，避免读写锁冲突。").Then("列出该数据库中所有表的名称；再用 `.schema <表名>` 或 `SELECT * FROM <表名> LIMIT 5;` 查看具体内容。"),
         ],

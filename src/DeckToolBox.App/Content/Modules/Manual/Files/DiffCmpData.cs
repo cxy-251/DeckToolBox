@@ -37,8 +37,8 @@ public static class DiffCmpData
         [
             Step.Change(
                 "准备两个版本的文件",
-                "mkdir -p /tmp/diff-demo && cd /tmp/diff-demo && printf 'a\\nb\\nc\\n' > v1.txt && printf 'a\\nB\\nc\\nd\\n' > v2.txt",
-                "v2 修改了第 2 行，并新增了第 4 行。").Then("没有输出，当前目录变为 `/tmp/diff-demo`。").Practice(),
+                "rm -rf /tmp/diff-demo && mkdir -p /tmp/diff-demo && cd /tmp/diff-demo && printf 'a\\nb\\nc\\n' > v1.txt && printf 'a\\nB\\nc\\nd\\n' > v2.txt",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。v2 修改了第 2 行，并新增了第 4 行。").Then("没有输出，当前目录变为 `/tmp/diff-demo`。").Practice(),
             Step.Read(
                 "默认格式比较",
                 "diff v1.txt v2.txt",
@@ -54,7 +54,7 @@ public static class DiffCmpData
             Step.Change(
                 "比较两个目录",
                 "mkdir -p d1 d2 && cp v1.txt d1/ && cp v1.txt d2/ && echo x > d2/extra.txt && diff -rq d1 d2",
-                "`-r` 递归，`-q` 只列出不同。").Then("输出 `只在 d2 中存在：extra.txt`；两边都有且内容相同的 `v1.txt` 不会出现。").Practice(),
+                "`-r` 递归，`-q` 只列出不同。").Then("输出 `只在 d2 中存在：extra.txt`；两边都有且内容相同的 `v1.txt` 不会出现。").Practice().ShowsError(),
             Step.Read(
                 "对比修改前后的配置（示例）",
                 "diff -u ~/.bashrc.bak-2026-09-28 ~/.bashrc",

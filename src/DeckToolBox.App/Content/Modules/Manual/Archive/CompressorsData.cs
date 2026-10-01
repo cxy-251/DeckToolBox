@@ -43,8 +43,8 @@ public static class CompressorsData
         [
             Step.Change(
                 "准备一个测试文件",
-                "mkdir -p /tmp/cmp-demo && cd /tmp/cmp-demo && tar -cf data.tar -C /usr/lib python3.13 && ls -lh data.tar",
-                "把系统的 Python 标准库打包作为测试数据（约 140 MB）。").Then("显示 `data.tar` 的大小，约 `141M`。").Practice(),
+                "rm -rf /tmp/cmp-demo && mkdir -p /tmp/cmp-demo && cd /tmp/cmp-demo && tar -cf data.tar -C /usr/lib python3.13 && ls -lh data.tar",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。把系统的 Python 标准库打包作为测试数据（约 140 MB）。").Then("显示 `data.tar` 的大小，约 `141M`。").Practice(),
             Step.Change(
                 "用不同算法压缩并计时",
                 "for c in 'gzip -k' 'xz -k -T0' 'zstd -q -k' 'lz4 -q -k'; do TIMEFORMAT=\"%R 秒  $c\"; time $c data.tar; done; ls -lh data.tar.*",

@@ -38,8 +38,8 @@ public static class LnData
         [
             Step.Change(
                 "准备练习文件",
-                "mkdir -p /tmp/ln-demo && cd /tmp/ln-demo && echo 原始内容 > original.txt",
-                "在 `/tmp/ln-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/ln-demo`。").Practice(),
+                "rm -rf /tmp/ln-demo && mkdir -p /tmp/ln-demo && cd /tmp/ln-demo && echo 原始内容 > original.txt",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。在 `/tmp/ln-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/ln-demo`。").Practice(),
             Step.Change(
                 "创建软链接与硬链接",
                 "ln -s /tmp/ln-demo/original.txt soft.txt && ln original.txt hard.txt && ls -li",

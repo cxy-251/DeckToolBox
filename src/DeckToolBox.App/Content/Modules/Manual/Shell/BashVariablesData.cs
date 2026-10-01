@@ -46,7 +46,7 @@ public static class BashVariablesData
                 "设置并使用变量，比较三种引号",
                 "name=\"Steam Deck\"; echo $name; echo \"$name\"; echo '$name'",
                 "注意等号两边没有空格。").Then("前两行都输出 `Steam Deck`，第三行输出字面的 `$name`：单引号内不展开变量。"),
-            Step.Read(
+            Step.Change(
                 "引号对空格的影响",
                 "f=\"my file.txt\"; touch /tmp/\"$f\"; ls /tmp/$f; ls /tmp/\"$f\"",
                 "第一个 ls 没有给变量加引号。").Then("第一个 ls 报两条错误（找不到 `/tmp/my` 和 `file.txt`），因为值被空格拆成了两个参数；第二个 ls 正确列出 `/tmp/my file.txt`。").ShowsError(),

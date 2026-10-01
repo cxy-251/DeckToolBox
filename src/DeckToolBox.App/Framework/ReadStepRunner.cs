@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,7 +14,8 @@ namespace DeckToolBox.App.Framework;
 /// 在本机试跑只读指令：dotnet run -- --try-read [模块Id...] [-v]
 /// 每个模块的步骤按顺序在同一个 bash 中执行（cd 与变量会延续），只运行两类步骤：
 /// 只读步骤（Risk.Read，本机终端执行，无占位符，未标记 Manual()），以及标记了 Practice() 的练习步骤（只在练习目录内操作）。
-/// 其他修改性步骤一律不执行。单个步骤超过时限时结束该模块，报告卡住的步骤。
+/// 其他修改性步骤一律不执行。为防止练习步骤在错误的目录里执行：每个模块都从一个新建的空临时目录开始（结束后删除），
+/// 练习步骤失败（非 0 退出且未标记 ShowsError()）时立即停止该模块。单个步骤超过时限时同样停止该模块。
 /// </summary>
 public static partial class ReadStepRunner
 {
@@ -41,6 +43,7 @@ public static partial class ReadStepRunner
         public readonly StringBuilder Output = new();
         public int? ExitCode;
         public bool TimedOut;
+        public string? SkipReason;
     }
 
     public static int RunCli(IReadOnlyList<KnowledgeScope> scopes, IReadOnlyList<string> args)
@@ -68,10 +71,12 @@ public static partial class ReadStepRunner
             {
                 var firstError = r.Step.ExpectsError ? null
                     : r.Output.ToString().Split('\n').FirstOrDefault(l => ErrorTextPattern().IsMatch(l));
-                var failed = r.TimedOut || r.ExitCode is null
+                var practiceFailed = r.Step.IsPractice && !r.Step.ExpectsError && r.ExitCode is not (null or 0);
+                var failed = r.TimedOut || r.ExitCode is null || practiceFailed
                     || (!r.Step.ExpectsError && r.ExitCode is 2 or 126 or 127 or >= 128);
                 var detail = r.TimedOut ? $"超过 {StepTimeout.TotalSeconds:0} 秒未结束"
-                    : r.ExitCode is null ? "未执行（前面的步骤超时）" : $"退出码 {r.ExitCode}";
+                    : r.ExitCode is null ? $"未执行（{r.SkipReason ?? "前面的步骤超时"}）"
+                    : practiceFailed ? $"退出码 {r.ExitCode}，已停止该模块的后续步骤" : $"退出码 {r.ExitCode}";
                 var kind = r.Step.IsPractice ? "练习步骤 " : "";
 
                 if (failed) { fail++; lines.Add($"  ✗ {kind}{r.Step.Title}：{detail}{(firstError is null ? "" : "　" + Trim(firstError))}"); }
@@ -107,10 +112,16 @@ public static partial class ReadStepRunner
     {
         var results = steps.Select(s => new StepResult { Step = s }).ToList();
 
-        // 所有步骤写进同一个脚本，用标记行分隔；每步之前回到家目录之外的状态都会延续（与用户依次粘贴执行一致）
-        var script = new StringBuilder("exec 2>&1 </dev/null\ncd ~\n");
+        // 所有步骤写进同一个脚本，用标记行分隔；cd 与变量在步骤之间延续（与用户依次粘贴执行一致）。
+        // 起始目录是新建的空临时目录：即使某个练习步骤没能 cd 进练习目录，后续使用相对路径的命令也只会作用于这个空目录。
+        var sandbox = Directory.CreateTempSubdirectory("dtb-try-");
+        var script = new StringBuilder("exec 2>&1 </dev/null\n");
         for (var i = 0; i < steps.Count; i++)
-            script.Append($"printf '\\n{Marker} BEGIN {i}\\n'\n{steps[i].Command}\nprintf '\\n{Marker} END {i} %d\\n' $?\n");
+        {
+            script.Append($"printf '\\n{Marker} BEGIN {i}\\n'\n{steps[i].Command}\nrc=$?\nprintf '\\n{Marker} END {i} %d\\n' $rc\n");
+            if (steps[i].IsPractice && !steps[i].ExpectsError)
+                script.Append("[ $rc -eq 0 ] || exit 97\n");
+        }
 
         // .NET 启动的子进程会继承「忽略 SIGPIPE」，管道接 head 时会报「断开的管道」；用 env 恢复默认处理
         var psi = new ProcessStartInfo("env")
@@ -118,6 +129,7 @@ public static partial class ReadStepRunner
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            WorkingDirectory = sandbox.FullName,
         };
         foreach (var a in new[] { "--default-signal=PIPE", "bash", "-c", script.ToString() }) psi.ArgumentList.Add(a);
 
@@ -161,6 +173,11 @@ public static partial class ReadStepRunner
         }
         p.WaitForExit();
         Thread.Sleep(50);
+
+        if (p.ExitCode == 97)
+            foreach (var r in results.Where(r => r.ExitCode is null))
+                r.SkipReason = "前面的练习步骤失败，已停止该模块";
+        try { sandbox.Delete(recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         return results;
     }
 

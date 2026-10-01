@@ -35,8 +35,8 @@ public static class TextToolsData
         [
             Step.Change(
                 "准备一个 CSV 文件",
-                "mkdir -p /tmp/tt-demo && cd /tmp/tt-demo && printf 'name,game,hours\\ntom,Terraria,120\\namy,Celeste,35\\ntom,Celeste,8\\nbob,Terraria,300\\n' > play.csv",
-                "一个记录游戏时长的小表格。").Then("没有输出，当前目录变为 `/tmp/tt-demo`。").Practice(),
+                "rm -rf /tmp/tt-demo && mkdir -p /tmp/tt-demo && cd /tmp/tt-demo && printf 'name,game,hours\\ntom,Terraria,120\\namy,Celeste,35\\ntom,Celeste,8\\nbob,Terraria,300\\n' > play.csv",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。一个记录游戏时长的小表格。").Then("没有输出，当前目录变为 `/tmp/tt-demo`。").Practice(),
             Step.Read(
                 "对齐成表格查看",
                 "column -t -s, play.csv",

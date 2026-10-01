@@ -43,8 +43,8 @@ public static class TarData
         [
             Step.Change(
                 "准备练习数据",
-                "mkdir -p /tmp/tar-demo/proj/logs && cd /tmp/tar-demo && echo 代码 > proj/main.txt && echo 日志 > proj/logs/run.log",
-                "在 `/tmp/tar-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/tar-demo`。").Practice(),
+                "rm -rf /tmp/tar-demo && mkdir -p /tmp/tar-demo/proj/logs && cd /tmp/tar-demo && echo 代码 > proj/main.txt && echo 日志 > proj/logs/run.log",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。在 `/tmp/tar-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/tar-demo`。").Practice(),
             Step.Change(
                 "打包并用 zstd 压缩",
                 "tar -cavf proj.tar.zst proj",

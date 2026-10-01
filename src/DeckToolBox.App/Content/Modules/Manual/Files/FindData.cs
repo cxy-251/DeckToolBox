@@ -41,8 +41,8 @@ public static class FindData
         [
             Step.Change(
                 "准备练习文件",
-                "mkdir -p /tmp/find-demo/sub && cd /tmp/find-demo && echo hi > a.txt && echo hi > sub/b.TXT && touch -d '40 days ago' old.log && touch empty.tmp && head -c 2M /dev/zero > big.bin",
-                "`head -c 2M /dev/zero` 生成一个 2 MB 的文件。").Then("没有输出，当前目录变为 `/tmp/find-demo`。").Practice(),
+                "rm -rf /tmp/find-demo && mkdir -p /tmp/find-demo/sub && cd /tmp/find-demo && echo hi > a.txt && echo hi > sub/b.TXT && touch -d '40 days ago' old.log && touch empty.tmp && head -c 2M /dev/zero > big.bin",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。`head -c 2M /dev/zero` 生成一个 2 MB 的文件。").Then("没有输出，当前目录变为 `/tmp/find-demo`。").Practice(),
             Step.Read(
                 "按名称查找（忽略大小写）",
                 "find . -iname '*.txt'",

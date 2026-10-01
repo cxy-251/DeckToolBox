@@ -22,6 +22,22 @@ public static partial class ContentValidator
     [GeneratedRegex(@"\brm\s+(-\w*[rf]\w*\s+)+")]
     private static partial Regex RecursiveRemovePattern();
 
+    // 只读步骤中不应出现的修改操作（先去掉引号内的内容再匹配，避免 awk、SQL 中的 > 等误报）
+    // 命令位置：行首，或 ; & | ( 之后，或 $( 之后
+    private const string Cmd = @"(?:^|[;&|(\n]\s*|\$\(\s*)";
+    [GeneratedRegex(Cmd + @"(touch|mkdir|rmdir|rm|mv|cp|ln|chmod|chown|chgrp|truncate|tee|install|dd|shred|reboot|poweroff)\s"
+        + "|" + Cmd + @"(kill|pkill|killall)\s+(?!-[lL]\b)"
+        + "|" + Cmd + @"sed\s+(-\w+\s+)*-i"
+        + @"|systemctl\s+(--user\s+)?(start|stop|restart|reload|enable|disable|mask|unmask|edit|daemon-reload|reboot|poweroff|suspend)\b"
+        + @"|steamosctl\s+(set-|switch-|trim-|update-|factory)"
+        + @"|nmcli\b[^;|&]*\b(connect|disconnect|modify|add|delete|up|down|hotspot)\b"
+        + @"|git\s+(init|add|commit|reset|checkout|restore|rm|mv|push|pull|clone)\b"
+        + @"|(?<=\s)>>?(?!&|\s*/dev/null)\s*[~/$\w.]")]
+    private static partial Regex ModifyingPattern();
+
+    [GeneratedRegex(@"'[^']*'|""(?:\\.|[^""\\])*""")]
+    private static partial Regex QuotedPattern();
+
     public static IReadOnlyList<string> Validate(IReadOnlyList<KnowledgeScope> scopes)
     {
         var issues = new List<string>();
@@ -60,6 +76,8 @@ public static partial class ContentValidator
                         issues.Add($"{at} 是 echo 包装的伪指令，请改为真实可执行的命令");
                     if (SudoPattern().IsMatch(s.Command) && s.Risk < Risk.Root)
                         issues.Add($"{at} 含 sudo，但风险标记为 {s.Risk}");
+                    if (s.Risk == Risk.Read && ModifyingPattern().Match(QuotedPattern().Replace(s.Command, "''")) is { Success: true } mod)
+                        issues.Add($"{at} 标记为只读，但含有修改操作「{mod.Value.Trim()}」；请改为 Change，或确认后调整写法");
                     if (RecursiveRemovePattern().IsMatch(s.Command) && s.Risk < Risk.Change)
                         issues.Add($"{at} 含 rm -r/-f，不能标记为只读");
                     if (s.IsPractice && (s.Risk is Risk.Read or Risk.Root || s.Host is not null))

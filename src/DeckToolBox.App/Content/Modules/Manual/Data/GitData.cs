@@ -44,8 +44,8 @@ public static class GitData
                 "没有输出表示尚未设置。").Then("输出你设置过的名字与邮箱；为空时用 `git config --global user.name '<名字>'` 与 `user.email` 设置一次。"),
             Step.Change(
                 "把一个目录变成仓库并提交第一个版本",
-                "mkdir -p /tmp/git-demo && cd /tmp/git-demo && git init -q -b main && echo 'volume=50' > app.conf && git add app.conf && git commit -qm '初始配置' && git log --oneline",
-                "`-b main` 指定默认分支名，`-q` 减少输出。").Then("输出一行 `e278c8d 初始配置`：第一个版本已记录（编号每次不同）。").Practice(),
+                "rm -rf /tmp/git-demo && mkdir -p /tmp/git-demo && cd /tmp/git-demo && git init -q -b main && echo 'volume=50' > app.conf && git add app.conf && git commit -qm '初始配置' && git log --oneline",
+                "先删除上次练习留下的目录。`-b main` 指定默认分支名，`-q` 减少输出。").Then("输出一行 `e278c8d 初始配置`：第一个版本已记录（编号每次不同）。").Practice(),
             Step.Change(
                 "修改文件并查看差异",
                 "sed -i 's/50/80/' app.conf && git status --short && git diff",

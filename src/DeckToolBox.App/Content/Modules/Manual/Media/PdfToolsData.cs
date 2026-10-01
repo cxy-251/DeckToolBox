@@ -38,8 +38,8 @@ public static class PdfToolsData
         [
             Step.Change(
                 "准备两个练习用的 PDF",
-                "mkdir -p /tmp/pdf-demo && cd /tmp/pdf-demo && cp /usr/share/cups/data/classified.pdf a.pdf && cp /usr/share/cups/data/confidential.pdf b.pdf",
-                "系统自带的打印测试页。").Then("没有输出，当前目录变为 `/tmp/pdf-demo`。").Practice(),
+                "rm -rf /tmp/pdf-demo && mkdir -p /tmp/pdf-demo && cd /tmp/pdf-demo && cp /usr/share/cups/data/classified.pdf a.pdf && cp /usr/share/cups/data/confidential.pdf b.pdf",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。系统自带的打印测试页。").Then("没有输出，当前目录变为 `/tmp/pdf-demo`。").Practice(),
             Step.Read(
                 "查看 PDF 信息",
                 "pdfinfo a.pdf",
@@ -58,16 +58,16 @@ public static class PdfToolsData
                 "`%d` 替换为页码。").Then("生成 `page-1.pdf` 与 `page-2.pdf`。").Practice(),
             Step.Change(
                 "按页码重组（取第 2 页在前、第 1 页在后）",
-                "qpdf --empty --pages ab.pdf 2,1 -- reordered.pdf && pdftotext reordered.pdf - | head -n 1",
-                "`--empty` 从空文档开始，`--pages` 指定来源与页码。").Then("生成 `reordered.pdf`，第一页的文字为原来第 2 页的内容 `Confidential`。").Practice(),
+                "qpdf --warning-exit-0 --empty --pages ab.pdf 2,1 -- reordered.pdf && pdftotext reordered.pdf - | head -n 1",
+                "`--empty` 从空文档开始，`--pages` 指定来源与页码。`--warning-exit-0` 让「成功但有警告」时也返回 0：本例由 pdfunite 合并出的文件结构不规范，qpdf 会给出警告并返回 3，没有这个选项时 `&&` 后面的命令不会执行。").Then("先显示两行警告（`WARNING: ab.pdf: reported number of objects ...` 与 `operation succeeded with warnings`），然后输出 `Confidential`：新文件的第一页是原来的第 2 页。").Practice(),
             Step.Change(
                 "把第一页转成图片",
                 "pdftoppm -png -r 100 -f 1 -l 1 ab.pdf thumb && ls thumb*",
                 "`-f 1 -l 1` 只转第 1 页，`-r 100` 为 100 DPI。").Then("生成 `thumb-1.png`，可以用图片查看器打开。").Practice(),
             Step.Change(
                 "加密与解密",
-                "qpdf --encrypt 1234 owner 256 -- ab.pdf locked.pdf && qpdf --decrypt --password=1234 locked.pdf unlocked.pdf && ls",
-                "AES-256 加密；打开 `locked.pdf` 需要密码 1234。").Then("生成 `locked.pdf`（打开需要密码）与 `unlocked.pdf`（已解除密码）。本例的测试文件结构不规范，qpdf 可能附带 `operation succeeded with warnings` 警告，不影响结果。").Practice(),
+                "qpdf --warning-exit-0 --encrypt 1234 owner 256 -- ab.pdf locked.pdf && qpdf --warning-exit-0 --decrypt --password=1234 locked.pdf unlocked.pdf && ls",
+                "AES-256 加密；打开 `locked.pdf` 需要密码 1234。`--warning-exit-0` 的作用见上一步。").Then("生成 `locked.pdf`（打开需要密码）与 `unlocked.pdf`（已解除密码）。同样会先显示两行结构不规范的警告，不影响结果；最后 `ls` 列出包括 `locked.pdf`、`unlocked.pdf` 在内的全部文件。").Practice(),
             Step.Change(
                 "压缩一个图片较多的 PDF（示例）",
                 "gs -q -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -o <输出>.pdf <输入>.pdf && ls -lh <输入>.pdf <输出>.pdf",

@@ -39,7 +39,7 @@ public sealed record CommandStep(string Title, string Command, string Note, Risk
     /// <summary>标记为练习步骤，例如 <c>Step.Change("准备练习文件", ...).Practice()</c>；删除练习目录的 Danger 步骤也可以标记。</summary>
     public CommandStep Practice() => this with { IsPractice = true };
 
-    /// <summary>为 true 时表示这条指令的输出本来就含有错误信息（例如演示权限不足、链接失效），<c>--try-read</c> 不把它当作问题。</summary>
+    /// <summary>为 true 时表示这条指令本来就会报错或以非 0 退出（例如演示权限不足、链接失效、diff 发现差异），<c>--try-read</c> 不把它当作问题。</summary>
     public bool ExpectsError { get; init; }
 
     /// <summary>标记为「预期会显示错误」的演示步骤。</summary>

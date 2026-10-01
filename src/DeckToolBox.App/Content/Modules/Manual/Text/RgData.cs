@@ -49,8 +49,8 @@ public static class RgData
                 "由 shell 展开 `steamos-*` 得到文件列表。`-t sh` 这类按类型筛选依赖扩展名，对 `/usr/bin` 中没有扩展名的脚本无效。").Then("列出调用了 steamosctl 的 SteamOS 脚本，如 `/usr/bin/steamos-session-select`。"),
             Step.Change(
                 "准备一个压缩包，比较 rg 与 rga",
-                "mkdir -p /tmp/rga-demo && cd /tmp/rga-demo && echo 'secret keyword inside' > inner.txt && zip -q pack.zip inner.txt && rm inner.txt",
-                "把一个文本文件压进 zip。").Then("没有输出，目录中只剩 `pack.zip`。").Practice(),
+                "rm -rf /tmp/rga-demo && mkdir -p /tmp/rga-demo && cd /tmp/rga-demo && echo 'secret keyword inside' > inner.txt && zip -q pack.zip inner.txt && rm inner.txt",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。把一个文本文件压进 zip。").Then("没有输出，目录中只剩 `pack.zip`。").Practice(),
             Step.Read(
                 "用 rg 搜索压缩包",
                 "rg keyword pack.zip",

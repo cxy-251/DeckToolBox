@@ -47,8 +47,8 @@ public static class PathRenameData
                 "`..` 和符号链接都会被解析。").Then("输出 `/home/deck/.local/share/Steam`。"),
             Step.Change(
                 "准备一批要改名的文件",
-                "mkdir -p /tmp/ren-demo && cd /tmp/ren-demo && touch IMG_001.JPG IMG_002.JPG IMG_003.JPG && ls",
-                "在 `/tmp/ren-demo` 中练习。").Then("输出 `IMG_001.JPG  IMG_002.JPG  IMG_003.JPG`。").Practice(),
+                "rm -rf /tmp/ren-demo && mkdir -p /tmp/ren-demo && cd /tmp/ren-demo && touch IMG_001.JPG IMG_002.JPG IMG_003.JPG && ls",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。在 `/tmp/ren-demo` 中练习。").Then("输出 `IMG_001.JPG  IMG_002.JPG  IMG_003.JPG`。").Practice(),
             Step.Read(
                 "演示改名效果（不执行）",
                 "rename -nv .JPG .jpg *.JPG",

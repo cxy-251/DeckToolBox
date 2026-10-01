@@ -38,8 +38,8 @@ public static class EncodingData
         [
             Step.Change(
                 "准备一个 GBK 编码、Windows 换行的文件",
-                "mkdir -p /tmp/enc-demo && cd /tmp/enc-demo && printf '中文测试\\r\\n第二行\\r\\n' | iconv -f UTF-8 -t GBK > old.txt && file old.txt",
-                "模拟从旧 Windows 系统拿到的文本。").Then("`file` 显示类似 `ISO-8859 text, with CRLF line terminators`：编码未被识别为 UTF-8，且是 Windows 换行。").Practice(),
+                "rm -rf /tmp/enc-demo && mkdir -p /tmp/enc-demo && cd /tmp/enc-demo && printf '中文测试\\r\\n第二行\\r\\n' | iconv -f UTF-8 -t GBK > old.txt && file old.txt",
+                "先删除上次练习留下的目录，重复练习时结果才与下面的说明一致。模拟从旧 Windows 系统拿到的文本。").Then("`file` 显示类似 `ISO-8859 text, with CRLF line terminators`：编码未被识别为 UTF-8，且是 Windows 换行。").Practice(),
             Step.Read(
                 "直接查看：乱码",
                 "cat old.txt",
