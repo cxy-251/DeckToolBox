@@ -7,7 +7,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>DeckToolBox</AssemblyName>
     <RootNamespace>DeckToolBox.App</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Product>DeckToolBox</Product>
     <Authors>cxy251</Authors>
     <Description>Linux 使用手册：Steam Deck 与主流发行版的命令、原理与操作</Description>
