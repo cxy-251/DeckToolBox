@@ -39,7 +39,7 @@ public static class SedData
             Step.Change(
                 "准备练习文件",
                 "mkdir -p /tmp/sed-demo && cd /tmp/sed-demo && printf '# 配置文件\\nvolume=50\\nname=deck\\n# 结束\\nvolume_max=100\\n' > app.conf && cat app.conf",
-                "一个模拟的配置文件。").Then("显示五行内容，其中两行以 `#` 开头。"),
+                "一个模拟的配置文件。").Then("显示五行内容，其中两行以 `#` 开头。").Practice(),
             Step.Read(
                 "替换（只输出结果，不改文件）",
                 "sed 's/deck/steamdeck/' app.conf",
@@ -59,7 +59,7 @@ public static class SedData
             Step.Change(
                 "直接修改文件并保留备份",
                 "sed -i.bak 's/^volume=.*/volume=80/' app.conf && cat app.conf && ls",
-                "`-i.bak` 修改前把原文件备份为 `app.conf.bak`。").Then("`cat` 显示 `volume=80`；`ls` 显示 `app.conf` 与 `app.conf.bak` 两个文件。"),
+                "`-i.bak` 修改前把原文件备份为 `app.conf.bak`。").Then("`cat` 显示 `volume=80`；`ls` 显示 `app.conf` 与 `app.conf.bak` 两个文件。").Practice(),
             Step.Read(
                 "对比修改前后",
                 "diff app.conf.bak app.conf",

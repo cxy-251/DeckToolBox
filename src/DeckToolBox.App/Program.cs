@@ -14,6 +14,8 @@ internal static class Program
             return ContentValidator.RunCli(ContentRegistry.Scopes);
         if (args is ["--commands", ..])
             return ContentValidator.PrintCommands(ContentRegistry.Scopes, args.Length > 1 ? args[1] : null);
+        if (args is ["--try-read", ..])
+            return ReadStepRunner.RunCli(ContentRegistry.Scopes, args[1..]);
 
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }

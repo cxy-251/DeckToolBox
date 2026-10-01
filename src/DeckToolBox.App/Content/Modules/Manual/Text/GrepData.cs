@@ -41,7 +41,7 @@ public static class GrepData
             Step.Change(
                 "准备练习文件",
                 "mkdir -p /tmp/grep-demo && cd /tmp/grep-demo && printf 'Line one\\nline two error\\nERROR three\\nfour\\n' > log.txt",
-                "在 `/tmp` 中建一个四行的练习文件，之后的步骤都在这个目录里执行。").Then("没有输出，当前目录变为 `/tmp/grep-demo`。"),
+                "在 `/tmp` 中建一个四行的练习文件，之后的步骤都在这个目录里执行。").Then("没有输出，当前目录变为 `/tmp/grep-demo`。").Practice(),
             Step.Read(
                 "查找并显示行号",
                 "grep -n error log.txt",

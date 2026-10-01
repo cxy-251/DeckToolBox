@@ -39,7 +39,7 @@ public static class EncodingData
             Step.Change(
                 "准备一个 GBK 编码、Windows 换行的文件",
                 "mkdir -p /tmp/enc-demo && cd /tmp/enc-demo && printf '中文测试\\r\\n第二行\\r\\n' | iconv -f UTF-8 -t GBK > old.txt && file old.txt",
-                "模拟从旧 Windows 系统拿到的文本。").Then("`file` 显示类似 `ISO-8859 text, with CRLF line terminators`：编码未被识别为 UTF-8，且是 Windows 换行。"),
+                "模拟从旧 Windows 系统拿到的文本。").Then("`file` 显示类似 `ISO-8859 text, with CRLF line terminators`：编码未被识别为 UTF-8，且是 Windows 换行。").Practice(),
             Step.Read(
                 "直接查看：乱码",
                 "cat old.txt",
@@ -47,11 +47,11 @@ public static class EncodingData
             Step.Change(
                 "把 GBK 转为 UTF-8",
                 "iconv -f GBK -t UTF-8 old.txt -o new.txt && cat new.txt",
-                "`-f` 源编码、`-t` 目标编码、`-o` 输出文件。").Then("正常显示「中文测试」「第二行」。"),
+                "`-f` 源编码、`-t` 目标编码、`-o` 输出文件。").Then("正常显示「中文测试」「第二行」。").Practice(),
             Step.Change(
                 "把 Windows 换行改为 Linux 换行",
                 "file new.txt; dos2unix new.txt; file new.txt",
-                "dos2unix 直接修改文件。").Then("第一次 `file` 显示 `with CRLF line terminators`；dos2unix 输出 `dos2unix: 正在转换文件 new.txt 为Unix格式...`；第二次 `file` 只显示 `UTF-8 text`。"),
+                "dos2unix 直接修改文件。").Then("第一次 `file` 显示 `with CRLF line terminators`；dos2unix 输出 `dos2unix: 正在转换文件 new.txt 为Unix格式...`；第二次 `file` 只显示 `UTF-8 text`。").Practice(),
             Step.Read(
                 "简体转繁体",
                 "echo '软件开发需要内存和鼠标' | opencc -c s2t",
@@ -63,7 +63,7 @@ public static class EncodingData
             Step.Change(
                 "把一个繁体文本文件转为简体",
                 "echo '這是一段繁體文字' > tw.txt && opencc -c t2s -i tw.txt -o cn.txt && cat cn.txt",
-                "`-i` 输入文件、`-o` 输出文件。").Then("输出 `这是一段繁体文字`，原文件 `tw.txt` 不变。"),
+                "`-i` 输入文件、`-o` 输出文件。").Then("输出 `这是一段繁体文字`，原文件 `tw.txt` 不变。").Practice(),
         ],
 
         Verify =

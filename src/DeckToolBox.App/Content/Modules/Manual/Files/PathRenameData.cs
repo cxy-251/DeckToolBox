@@ -48,7 +48,7 @@ public static class PathRenameData
             Step.Change(
                 "准备一批要改名的文件",
                 "mkdir -p /tmp/ren-demo && cd /tmp/ren-demo && touch IMG_001.JPG IMG_002.JPG IMG_003.JPG && ls",
-                "在 `/tmp/ren-demo` 中练习。").Then("输出 `IMG_001.JPG  IMG_002.JPG  IMG_003.JPG`。"),
+                "在 `/tmp/ren-demo` 中练习。").Then("输出 `IMG_001.JPG  IMG_002.JPG  IMG_003.JPG`。").Practice(),
             Step.Read(
                 "演示改名效果（不执行）",
                 "rename -nv .JPG .jpg *.JPG",
@@ -56,11 +56,11 @@ public static class PathRenameData
             Step.Change(
                 "执行批量改名",
                 "rename -v .JPG .jpg *.JPG && ls",
-                "这是 util-linux 的 `rename`：把文件名中第一次出现的 `.JPG` 换成 `.jpg`（普通字符串，不是正则）；`-v` 显示每个改名。").Then("输出三行改名记录，`ls` 显示 `IMG_001.jpg  IMG_002.jpg  IMG_003.jpg`。"),
+                "这是 util-linux 的 `rename`：把文件名中第一次出现的 `.JPG` 换成 `.jpg`（普通字符串，不是正则）；`-v` 显示每个改名。").Then("输出三行改名记录，`ls` 显示 `IMG_001.jpg  IMG_002.jpg  IMG_003.jpg`。").Practice(),
             Step.Change(
                 "用循环按规则改名：加上日期前缀",
                 "for f in *.jpg; do mv -nv \"$f\" \"$(date +%F)_${f#IMG_}\"; done",
-                "`${f#IMG_}` 去掉开头的 `IMG_`；`$(date +%F)` 是今天的日期。").Then("每个文件一行 `已重命名 'IMG_001.jpg' -> '2026-09-28_001.jpg'`。"),
+                "`${f#IMG_}` 去掉开头的 `IMG_`；`$(date +%F)` 是今天的日期。").Then("每个文件一行 `已重命名 'IMG_001.jpg' -> '2026-09-28_001.jpg'`。").Practice(),
         ],
 
         Verify =

@@ -35,8 +35,8 @@ public static class ProtonVersionsData
         [
             Step.Read(
                 "列出已安装的 Proton",
-                "ls -d ~/.local/share/Steam/steamapps/common/Proton* ~/.local/share/Steam/compatibilitytools.d/*/ 2>/dev/null",
-                "前一部分是 Valve 的版本，后一部分是手动安装的版本；`2>/dev/null` 隐藏「目录不存在」的报错。").Then("每行一个目录，如 `.../common/Proton 10.0`、`.../common/Proton 11.0`、`.../common/Proton - Experimental`、`.../common/Proton Hotfix`；装过 GE-Proton 时还有 `.../compatibilitytools.d/GE-Proton11-7-x86_64/`。"),
+                "ls -d ~/.local/share/Steam/steamapps/common/Proton*; ls -d ~/.local/share/Steam/compatibilitytools.d/*/ 2>/dev/null || echo '（compatibilitytools.d 中没有手动安装的版本）'",
+                "第一条列出 Valve 的版本；第二条列出手动安装的版本，没有时给出提示。").Then("每行一个目录，如 `.../common/Proton 10.0`、`.../common/Proton 11.0`、`.../common/Proton - Experimental`、`.../common/Proton Hotfix`；最后是手动安装的版本，如 `.../compatibilitytools.d/GE-Proton11-7-x86_64/`，没有时显示「没有手动安装的版本」的提示。"),
             Step.Read(
                 "查看各 Proton 的具体构建",
                 "for d in ~/.local/share/Steam/steamapps/common/Proton*/; do printf '%-28s %s\\n' \"$(basename \"$d\")\" \"$(cat \"$d/version\" 2>/dev/null || echo '（没有 version 文件：卸载后的残留目录）')\"; done",

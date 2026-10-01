@@ -47,7 +47,7 @@ public static class JobControlData
             Step.Read(
                 "暂停、后台继续、调回前台",
                 "sleep 100",
-                "运行后按 `Ctrl+Z` 暂停；再输入 `bg` 让它在后台继续；输入 `fg` 调回前台；最后按 `Ctrl+C` 结束。").Then("按 `Ctrl+Z` 后显示 `[2]+ 已停止  sleep 100`；`bg` 显示 `[2]+ sleep 100 &`；`fg` 后终端再次被占住，`Ctrl+C` 结束它。"),
+                "运行后按 `Ctrl+Z` 暂停；再输入 `bg` 让它在后台继续；输入 `fg` 调回前台；最后按 `Ctrl+C` 结束。").Then("按 `Ctrl+Z` 后显示 `[2]+ 已停止  sleep 100`；`bg` 显示 `[2]+ sleep 100 &`；`fg` 后终端再次被占住，`Ctrl+C` 结束它。").Manual(),
             Step.Change(
                 "关闭终端后仍继续运行：nohup",
                 "nohup sh -c 'for i in 1 2 3; do date; sleep 10; done' > /tmp/nohup-demo.log 2>&1 &",

@@ -48,7 +48,7 @@ public static class PerformanceTracingData
             Step.Read(
                 "跟踪一个命令打开了哪些文件",
                 "strace -e trace=openat ls /tmp 2>&1 | head -n 20",
-                "`-e trace=openat` 只看打开文件的调用。排查「程序找不到配置文件或库」时最有用。").Then("每行一个 `openat(...)` 调用及其返回值，能看到 `ls` 依次打开了哪些库文件（`libc.so.6` 等）和目录；失败的调用显示 `= -1 ENOENT`。"),
+                "`-e trace=openat` 只看打开文件的调用。排查「程序找不到配置文件或库」时最有用。").Then("每行一个 `openat(...)` 调用及其返回值，能看到 `ls` 依次打开了哪些库文件（`libc.so.6` 等）和目录；失败的调用显示 `= -1 ENOENT`。").ShowsError(),
             Step.Read(
                 "用硬件计数器统计一个命令",
                 "perf stat ls -la /usr/lib 2>&1 | tail -n 20",

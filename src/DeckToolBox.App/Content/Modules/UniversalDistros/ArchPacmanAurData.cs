@@ -46,7 +46,7 @@ public static class ArchPacmanAurData
             Step.Read(
                 "校验某个包的文件是否完整（可在 Deck 上运行）",
                 "pacman -Qk coreutils",
-                "在 SteamOS 上，文档目录被系统镜像删除以节省空间（所以也没有 man 手册），这些警告属正常现象。").Then("先可能有几行 `警告：coreutils: /usr/share/info/ (没有那个文件或目录)`，最后一行汇总 `coreutils: xxx 总文件，N 缺少的文件`。"),
+                "在 SteamOS 上，文档目录被系统镜像删除以节省空间（所以也没有 man 手册），这些警告属正常现象。").Then("先可能有几行 `警告：coreutils: /usr/share/info/ (没有那个文件或目录)`，最后一行汇总 `coreutils: xxx 总文件，N 缺少的文件`。").ShowsError(),
             Step.Change(
                 "在 Deck 上创建一个 Arch 练习容器并进入",
                 "distrobox create --name arch -i docker.io/library/archlinux:latest && distrobox enter arch",

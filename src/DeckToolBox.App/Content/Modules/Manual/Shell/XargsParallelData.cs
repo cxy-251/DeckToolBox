@@ -49,7 +49,7 @@ public static class XargsParallelData
             Step.Change(
                 "安全地处理带空格的文件名",
                 "mkdir -p /tmp/xa-demo && cd /tmp/xa-demo && touch 'a b.log' c.log && find . -name '*.log' -print0 | xargs -0 ls -l",
-                "`-print0` 与 `-0` 以空字符分隔，空格不会拆开文件名。").Then("正确列出 `./a b.log` 与 `./c.log` 两个文件；若不用 `-0`，会报错找不到 `./a` 和 `b.log`。"),
+                "`-print0` 与 `-0` 以空字符分隔，空格不会拆开文件名。").Then("正确列出 `./a b.log` 与 `./c.log` 两个文件；若不用 `-0`，会报错找不到 `./a` 和 `b.log`。").Practice(),
             Step.Read(
                 "先演示再执行",
                 "find /tmp/xa-demo -name '*.log' -print0 | xargs -0 echo rm",

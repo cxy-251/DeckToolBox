@@ -38,27 +38,27 @@ public static class ChmodChownData
             Step.Change(
                 "准备一个脚本",
                 "mkdir -p /tmp/perm-demo && cd /tmp/perm-demo && printf '#!/bin/bash\\necho 脚本运行了\\n' > hello.sh && ls -l hello.sh",
-                "新建的文件默认没有执行权限。").Then("显示 `-rw-r--r-- ... hello.sh`：没有 `x`。"),
+                "新建的文件默认没有执行权限。").Then("显示 `-rw-r--r-- ... hello.sh`：没有 `x`。").Practice(),
             Step.Read(
                 "尝试运行没有执行权限的脚本",
                 "./hello.sh",
-                "`./` 表示当前目录下的文件。").Then("报错 `bash: ./hello.sh: 权限不够`。"),
+                "`./` 表示当前目录下的文件。").Then("报错 `bash: ./hello.sh: 权限不够`。").ShowsError(),
             Step.Change(
                 "加上执行权限后运行",
                 "chmod +x hello.sh && ls -l hello.sh && ./hello.sh",
-                "`+x` 为所有人加上执行权限（受 umask 限制）。").Then("权限变为 `-rwxr-xr-x`，然后输出「脚本运行了」。"),
+                "`+x` 为所有人加上执行权限（受 umask 限制）。").Then("权限变为 `-rwxr-xr-x`，然后输出「脚本运行了」。").Practice(),
             Step.Change(
                 "用数字设为只有自己可读写",
                 "chmod 600 hello.sh && ls -l hello.sh",
-                "`600` = 所有者 rw、组与其他人无权限。").Then("权限变为 `-rw-------`。"),
+                "`600` = 所有者 rw、组与其他人无权限。").Then("权限变为 `-rw-------`。").Practice(),
             Step.Change(
                 "用符号写法精确设置",
                 "chmod u=rwx,go=rx hello.sh && ls -l hello.sh",
-                "等同于 `chmod 755`。").Then("权限变为 `-rwxr-xr-x`。"),
+                "等同于 `chmod 755`。").Then("权限变为 `-rwxr-xr-x`。").Practice(),
             Step.Change(
                 "递归去掉组和其他人的写权限",
                 "chmod -R go-w /tmp/perm-demo && ls -ld /tmp/perm-demo",
-                "`-R` 作用于目录及其所有内容。").Then("没有报错；目录与其中所有文件的组、其他人都不再有 `w`。"),
+                "`-R` 作用于目录及其所有内容。").Then("没有报错；目录与其中所有文件的组、其他人都不再有 `w`。").Practice(),
             Step.Root(
                 "把被 root 占用的文件改回自己所有",
                 "sudo chown -R \"$USER\": <路径>",

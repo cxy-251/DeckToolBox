@@ -50,8 +50,8 @@ public static class SteamArchitectureDevData
                 "Steam 打不开、界面异常时，先看这里和 `bootstrap_log.txt` 的末尾。").Then("最近 20 行带时间戳的记录，例如游戏进程的增减（`Game process added : AppID ...`）、Proton 工具的调用、各项任务的结果。"),
             Step.Read(
                 "查看自动修复的设置与历史",
-                "grep -E '^short_session' /usr/lib/steamos/steam-short-session-tracker; ls -d ~/dot-steam.bak.* ~/.config/inhibit-short-session-tracker 2>/dev/null",
-                "第一条显示判定规则；第二条列出以往自动修复留下的备份，以及是否关闭了这个功能。").Then("先输出 `short_session_tracker_file=\"/tmp/steamos-short-session-tracker\"`、`short_session_duration=60`、`short_session_count_before_reset=3` 等几行；从未修复过且未关闭时，第二条没有输出。"),
+                "grep -E '^short_session' /usr/lib/steamos/steam-short-session-tracker; ls -d ~/dot-steam.bak.* ~/.config/inhibit-short-session-tracker 2>/dev/null || echo '（没有修复记录，自动修复未被关闭）'",
+                "第一条显示判定规则；第二条列出以往自动修复留下的备份，以及是否关闭了这个功能。").Then("先输出 `short_session_tracker_file=\"/tmp/steamos-short-session-tracker\"`、`short_session_duration=60`、`short_session_count_before_reset=3` 等几行；从未修复过且未关闭时，第二条显示「没有修复记录」的提示。"),
             Step.Change(
                 "退出 Steam",
                 "steam -shutdown",

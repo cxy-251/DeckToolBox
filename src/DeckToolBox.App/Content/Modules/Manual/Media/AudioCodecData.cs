@@ -34,11 +34,11 @@ public static class AudioCodecData
             Step.Change(
                 "生成一段 3 秒的测试音频",
                 "mkdir -p /tmp/audio-demo && cd /tmp/audio-demo && ffmpeg -loglevel error -f lavfi -i sine=frequency=440:duration=3 -ac 2 t.wav && ls -l t.wav",
-                "440 Hz 正弦波，立体声。").Then("生成约 517 KB 的 `t.wav`。"),
+                "440 Hz 正弦波，立体声。").Then("生成约 517 KB 的 `t.wav`。").Practice(),
             Step.Change(
                 "无损压缩为 FLAC",
                 "flac -s t.wav && ls -l t.wav t.flac",
-                "`-s` 不显示进度。").Then("可能提示 `WARNING: skipping unknown chunk 'LIST'`（WAV 中的附加信息块，不影响音频）；生成的 `t.flac` 明显小于 `t.wav`。"),
+                "`-s` 不显示进度。").Then("可能提示 `WARNING: skipping unknown chunk 'LIST'`（WAV 中的附加信息块，不影响音频）；生成的 `t.flac` 明显小于 `t.wav`。").Practice(),
             Step.Read(
                 "证明 FLAC 是无损的",
                 "ffmpeg -loglevel error -i t.wav -f md5 -; ffmpeg -loglevel error -i t.flac -f md5 -",
@@ -50,7 +50,7 @@ public static class AudioCodecData
             Step.Change(
                 "编码为 MP3",
                 "lame --quiet -V2 t.wav t.mp3 && ls -l t.*",
-                "`-V2` 可变码率，质量与体积的常用折中。").Then("生成的 `t.mp3` 约 20 KB，远小于 FLAC 与 WAV。"),
+                "`-V2` 可变码率，质量与体积的常用折中。").Then("生成的 `t.mp3` 约 20 KB，远小于 FLAC 与 WAV。").Practice(),
             Step.Read(
                 "在终端播放 MP3",
                 "mpg123 t.mp3",
@@ -58,7 +58,7 @@ public static class AudioCodecData
             Step.Change(
                 "把 MP3 解码为 WAV",
                 "mpg123 -q -w out.wav t.mp3 && file out.wav",
-                "`-w` 必须写在文件名之前。").Then("`file` 显示 `WAVE audio, Microsoft PCM, 16 bit, stereo 44100 Hz`。"),
+                "`-w` 必须写在文件名之前。").Then("`file` 显示 `WAVE audio, Microsoft PCM, 16 bit, stereo 44100 Hz`。").Practice(),
         ],
 
         Verify =

@@ -50,7 +50,7 @@ public static class RgData
             Step.Change(
                 "准备一个压缩包，比较 rg 与 rga",
                 "mkdir -p /tmp/rga-demo && cd /tmp/rga-demo && echo 'secret keyword inside' > inner.txt && zip -q pack.zip inner.txt && rm inner.txt",
-                "把一个文本文件压进 zip。").Then("没有输出，目录中只剩 `pack.zip`。"),
+                "把一个文本文件压进 zip。").Then("没有输出，目录中只剩 `pack.zip`。").Practice(),
             Step.Read(
                 "用 rg 搜索压缩包",
                 "rg keyword pack.zip",

@@ -53,7 +53,7 @@ public static class UniversalPackageFormatsData
             Step.Read(
                 "查看 AppImage 自带了哪些运行库",
                 "ls squashfs-root/usr/lib | head -n 30",
-                "在上一步解包后执行。这就是 AppImage 不依赖系统库、但体积较大的原因。").Then("列出一批 `.so` 文件，如 `libQt6Core.so.6`、`libgtk-3.so.0`。"),
+                "在上一步解包后执行。这就是 AppImage 不依赖系统库、但体积较大的原因。").Then("列出一批 `.so` 文件，如 `libQt6Core.so.6`、`libgtk-3.so.0`。").Manual(),
         ],
 
         Verify =

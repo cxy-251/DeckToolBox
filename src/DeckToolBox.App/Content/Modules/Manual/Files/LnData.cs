@@ -39,11 +39,11 @@ public static class LnData
             Step.Change(
                 "准备练习文件",
                 "mkdir -p /tmp/ln-demo && cd /tmp/ln-demo && echo 原始内容 > original.txt",
-                "在 `/tmp/ln-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/ln-demo`。"),
+                "在 `/tmp/ln-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/ln-demo`。").Practice(),
             Step.Change(
                 "创建软链接与硬链接",
                 "ln -s /tmp/ln-demo/original.txt soft.txt && ln original.txt hard.txt && ls -li",
-                "`-s` 表示软链接；不加为硬链接。`-i` 显示 inode 编号。").Then("三行：`hard.txt` 与 `original.txt` 的 inode 编号相同、链接数为 2；`soft.txt` 以 `l` 开头，显示 `soft.txt -> /tmp/ln-demo/original.txt`。"),
+                "`-s` 表示软链接；不加为硬链接。`-i` 显示 inode 编号。").Then("三行：`hard.txt` 与 `original.txt` 的 inode 编号相同、链接数为 2；`soft.txt` 以 `l` 开头，显示 `soft.txt -> /tmp/ln-demo/original.txt`。").Practice(),
             Step.Read(
                 "通过链接读取",
                 "cat soft.txt hard.txt",
@@ -51,7 +51,7 @@ public static class LnData
             Step.Change(
                 "删除原文件后观察两种链接",
                 "rm original.txt && cat hard.txt; cat soft.txt",
-                "硬链接仍持有数据，软链接失去目标。").Then("`hard.txt` 仍输出「原始内容」；`soft.txt` 报错 `没有那个文件或目录`，它成为悬空链接。"),
+                "硬链接仍持有数据，软链接失去目标。").Then("`hard.txt` 仍输出「原始内容」；`soft.txt` 报错 `没有那个文件或目录`，它成为悬空链接。").Practice().ShowsError(),
             Step.Read(
                 "查看链接指向的真实路径",
                 "readlink soft.txt; readlink -f ~/.steam/steam",

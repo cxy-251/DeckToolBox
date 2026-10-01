@@ -54,11 +54,11 @@ public static class MountsAndOverlayFsData
             Step.Change(
                 "准备实验目录",
                 "mkdir -p /tmp/ovl/{lower,upper,work,merged} && echo '下层原文件' > /tmp/ovl/lower/a.txt",
-                "`{a,b}` 是 bash 的花括号展开，一次创建多个目录。").Then("没有输出。`/tmp/ovl` 下出现 `lower`、`upper`、`work`、`merged` 四个目录，`lower/a.txt` 内容为「下层原文件」。"),
+                "`{a,b}` 是 bash 的花括号展开，一次创建多个目录。").Then("没有输出。`/tmp/ovl` 下出现 `lower`、`upper`、`work`、`merged` 四个目录，`lower/a.txt` 内容为「下层原文件」。").Practice(),
             Step.Change(
                 "在私有命名空间里挂载 OverlayFS 并做修改",
                 "unshare -rm sh -c 'mount -t overlay overlay -o lowerdir=/tmp/ovl/lower,upperdir=/tmp/ovl/upper,workdir=/tmp/ovl/work /tmp/ovl/merged && rm /tmp/ovl/merged/a.txt && echo 新文件 > /tmp/ovl/merged/b.txt && ls -l /tmp/ovl/merged'",
-                "`-r` 映射为命名空间内的 root，`-m` 创建私有挂载命名空间。").Then("输出合并视图的列表：只有新建的 `b.txt`，被删除的 `a.txt` 已看不到。命令结束后挂载随命名空间一起消失。"),
+                "`-r` 映射为命名空间内的 root，`-m` 创建私有挂载命名空间。").Then("输出合并视图的列表：只有新建的 `b.txt`，被删除的 `a.txt` 已看不到。命令结束后挂载随命名空间一起消失。").Practice(),
             Step.Read(
                 "观察各层的变化",
                 "cat /tmp/ovl/lower/a.txt; ls -l /tmp/ovl/upper",
@@ -66,7 +66,7 @@ public static class MountsAndOverlayFsData
             Step.Change(
                 "清理实验目录",
                 "chmod -R u+rwx /tmp/ovl && rm -rf /tmp/ovl",
-                "先恢复 work 目录的权限再删除，否则 `rm` 会报「权限不够」。").Then("没有输出，`/tmp/ovl` 被删除。"),
+                "先恢复 work 目录的权限再删除，否则 `rm` 会报「权限不够」。").Then("没有输出，`/tmp/ovl` 被删除。").Practice(),
         ],
 
         Verify =

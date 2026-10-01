@@ -36,7 +36,7 @@ public static class Exiv2Data
             Step.Change(
                 "准备一张练习照片",
                 "mkdir -p /tmp/exif-demo && cd /tmp/exif-demo && ffmpeg -loglevel error -f lavfi -i testsrc2=size=320x240 -frames:v 1 p.jpg && exiv2 -M'set Exif.Image.Make DeckCam' -M'set Exif.Photo.DateTimeOriginal 2026:09:01 10:00:00' p.jpg",
-                "用 ffmpeg 生成一张测试图，再写入相机名和拍摄时间。").Then("没有输出，`p.jpg` 中写入了两项 Exif 信息。"),
+                "用 ffmpeg 生成一张测试图，再写入相机名和拍摄时间。").Then("没有输出，`p.jpg` 中写入了两项 Exif 信息。").Practice(),
             Step.Read(
                 "查看照片摘要",
                 "exiv2 p.jpg",
@@ -52,11 +52,11 @@ public static class Exiv2Data
             Step.Change(
                 "按拍摄时间重命名",
                 "exiv2 -r '%Y%m%d_%H%M%S' mv p.jpg && ls",
-                "格式符与 date 命令相同。").Then("`ls` 显示 `20260901_100000.jpg`。"),
+                "格式符与 date 命令相同。").Then("`ls` 显示 `20260901_100000.jpg`。").Practice(),
             Step.Change(
                 "删除全部元数据（分享前）",
                 "exiv2 -d a *.jpg && exiv2 -pa *.jpg | wc -l",
-                "`-d a` 删除 Exif、IPTC、XMP 全部内容。").Then("最后输出 `0`：照片中已不含任何元数据，图像本身不变。"),
+                "`-d a` 删除 Exif、IPTC、XMP 全部内容。").Then("最后输出 `0`：照片中已不含任何元数据，图像本身不变。").Practice(),
         ],
 
         Verify =

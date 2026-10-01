@@ -39,12 +39,12 @@ public static class SevenZipData
         [
             Step.Change(
                 "准备练习数据",
-                "mkdir -p /tmp/7z-demo/src && cd /tmp/7z-demo && seq 1 300000 > src/nums.txt && echo hi > src/a.txt",
-                "`seq` 生成一个约 2 MB 的数字文件。").Then("没有输出，当前目录变为 `/tmp/7z-demo`。"),
+                "rm -rf /tmp/7z-demo && mkdir -p /tmp/7z-demo/src && cd /tmp/7z-demo && seq 1 300000 > src/nums.txt && echo hi > src/a.txt",
+                "先删除上次练习留下的目录（否则重复练习时 7z 会询问是否覆盖），再用 `seq` 生成一个约 2 MB 的数字文件。").Then("没有输出，当前目录变为 `/tmp/7z-demo`。").Practice(),
             Step.Change(
                 "创建 7z 压缩包",
                 "7z a data.7z src",
-                "`a`（add）将文件或目录加入压缩包，7z 遵循子命令语法无须 `-` 前缀；默认采用 LZMA2 压缩算法，具备高压缩比与多线程块压缩特性。").Then("输出扫描与压缩信息，最后一行 `Everything is Ok`，生成体积远小于原数据的 `data.7z`。"),
+                "`a`（add）将文件或目录加入压缩包，7z 遵循子命令语法无须 `-` 前缀；默认采用 LZMA2 压缩算法，具备高压缩比与多线程块压缩特性。").Then("输出扫描与压缩信息，最后一行 `Everything is Ok`，生成体积远小于原数据的 `data.7z`。").Practice(),
             Step.Read(
                 "列出与测试",
                 "7z l data.7z | tail -n 4; 7z t data.7z | tail -n 3",
@@ -56,11 +56,11 @@ public static class SevenZipData
             Step.Change(
                 "按大小分卷压缩",
                 "head -c 3M /dev/urandom > src/random.bin && 7z a -v1m parts.7z src/random.bin && ls parts.7z.*",
-                "随机数据无法压缩，3 MB 的文件按 1 MB 分卷。").Then("生成 `parts.7z.001`、`parts.7z.002`、`parts.7z.003`、`parts.7z.004` 四个分卷。"),
+                "随机数据无法压缩，3 MB 的文件按 1 MB 分卷。").Then("生成 `parts.7z.001`、`parts.7z.002`、`parts.7z.003`、`parts.7z.004` 四个分卷。").Practice(),
             Step.Change(
                 "解压到指定目录",
                 "7z x data.7z -oout && ls out/src",
-                "`-o` 与目录名之间不加空格。").Then("输出 `Everything is Ok`，`ls` 显示 `a.txt  nums.txt`。"),
+                "`-o` 与目录名之间不加空格。").Then("输出 `Everything is Ok`，`ls` 显示 `a.txt  nums.txt`。").Practice(),
             Step.Change(
                 "解压 rar 文件（示例）",
                 "unrar x <文件>.rar <目标目录>/",

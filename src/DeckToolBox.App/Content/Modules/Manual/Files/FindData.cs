@@ -42,7 +42,7 @@ public static class FindData
             Step.Change(
                 "准备练习文件",
                 "mkdir -p /tmp/find-demo/sub && cd /tmp/find-demo && echo hi > a.txt && echo hi > sub/b.TXT && touch -d '40 days ago' old.log && touch empty.tmp && head -c 2M /dev/zero > big.bin",
-                "`head -c 2M /dev/zero` 生成一个 2 MB 的文件。").Then("没有输出，当前目录变为 `/tmp/find-demo`。"),
+                "`head -c 2M /dev/zero` 生成一个 2 MB 的文件。").Then("没有输出，当前目录变为 `/tmp/find-demo`。").Practice(),
             Step.Read(
                 "按名称查找（忽略大小写）",
                 "find . -iname '*.txt'",
@@ -74,7 +74,7 @@ public static class FindData
             Step.Danger(
                 "删除找到的文件",
                 "find . -name '*.tmp' -print -delete",
-                "`-print` 先显示再删除。先去掉 `-delete` 运行一次确认列表。").Then("输出 `./empty.tmp`，该文件被永久删除。"),
+                "`-print` 先显示再删除。先去掉 `-delete` 运行一次确认列表。").Then("输出 `./empty.tmp`，该文件被永久删除。").Practice(),
         ],
 
         Verify =

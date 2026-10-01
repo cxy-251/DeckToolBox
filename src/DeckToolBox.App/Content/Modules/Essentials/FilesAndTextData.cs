@@ -42,11 +42,11 @@ public static class FilesAndTextData
             Step.Change(
                 "建一个练习目录并创建几个文件",
                 "mkdir -p ~/linux-lab/sub && cd ~/linux-lab && echo 'hello linux' > a.txt && echo 'hello deck' > sub/b.txt && ls -R",
-                "`-p` 同时创建中间目录；`>` 把 echo 的内容写入文件。所有练习都在 `~/linux-lab` 中进行，最后一步会删除它。").Then("`ls -R` 输出 `.:`、`a.txt  sub` 以及 `./sub:`、`b.txt`，表示目录和文件都已创建；终端当前目录已切换到 `~/linux-lab`。"),
+                "`-p` 同时创建中间目录；`>` 把 echo 的内容写入文件。所有练习都在 `~/linux-lab` 中进行，最后一步会删除它。").Then("`ls -R` 输出 `.:`、`a.txt  sub` 以及 `./sub:`、`b.txt`，表示目录和文件都已创建；终端当前目录已切换到 `~/linux-lab`。").Practice(),
             Step.Change(
                 "复制、重命名文件",
                 "cd ~/linux-lab && cp -i a.txt c.txt && mv -i c.txt renamed.txt && ls",
-                "`cp` 复制，`mv` 移动或重命名；`-i` 在覆盖前询问。").Then("没有提示时说明目标不存在、操作已完成；`ls` 显示 `a.txt  renamed.txt  sub`。若目标已存在，会询问 `是否覆盖？`，输入 `y` 才会覆盖。"),
+                "`cp` 复制，`mv` 移动或重命名；`-i` 在覆盖前询问。").Then("没有提示时说明目标不存在、操作已完成；`ls` 显示 `a.txt  renamed.txt  sub`。若目标已存在，会询问 `是否覆盖？`，输入 `y` 才会覆盖。").Practice(),
             Step.Read(
                 "按名称查找文件",
                 "find ~/linux-lab -name '*.txt'",
@@ -54,7 +54,7 @@ public static class FilesAndTextData
             Step.Read(
                 "查找大于 1 GB 的文件",
                 "find ~ -xdev -type f -size +1G -printf '%s\\t%p\\n' 2>/dev/null | sort -rn | head -n 20 | awk -F'\\t' '{printf \"%.1f GB  %s\\n\", $1/1073741824, $2}'",
-                "`-xdev` 不进入其他文件系统（例如不去扫 SD 卡）；`-printf` 输出字节数与路径，文件名含空格也不会被截断。").Then("扫描需要一些时间；每行「大小 GB  路径」，从大到小排列，最多 20 行。没有大文件时没有输出。"),
+                "`-xdev` 不进入其他文件系统（例如不去扫 SD 卡）；`-printf` 输出字节数与路径，文件名含空格也不会被截断。").Then("扫描需要一些时间；每行「大小 GB  路径」，从大到小排列，最多 20 行。没有大文件时没有输出。").Manual(),
             Step.Read(
                 "在文件内容中搜索文字",
                 "grep -rn 'hello' ~/linux-lab",
@@ -66,11 +66,11 @@ public static class FilesAndTextData
             Step.Change(
                 "把输出保存到文件，再追加一行",
                 "cd ~/linux-lab && date > log.txt && echo '第二行' >> log.txt && cat log.txt",
-                "`>` 新建或覆盖，`>>` 追加。").Then("`cat` 显示两行：当前日期时间和「第二行」。"),
+                "`>` 新建或覆盖，`>>` 追加。").Then("`cat` 显示两行：当前日期时间和「第二行」。").Practice(),
             Step.Danger(
                 "删除练习目录",
                 "rm -r ~/linux-lab",
-                "删除前可先执行 `ls -R ~/linux-lab` 看看会删掉什么。").Then("没有输出，`~/linux-lab` 及其中所有文件被永久删除（不进回收站）。"),
+                "删除前可先执行 `ls -R ~/linux-lab` 看看会删掉什么。").Then("没有输出，`~/linux-lab` 及其中所有文件被永久删除（不进回收站）。").Practice(),
         ],
 
         Verify =

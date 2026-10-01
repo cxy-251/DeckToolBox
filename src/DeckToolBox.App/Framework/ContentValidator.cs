@@ -59,6 +59,10 @@ public static partial class ContentValidator
                         issues.Add($"{at} 含 sudo，但风险标记为 {s.Risk}");
                     if (RecursiveRemovePattern().IsMatch(s.Command) && s.Risk < Risk.Change)
                         issues.Add($"{at} 含 rm -r/-f，不能标记为只读");
+                    if (s.IsPractice && (s.Risk is Risk.Read or Risk.Root || s.Host is not null))
+                        issues.Add($"{at} 标记为 Practice()，但只有在本机执行的 Change / Danger 步骤可以标记为练习步骤");
+                    if (s.IsPractice && SudoPattern().IsMatch(s.Command))
+                        issues.Add($"{at} 标记为 Practice()，但包含 sudo");
                     if (s.Command.Contains("%command%") && s.Host != Hosts.SteamLaunchOptions)
                         issues.Add($"{at} 含 %command%，Host 应为 Hosts.SteamLaunchOptions");
                 }

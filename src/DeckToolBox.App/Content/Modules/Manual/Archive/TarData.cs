@@ -44,11 +44,11 @@ public static class TarData
             Step.Change(
                 "准备练习数据",
                 "mkdir -p /tmp/tar-demo/proj/logs && cd /tmp/tar-demo && echo 代码 > proj/main.txt && echo 日志 > proj/logs/run.log",
-                "在 `/tmp/tar-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/tar-demo`。"),
+                "在 `/tmp/tar-demo` 中练习。").Then("没有输出，当前目录变为 `/tmp/tar-demo`。").Practice(),
             Step.Change(
                 "打包并用 zstd 压缩",
                 "tar -cavf proj.tar.zst proj",
-                "`-a` 按扩展名选择压缩算法，`-v` 列出文件。").Then("逐行输出 `proj/`、`proj/main.txt`、`proj/logs/`、`proj/logs/run.log`，生成 `proj.tar.zst`。"),
+                "`-a` 按扩展名选择压缩算法，`-v` 列出文件。").Then("逐行输出 `proj/`、`proj/main.txt`、`proj/logs/`、`proj/logs/run.log`，生成 `proj.tar.zst`。").Practice(),
             Step.Read(
                 "查看包里有什么",
                 "tar -tvf proj.tar.zst",
@@ -56,15 +56,15 @@ public static class TarData
             Step.Change(
                 "排除某类文件打包",
                 "tar -caf proj-nolog.tar.gz --exclude='*.log' proj && tar -tf proj-nolog.tar.gz",
-                "`--exclude` 可以写多次。").Then("列出的内容中没有 `run.log`。"),
+                "`--exclude` 可以写多次。").Then("列出的内容中没有 `run.log`。").Practice(),
             Step.Change(
                 "解包到指定目录",
                 "mkdir -p restore && tar -xf proj.tar.zst -C restore && find restore",
-                "`-C` 指定的目录必须先存在，否则报错「无法 open」。").Then("列出 `restore/proj/main.txt`、`restore/proj/logs/run.log` 等，目录结构与原来一致。"),
+                "`-C` 指定的目录必须先存在，否则报错「无法 open」。").Then("列出 `restore/proj/main.txt`、`restore/proj/logs/run.log` 等，目录结构与原来一致。").Practice(),
             Step.Change(
                 "只解出其中一个文件",
                 "mkdir -p one && tar -xf proj.tar.zst -C one proj/main.txt && find one -type f",
-                "文件路径要与 `tar -t` 列出的完全一致。").Then("只输出 `one/proj/main.txt`。"),
+                "文件路径要与 `tar -t` 列出的完全一致。").Then("只输出 `one/proj/main.txt`。").Practice(),
             Step.Read(
                 "查看网上下载的软件包内容（示例）",
                 "tar -tf ~/Downloads/<文件>.tar.gz | head",

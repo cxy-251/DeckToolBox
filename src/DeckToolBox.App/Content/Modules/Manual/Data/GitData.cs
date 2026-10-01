@@ -45,23 +45,23 @@ public static class GitData
             Step.Change(
                 "把一个目录变成仓库并提交第一个版本",
                 "mkdir -p /tmp/git-demo && cd /tmp/git-demo && git init -q -b main && echo 'volume=50' > app.conf && git add app.conf && git commit -qm '初始配置' && git log --oneline",
-                "`-b main` 指定默认分支名，`-q` 减少输出。").Then("输出一行 `e278c8d 初始配置`：第一个版本已记录（编号每次不同）。"),
+                "`-b main` 指定默认分支名，`-q` 减少输出。").Then("输出一行 `e278c8d 初始配置`：第一个版本已记录（编号每次不同）。").Practice(),
             Step.Change(
                 "修改文件并查看差异",
                 "sed -i 's/50/80/' app.conf && git status --short && git diff",
-                "`--short` 用两个字符表示状态，` M` 为已修改。").Then("先输出 ` M app.conf`，然后是统一 diff：`-volume=50` 与 `+volume=80`。"),
+                "`--short` 用两个字符表示状态，` M` 为已修改。").Then("先输出 ` M app.conf`，然后是统一 diff：`-volume=50` 与 `+volume=80`。").Practice(),
             Step.Change(
                 "提交修改",
                 "git commit -qam '音量改为 80' && git log --oneline",
-                "`-a` 自动加入所有已被管理且修改过的文件，`-m` 写说明。").Then("两行历史，最新的 `音量改为 80` 在最上面。"),
+                "`-a` 自动加入所有已被管理且修改过的文件，`-m` 写说明。").Then("两行历史，最新的 `音量改为 80` 在最上面。").Practice(),
             Step.Change(
                 "把文件恢复成上一个版本的样子",
                 "git restore --source=HEAD~1 app.conf && cat app.conf",
-                "`HEAD~1` 表示当前提交的上一个；也可以写 `git log` 中的编号。").Then("输出 `volume=50`：文件内容回到了第一个版本，历史记录本身不变。"),
+                "`HEAD~1` 表示当前提交的上一个；也可以写 `git log` 中的编号。").Then("输出 `volume=50`：文件内容回到了第一个版本，历史记录本身不变。").Practice(),
             Step.Change(
                 "放弃恢复，回到最新版本",
                 "git restore app.conf && cat app.conf",
-                "丢弃工作区中尚未提交的修改。").Then("输出 `volume=80`。"),
+                "丢弃工作区中尚未提交的修改。").Then("输出 `volume=80`。").Practice(),
             Step.Read(
                 "查看某次提交的详情",
                 "git log --format='%h %an %ar %s'; git show --stat HEAD",

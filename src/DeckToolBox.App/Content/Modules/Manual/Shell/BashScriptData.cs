@@ -66,7 +66,7 @@ public static class BashScriptData
             Step.Read(
                 "测试脚本的错误处理",
                 "~/bin/backup-dir.sh; echo \"退出码 $?\"; ~/bin/backup-dir.sh /不存在; echo \"退出码 $?\"",
-                "分别测试「没有参数」和「目录不存在」。").Then("先输出用法提示与 `退出码 1`，再输出 `错误: /不存在 不是目录` 与 `退出码 2`。"),
+                "分别测试「没有参数」和「目录不存在」。").Then("先输出用法提示与 `退出码 1`，再输出 `错误: /不存在 不是目录` 与 `退出码 2`。").Manual(),
             Step.Change(
                 "正常运行脚本",
                 "~/bin/backup-dir.sh ~/Documents",

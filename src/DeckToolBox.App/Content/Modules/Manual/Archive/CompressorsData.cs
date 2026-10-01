@@ -44,11 +44,11 @@ public static class CompressorsData
             Step.Change(
                 "准备一个测试文件",
                 "mkdir -p /tmp/cmp-demo && cd /tmp/cmp-demo && tar -cf data.tar -C /usr/lib python3.13 && ls -lh data.tar",
-                "把系统的 Python 标准库打包作为测试数据（约 140 MB）。").Then("显示 `data.tar` 的大小，约 `141M`。"),
+                "把系统的 Python 标准库打包作为测试数据（约 140 MB）。").Then("显示 `data.tar` 的大小，约 `141M`。").Practice(),
             Step.Change(
                 "用不同算法压缩并计时",
                 "for c in 'gzip -k' 'xz -k -T0' 'zstd -q -k' 'lz4 -q -k'; do TIMEFORMAT=\"%R 秒  $c\"; time $c data.tar; done; ls -lh data.tar.*",
-                "`-k` 保留原文件；bash 内建的 `time` 按 `TIMEFORMAT` 的格式输出耗时（`%R` 为实际秒数）。xz 需要十几秒。").Then("每种算法一行耗时，最后列出四个压缩文件及其大小：`.lz4` 最大、`.xz` 最小、`.zst` 居中但耗时约 1 秒。"),
+                "`-k` 保留原文件；bash 内建的 `time` 按 `TIMEFORMAT` 的格式输出耗时（`%R` 为实际秒数）。xz 需要十几秒。").Then("每种算法一行耗时，最后列出四个压缩文件及其大小：`.lz4` 最大、`.xz` 最小、`.zst` 居中但耗时约 1 秒。").Practice(),
             Step.Read(
                 "查看压缩比",
                 "gzip -l data.tar.gz; xz -l data.tar.xz; zstd -l data.tar.zst",
@@ -60,7 +60,7 @@ public static class CompressorsData
             Step.Change(
                 "解压并比较",
                 "zstd -d -o restored.tar data.tar.zst && cmp data.tar restored.tar && echo 完全一致",
-                "`-d` 解压，`-o` 指定输出文件名。").Then("输出 `data.tar.zst: 147... bytes` 之类的一行解压信息，然后是「完全一致」。"),
+                "`-d` 解压，`-o` 指定输出文件名。").Then("输出 `data.tar.zst: 147... bytes` 之类的一行解压信息，然后是「完全一致」。").Practice(),
         ],
 
         Verify =

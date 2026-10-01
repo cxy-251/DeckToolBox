@@ -38,7 +38,7 @@ public static class PerProcessIoData
             Step.Read(
                 "实时查看各进程的网速",
                 "nethogs wlan0",
-                "按 `m` 切换单位，`q` 退出。").Then("全屏表格每秒刷新：`PID`、`USER`、`PROGRAM`、`DEV`、`SENT`、`RECEIVED`，正在上传或下载的程序排在最前，底部是总计。"),
+                "按 `m` 切换单位，`q` 退出。").Then("全屏表格每秒刷新：`PID`、`USER`、`PROGRAM`、`DEV`、`SENT`、`RECEIVED`，正在上传或下载的程序排在最前，底部是总计。").Manual(),
             Step.Read(
                 "以文本方式记录几次采样",
                 "timeout 8 nethogs -t -c 3 wlan0",

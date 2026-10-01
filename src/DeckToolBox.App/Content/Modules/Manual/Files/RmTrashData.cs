@@ -39,7 +39,7 @@ public static class RmTrashData
             Step.Change(
                 "准备练习文件",
                 "mkdir -p ~/rm-demo/empty ~/rm-demo/full && cd ~/rm-demo && touch 1.log 2.log keep.txt full/x.txt",
-                "放在家目录中，以便测试回收站。").Then("没有输出，当前目录变为 `~/rm-demo`。"),
+                "放在家目录中，以便测试回收站。").Then("没有输出，当前目录变为 `~/rm-demo`。").Practice(),
             Step.Read(
                 "删除前先确认通配符会匹配到什么",
                 "ls *.log",
@@ -47,11 +47,11 @@ public static class RmTrashData
             Step.Danger(
                 "逐个确认后删除",
                 "rm -i *.log",
-                "`-i` 每个文件都询问。").Then("依次提示 `rm: 是否删除一般空文件 '1.log'？`，输入 `y` 删除、`n` 保留。"),
+                "`-i` 每个文件都询问。").Then("依次提示 `rm: 是否删除一般空文件 '1.log'？`，输入 `y` 删除、`n` 保留。").Practice(),
             Step.Change(
                 "rmdir 只删除空目录",
                 "rmdir empty full",
-                "`full` 中有文件。").Then("`empty` 被删除；对 `full` 报错 `rmdir: 删除 'full' 失败: 目录非空`，它保持不变。"),
+                "`full` 中有文件。").Then("`empty` 被删除；对 `full` 报错 `rmdir: 删除 'full' 失败: 目录非空`，它保持不变。").Practice(),
             Step.Change(
                 "把文件移进回收站（可恢复）",
                 "gio trash keep.txt && ls ~/.local/share/Trash/files/ | grep keep",
@@ -67,7 +67,7 @@ public static class RmTrashData
             Step.Danger(
                 "删除整个目录",
                 "cd ~ && rm -r ~/rm-demo",
-                "`-r` 删除目录及其全部内容。先 `cd ~` 离开它。").Then("没有输出，`~/rm-demo` 及其中所有文件被永久删除。"),
+                "`-r` 删除目录及其全部内容。先 `cd ~` 离开它。").Then("没有输出，`~/rm-demo` 及其中所有文件被永久删除。").Practice(),
         ],
 
         Verify =
